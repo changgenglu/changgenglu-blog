@@ -29,20 +29,6 @@ export default {
                     this.markdownContent = item.content
                 }
             })
-            // new Promise((resolve, reject) => {
-            //     const xhr = new XMLHttpRequest();
-            //     xhr.open('GET', `/static/markdowns/${this.fileName}`, true);
-            //     xhr.onreadystatechange = () => {
-            //         if (xhr.readyState === 4) {
-            //             if (xhr.status === 200) {
-            //                 this.markdownContent = xhr.responseText;
-            //             } else {
-            //                 reject(xhr.statusText);
-            //             }
-            //         }
-            //     };
-            //     xhr.send();
-            // });
         }
     },
     mounted() {
