@@ -1,13 +1,40 @@
 <template>
-    <div v-for="(item, index) in files" :key="index" v-show="index > 3" style="text-align:center;">
-        <router-link :to="`/markdown/${item.name}`">
-            <span>{{ item.name }}</span>
-            <span> - </span>
-            <!-- {{ typeof item.date }} -->
-            <span>{{ countDate(item.date) }} ago</span>
+    <div v-for="(item, index) in files.slice(pageStart, pageEnd)" :key="index" class="row row-cols-2">
+        <router-link :to="`/markdown/${item.name}`" class="col-5">
+            <div class="card mb-3">
+                <div class="card-header  d-flex justify-content-between">
+                    <span class="h5">
+                        {{ item.name }}
+                    </span>
+                    <span>
+                        {{ countDate(item.date) }} ago
+                    </span>
+                </div>
+                <div class="card-body text-center">
+                    <div v-for="title, index in item.matchingLines" :key="index">
+                        {{ title }}
+                    </div>
+                </div>
+            </div>
         </router-link>
-        <hr>
     </div>
+    <!-- pagination -->
+    <ul class="pagination">
+        <li class="page-item" @click.prevent="setPage(currentPage - 1)">
+            <a class="page-link" href="#" aria-label="Previous">
+                <span aria-hidden="true">&laquo;</span>
+            </a>
+        </li>
+        <li class="page-item" :class="{ 'active': (currentPage === (n)) }" v-for="(n, index) in totalPages" :key="index"
+            @click.prevent="setPage(n)">
+            <a class="page-link" href="#">{{ n }}</a>
+        </li>
+        <li class="page-item" @click.prevent="setPage(currentPage + 1)">
+            <a class="page-link" href="#" aria-label="Next">
+                <span aria-hidden="true">&raquo;</span>
+            </a>
+        </li>
+    </ul>
 </template>
 
 <script>
@@ -17,6 +44,21 @@ export default {
     data() {
         return {
             files: [],
+            dataInPage: 10,
+            currentPage: 1
+        }
+    },
+    computed: {
+        totalPages() {
+            return Math.ceil(this.files.length / this.dataInPage)
+            //Math.ceil()取最小整數
+        },
+        pageStart() {
+            return (this.currentPage - 1) * this.dataInPage
+        },
+        pageEnd() {
+            return this.currentPage * this.dataInPage
+            //取得該頁最後一個值的index
         }
     },
     methods: {
@@ -24,9 +66,16 @@ export default {
             this.files = AllMyArticle.map(item => (
                 {
                     date: item.date,
-                    name: item.name
+                    name: item.name,
+                    matchingLines: item.matchingLines
                 }
             ))
+        },
+        setPage(page) {
+            if (page <= 0 || page > this.totalPages) {
+                return
+            }
+            this.currentPage = page
         },
         countDate: function (fileDate) {
             // 取得本地時間
@@ -80,4 +129,9 @@ export default {
 }
 </script>
 
-<style></style>
+<style>
+.pagination {
+    padding: 0;
+    justify-content: center;
+}
+</style>

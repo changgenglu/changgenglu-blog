@@ -1,6 +1,6 @@
 <template>
-    <div style="text-align: center; margin: 10vh;">
-        <a href="https://github.com/changgenglu">
+    <div style="text-align: center; margin: 5vh;">
+        <a href="https://github.com/changgenglu" class="text-dark">
             <img alt="my logo" src="../assets/profile.jpg" class="myLogo">
             <h1>
                 Changgenglu

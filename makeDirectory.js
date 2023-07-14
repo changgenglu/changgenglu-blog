@@ -15,18 +15,24 @@ fs.readdir(directoryPath, (err, files) => {
 
   const fileData = [];
 
-  files.forEach((file) => {
+  files.forEach(file => {
     const filePath = path.join(directoryPath, file);
-    const fileContent = fs.readFileSync(filePath, "utf8");
     const fileStats = fs.statSync(filePath);
-    const fileDate = fileStats.mtime;
+    const fileContent = fs.readFileSync(filePath, 'utf8');
+    const fileDate = fileStats.mtime; // 获取文件的修改日期时间戳
+    const lines = fileContent.split('\n');
+    const matchingLines = lines.filter(line => line.startsWith('## '));
     const fileInfo = {
       name: file,
       content: fileContent,
       date: fileDate,
+      matchingLines: matchingLines
     };
     fileData.push(fileInfo);
   });
+
+  // 根据文件的修改日期倒序排序
+  fileData.sort((a, b) => b.date - a.date);
 
   // 輸出為 json 格式
   const jsonContent = JSON.stringify(fileData);

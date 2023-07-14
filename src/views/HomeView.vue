@@ -1,5 +1,5 @@
 <template>
-  <div class="container">
+  <div class="container-sm">
     <menu-component></menu-component>
   </div>
 </template>
@@ -15,7 +15,7 @@ export default {
 </script>
 
 <style>
-.container {
-  width: 50vw;
+a {
+  text-decoration: none;
 }
 </style>
