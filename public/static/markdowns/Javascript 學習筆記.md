@@ -2068,3 +2068,6 @@ var r = getRandom(0, 255);
 var g = getRandom(0, 255);
 var b = getRandom(0, 255);
 ```
+
+
+我在這邊加入了一些東西喇
