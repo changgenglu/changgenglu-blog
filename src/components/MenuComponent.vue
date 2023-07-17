@@ -1,40 +1,42 @@
 <template>
-    <div v-for="(item, index) in files.slice(pageStart, pageEnd)" :key="index" class="row row-cols-2">
-        <router-link :to="`/markdown/${item.name}`" class="col-5">
-            <div class="card mb-3">
-                <div class="card-header  d-flex justify-content-between">
-                    <span class="h5">
-                        {{ item.name }}
-                    </span>
-                    <span>
-                        {{ countDate(item.date) }} ago
-                    </span>
-                </div>
-                <div class="card-body text-center">
-                    <div v-for="title, index in item.matchingLines" :key="index">
-                        {{ title }}
+    <div class="row" style="width: 100%">
+        <div v-for="(item, index) in files.slice(pageStart, pageEnd)" :key="index" class="col-6">
+            <router-link :to="`/markdown/${item.name}`">
+                <div class="card mb-3">
+                    <div class="card-header  d-flex justify-content-between">
+                        <span class="h5">
+                            {{ item.name }}
+                        </span>
+                        <span>
+                            {{ countDate(item.date) }} ago
+                        </span>
+                    </div>
+                    <div class="card-body text-center">
+                        <div v-for="title, index in item.matchingLines" :key="index">
+                            {{ title }}
+                        </div>
                     </div>
                 </div>
-            </div>
-        </router-link>
+            </router-link>
+        </div>
+        <!-- pagination -->
+        <ul class="pagination">
+            <li class="page-item" @click.prevent="setPage(currentPage - 1)">
+                <a class="page-link" href="#" aria-label="Previous">
+                    <span aria-hidden="true">&laquo;</span>
+                </a>
+            </li>
+            <li class="page-item" :class="{ 'active': (currentPage === (n)) }" v-for="(n, index) in totalPages" :key="index"
+                @click.prevent="setPage(n)">
+                <a class="page-link" href="#">{{ n }}</a>
+            </li>
+            <li class="page-item" @click.prevent="setPage(currentPage + 1)">
+                <a class="page-link" href="#" aria-label="Next">
+                    <span aria-hidden="true">&raquo;</span>
+                </a>
+            </li>
+        </ul>
     </div>
-    <!-- pagination -->
-    <ul class="pagination">
-        <li class="page-item" @click.prevent="setPage(currentPage - 1)">
-            <a class="page-link" href="#" aria-label="Previous">
-                <span aria-hidden="true">&laquo;</span>
-            </a>
-        </li>
-        <li class="page-item" :class="{ 'active': (currentPage === (n)) }" v-for="(n, index) in totalPages" :key="index"
-            @click.prevent="setPage(n)">
-            <a class="page-link" href="#">{{ n }}</a>
-        </li>
-        <li class="page-item" @click.prevent="setPage(currentPage + 1)">
-            <a class="page-link" href="#" aria-label="Next">
-                <span aria-hidden="true">&raquo;</span>
-            </a>
-        </li>
-    </ul>
 </template>
 
 <script>

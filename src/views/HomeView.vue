@@ -1,5 +1,5 @@
 <template>
-  <div class="container-sm">
+  <div class="container">
     <menu-component></menu-component>
   </div>
 </template>
