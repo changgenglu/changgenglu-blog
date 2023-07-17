@@ -46,7 +46,7 @@ export default {
     data() {
         return {
             files: [],
-            dataInPage: 10,
+            dataInPage: 6,
             currentPage: 1
         }
     },
