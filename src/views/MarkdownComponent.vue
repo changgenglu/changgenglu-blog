@@ -46,6 +46,7 @@ export default {
 #menu {
     height: 100%;
     top: 3vh;
-    overflow-y: auto;
+    overflow-y: scroll;
+    
 }
 </style>
