@@ -2,45 +2,18 @@
   <div class="container">
     <div class="d-flex justify-content-center m-3">
       <span class="h4 mt-2">搜尋筆記：</span>
-      <input type="text" v-model="searchText" placeholder="Laravel" class="form-control" style="width:12vw">
+      <input type="text" v-model="searchText" placeholder="筆記標題" class="form-control" style="width:12vw">
     </div>
     <div class="row" style="width: 100%">
-      <div v-for="(item, index) in searchResults.slice(pageStart, pageEnd)" :key="index" class="col-6"
-        v-show="searchResults.length !== files.length">
+      <div v-for="(item, index) in searchResult" :key="index" class="col-6">
         <router-link :to="`/markdown/${item.name}`">
           <div class="card mb-3">
             <div class="card-header  d-flex justify-content-between">
-              <span class="h5">
-                {{ item.name }}
-              </span>
-              <span>
-                {{ countDate(item.date) }} ago
-              </span>
+              <span class="h5">{{ item.name.split('.md')[0] }}</span>
+              <span>{{ countDate(item.date) }} ago</span>
             </div>
             <div class="card-body text-center">
-              <div v-for="title, index in item.matchingLines" :key="index">
-                {{ title }}
-              </div>
-            </div>
-          </div>
-        </router-link>
-      </div>
-      <div v-for="(item, index) in files.slice(pageStart, pageEnd)" :key="index" class="col-6"
-        v-show="searchResults.length === files.length">
-        <router-link :to="`/markdown/${item.name}`">
-          <div class="card mb-3">
-            <div class="card-header  d-flex justify-content-between">
-              <span class="h5">
-                {{ item.name }}
-              </span>
-              <span>
-                {{ countDate(item.date) }} ago
-              </span>
-            </div>
-            <div class="card-body text-center">
-              <div v-for="title, index in item.matchingLines" :key="index">
-                {{ title }}
-              </div>
+              <div v-for="title, index in item.matchingLines" :key="index">{{ title }}</div>
             </div>
           </div>
         </router-link>
@@ -106,6 +79,15 @@ export default {
     pageEnd() {
       return this.currentPage * this.dataInPage
       //取得該頁最後一個值的index
+    },
+    searchResult() {
+      const { searchResults, files, pageStart, pageEnd } = this;
+
+      if (searchResults.length === files.length) {
+        return files.slice(pageStart, pageEnd);
+      } else {
+        return searchResults.slice(pageStart, pageEnd);
+      }
     }
   },
   methods: {

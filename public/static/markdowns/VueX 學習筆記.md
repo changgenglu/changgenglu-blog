@@ -59,7 +59,7 @@ state 就像是 data，action + Mutation 就像是 methods，getters 就像 comp
 
 - 使用：/app.vue
 
-  ```vue
+  ```html
   <template>
     <div id="app">
       <p>isLoading: {{ ifLoading }}</p>
@@ -100,7 +100,7 @@ state 就像是 data，action + Mutation 就像是 methods，getters 就像 comp
 
 - 使用：/app.vue
 
-  ```vue
+  ```html
   <template>
     <div id="app">
       <p>My Name is {{ myName }}</p>
@@ -152,7 +152,7 @@ state 就像是 data，action + Mutation 就像是 methods，getters 就像 comp
 
 - 使用：/app.vue
 
-  ```vue
+  ```html
   <template>
     <div id="app">
       <p>My New Name is {{ newName }}</p>
@@ -203,7 +203,7 @@ state 就像是 data，action + Mutation 就像是 methods，getters 就像 comp
 
 - 使用：/app.vue
 
-  ```vue
+  ```html
   <template>
     <div id="app">
       <p>My New Name is {{ newName }}</p>
@@ -232,7 +232,7 @@ state 就像是 data，action + Mutation 就像是 methods，getters 就像 comp
 
 - 使用：
 
-  ```vue
+  ```javascript
   <script>
     import { mapGetters } from "vuex";
     export default {
@@ -300,7 +300,7 @@ state 就像是 data，action + Mutation 就像是 methods，getters 就像 comp
 
 ### mapMutations
 
-```vue
+```javascript
 <script>
   import { mapMutations } from "vuex";
   export default {
