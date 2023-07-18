@@ -46,6 +46,7 @@ import AllMyArticle from '../assets/fileNames.json';
 
 export default {
   name: 'HomeView',
+  components: {},
   data() {
     return {
       files: [],

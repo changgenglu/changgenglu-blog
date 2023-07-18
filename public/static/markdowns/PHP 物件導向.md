@@ -6,26 +6,26 @@
   - [物件和類別 `Objects` and `Classes`](#物件和類別-objects-and-classes)
   - [建立類別 `Class`](#建立類別-class)
   - [定義類別的屬性](#定義類別的屬性)
-  - [定義類別的方法(Methods)](#定義類別的方法methods)
-  - [定義類別的常數(const)](#定義類別的常數const)
+  - [定義類別的方法 Methods](#定義類別的方法-methods)
+  - [定義類別的常數 const](#定義類別的常數-const)
   - [封裝 Encapsulation](#封裝-encapsulation)
   - [PHP 魔術函數](#php-魔術函數)
-    - [`__construct()` 建構式](#__construct-建構式)
-    - [`__destruct()` 解構式](#__destruct-解構式)
-    - [`unset()`](#unset)
+    - [`__construct` 建構式](#__construct-建構式)
+    - [`__destruct` 解構式](#__destruct-解構式)
+    - [`unset`](#unset)
     - [`__toString`](#__tostring)
     - [`__get` `__set` 強制封裝](#__get-__set-強制封裝)
   - [類別繼承](#類別繼承)
-    - [覆寫(Override) 繼承的方法和屬性](#覆寫override-繼承的方法和屬性)
+    - [覆寫 Override 繼承的方法和屬性](#覆寫-override-繼承的方法和屬性)
     - [`final` 避免被覆寫](#final-避免被覆寫)
-    - [範圍解析運算子(scope resolution operator)](#範圍解析運算子scope-resolution-operator)
-  - [將屬性和方法加上可視性(Visibility)](#將屬性和方法加上可視性visibility)
+    - [範圍解析運算子 scope resolution operator](#範圍解析運算子-scope-resolution-operator)
+  - [將屬性和方法加上可視性 Visibility](#將屬性和方法加上可視性-visibility)
     - [`Protected` 受保護的](#protected-受保護的)
     - [`Private` 隱私的](#private-隱私的)
     - [`Static` 靜態的](#static-靜態的)
   - [介面與抽象類別的應用](#介面與抽象類別的應用)
-    - [介面(interface)](#介面interface)
-    - [抽象類別(Abstract)](#抽象類別abstract)
+    - [interface 介面](#interface-介面)
+    - [Abstract 抽象類別](#abstract-抽象類別)
   - [`trait` 的應用](#trait-的應用)
   - [參考資料](#參考資料)
 
@@ -100,7 +100,7 @@ echo $obj->prop1; // Output the property
 I'm a class property!
 ```
 
-## 定義類別的方法(Methods)
+## 定義類別的方法 Methods
 
 可以藉由執行這些方法，來更改物件的行為或是狀態。
 
@@ -185,7 +185,7 @@ I'm a class property! I'm a class property! I'm a new property value! I belong t
 
 - 物件導向將 `object` 視為獨立的個體，依照藍圖蓋出來的房子，每一間都是獨立的。
 
-## 定義類別的常數(const)
+## 定義類別的常數 const
 
 - 可以把類別中始終保持不變的值，定義為常數。
 
@@ -232,7 +232,7 @@ value value
 
 ## PHP 魔術函數
 
-### `__construct()` 建構式
+### `__construct` 建構式
 
 - `__construct()` : 當一個物件建立的時候會 **首先** 被呼叫。
 - `__CLASS__` : 會回傳被呼叫的類別名稱。
@@ -275,7 +275,7 @@ echo "End of file.<br />";
 The class "MyClass" was initiated! I'm a class property! End of file.
 ```
 
-### `__destruct()` 解構式
+### `__destruct` 解構式
 
 - `__destruct()` : 可以清除物件，例如：關閉資料庫連線。
 
@@ -324,7 +324,7 @@ The class "MyClass" was initiated! I'm a class property! End of file. The class 
 
 - 當物件使用完畢，PHP 會自動釋放記憶體。
 
-### `unset()`
+### `unset`
 
 - `unset()` : 此方法可以更明確觸發 `__destruct()` 魔術函數。
 
@@ -547,7 +547,7 @@ echo $new_object->getProperty();
 The class "MyClass" was initiated! From a new method in MyOtherClass. I'm a class property! The class "MyClass" was destroyed.
 ```
 
-### 覆寫(Override) 繼承的方法和屬性
+### 覆寫 Override 繼承的方法和屬性
 
 在新的類別中，重新定義繼承自父層的屬性和方法
 
@@ -637,7 +637,7 @@ final class A
 }
 ```
 
-### 範圍解析運算子(scope resolution operator)
+### 範圍解析運算子 scope resolution operator
 
 當要將繼承自父層類別的方法其功能做擴充，要保留原始的功能，但不用將原有的程式碼重寫一遍。
 
@@ -709,7 +709,7 @@ The class "MyClass" was initiated! A new constructor in MyOtherClass. From a new
 "MyClass" was destroyed.
 ```
 
-## 將屬性和方法加上可視性(Visibility)
+## 將屬性和方法加上可視性 Visibility
 
 - `static` : 不用將類別實例化，即可調用。
 - `public` : 方法及屬性可以在類別之外被存取。
@@ -1002,7 +1002,7 @@ The count is 1. The count is 2. The count is 3. The count is 4. The count is 5. 
 
 ## 介面與抽象類別的應用
 
-### 介面(interface)
+### interface 介面
 
 - `implements`關鍵字 : 執行介面
 - 定義功能名稱，但交由執行的類別去**實作**功能
@@ -1063,7 +1063,7 @@ demo.php
 
 介面的使用時機 : 當「多個類別（Class）」之間有共同的方法（function），但方法實做的方式有差異，可以將這些共用「方法」寫成「介面（Interface）」，讓其他的「子類別（Class）」去實做這個介面
 
-### 抽象類別(Abstract)
+### Abstract 抽象類別
 
 - 父類別若不想實作介面方法，子類別又需要定義介面功能，可以將父類別抽象化，即可不用實作介面方法。
 - 子類別繼承抽象父類別之後，必須要實作父類別的介面方法。
