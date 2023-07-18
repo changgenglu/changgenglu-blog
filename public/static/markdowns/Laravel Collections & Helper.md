@@ -1,5 +1,7 @@
 # Laravel Collections & Helper
 
+<!-- TOC -->
+
 - [Laravel Collections \& Helper](#laravel-collections--helper)
   - [Collections 集合](#collections-集合)
     - [運算類](#運算類)
@@ -42,6 +44,8 @@
   - [Helper 輔助函數](#helper-輔助函數)
     - [`Arr::add()` 將數值加入陣列](#arradd-將數值加入陣列)
     - [`after()` 返回傳入的字串的值後面所有的內容](#after-返回傳入的字串的值後面所有的內容)
+
+<!-- /TOC -->
 
 ## Collections 集合
 

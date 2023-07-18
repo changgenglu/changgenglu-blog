@@ -1,5 +1,7 @@
 # Redis 學習筆記
 
+<!-- TOC -->
+
 - [Redis 學習筆記](#redis-學習筆記)
   - [redis-cil](#redis-cil)
   - [資料類型](#資料類型)
@@ -11,6 +13,8 @@
   - [redis Key](#redis-key)
   - [Redis GUI](#redis-gui)
   - [windows 安裝 phpredis](#windows-安裝-phpredis)
+
+<!-- /TOC -->
 
 ## redis-cil
 

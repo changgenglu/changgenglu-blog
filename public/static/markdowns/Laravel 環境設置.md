@@ -1,5 +1,7 @@
 # Laravel 環境設置
 
+<!-- TOC -->
+
 - [Laravel 環境設置](#laravel-環境設置)
   - [環境初始設定](#環境初始設定)
     - [1. 安裝 XAMPP or phpEnv](#1-安裝-xampp-or-phpenv)
@@ -19,6 +21,8 @@
   - [Laravel 安裝 bootstrap](#laravel-安裝-bootstrap)
     - [Laravel 8](#laravel-8)
     - [Laravel 6](#laravel-6)
+
+<!-- /TOC -->
 
 ## 環境初始設定
 

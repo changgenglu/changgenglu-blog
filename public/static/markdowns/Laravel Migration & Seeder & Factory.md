@@ -1,5 +1,7 @@
 # Laravel Migration & Seeder & Factory
 
+<!-- TOC -->
+
 - [Laravel Migration \& Seeder \& Factory](#laravel-migration--seeder--factory)
   - [Migration](#migration)
     - [產生 Migration 檔案](#產生-migration-檔案)
@@ -12,6 +14,8 @@
   - [Factory](#factory)
     - [產生 Factory 檔案](#產生-factory-檔案)
     - [Faker Formatters](#faker-formatters)
+
+<!-- /TOC -->
 
 ## Migration
 

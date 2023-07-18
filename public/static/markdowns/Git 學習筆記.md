@@ -1,5 +1,7 @@
 # Git 學習筆記
 
+<!-- TOC -->
+
 - [Git 學習筆記](#git-學習筆記)
   - [常用指令](#常用指令)
     - [Git 常用指令](#git-常用指令)
@@ -45,6 +47,8 @@
       - [產生 SSH 連線所需的公鑰內容](#產生-ssh-連線所需的公鑰內容)
       - [上傳公鑰](#上傳公鑰)
     - [部署靜態頁面到 github](#部署靜態頁面到-github)
+
+<!-- /TOC -->
 
 ## 常用指令
 
@@ -803,7 +807,7 @@ ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABgQDFp+A3qe4qm1Dkw66LN/vNGlufX5iC9VERfuUiXHNM
 
 > 參考資料：
 >
-> [[Vue] 將Vue專案部署至Github Pages](https://dean34520.medium.com/vue%E7%B3%BB%E5%88%97%E6%96%87-%E5%B0%87vue%E6%AA%94%E6%A1%88%E9%83%A8%E7%BD%B2%E8%87%B3github-334951cadede)
+> [[Vue] 將 Vue 專案部署至 Github Pages](https://dean34520.medium.com/vue%E7%B3%BB%E5%88%97%E6%96%87-%E5%B0%87vue%E6%AA%94%E6%A1%88%E9%83%A8%E7%BD%B2%E8%87%B3github-334951cadede)
 
 1. 建立與本地專案相同名稱的 repository
 2. 在專案資料夾中新增 vue.config.js，設定 publishPath

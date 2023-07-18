@@ -2,6 +2,8 @@
 
 > 目前最新版本為 v5.0 (但 v3.1 版較為普及)
 
+<!-- TOC -->
+
 - [MQTT](#mqtt)
   - [概述](#概述)
     - [MQTT 訊息格式](#mqtt-訊息格式)
@@ -26,6 +28,8 @@
   - [MQTT Client](#mqtt-client)
     - [安裝](#安裝)
     - [設定 mqtt-client 連線](#設定-mqtt-client-連線)
+
+<!-- /TOC -->
 
 ## 概述
 

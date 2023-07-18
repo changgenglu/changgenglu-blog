@@ -1,5 +1,15 @@
 # Laravel API Format
 
+<!-- TOC -->
+
+- [Laravel API Format](#laravel-api-format)
+  - [spatie/laravel-fractal 套件](#spatielaravel-fractal-套件)
+    - [建立 transformer](#建立-transformer)
+    - [在 controller 中使用 transformer](#在-controller-中使用-transformer)
+  - [API Resource](#api-resource)
+
+<!-- /TOC -->
+
 > api 返回資料若以原生格式返回，沒有經過任何處理，可能包含敏感資訊
 >
 > 利用 transformer 可以將 api 響應的訊息系統化規則，進行統一輸出，方便管理與編輯
@@ -11,12 +21,6 @@
 > [Laravel 構建 API 伺服器之響應資料處理](https://www.796t.com/content/1545181747.html)
 >
 > [Laravel 8 中文文檔 API 资源](https://learnku.com/docs/laravel/8.x/eloquent-resources/9410)
-
-- [Laravel API Format](#laravel-api-format)
-  - [spatie/laravel-fractal 套件](#spatielaravel-fractal-套件)
-    - [建立 transformer](#建立-transformer)
-    - [在 controller 中使用 transformer](#在-controller-中使用-transformer)
-  - [API Resource](#api-resource)
 
 ## spatie/laravel-fractal 套件
 

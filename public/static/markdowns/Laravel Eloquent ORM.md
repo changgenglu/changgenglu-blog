@@ -1,5 +1,7 @@
 # Laravel Eloquent ORM
 
+<!-- TOC -->
+
 - [Laravel Eloquent ORM](#laravel-eloquent-orm)
   - [models](#models)
     - [建立 Model](#建立-model)
@@ -33,6 +35,8 @@
       - [軟刪除應用](#軟刪除應用)
       - [實現中間表的軟刪除](#實現中間表的軟刪除)
       - [清除舊的軟刪除資料](#清除舊的軟刪除資料)
+
+<!-- /TOC -->
 
 ## models
 
@@ -166,12 +170,12 @@ class UserInfo extends Model
 |  id   |
 | name  |
 
-|     images     |
-| :------------: |
-|       id       |
+|     images      |
+| :-------------: |
+|       id        |
 | imaginable_type |
 |  imaginable_id  |
-|      url       |
+|       url       |
 
 - imaginable_id : 關聯的主鍵值
 - imaginable_type : 指定這筆資料是關聯 users 資料表還是 posts 資料表，欄內儲存的是類別名稱，型態為字串，如：'App\Models\User' 'App\Models\Post'
@@ -297,7 +301,7 @@ class User extends Model
 |  id   |
 | name  |
 
-|   taggable   |
+|   taggable    |
 | :-----------: |
 |      id       |
 |    tag_id     |

@@ -1,16 +1,9 @@
 # PHP 學習筆記
 
+<!-- TOC -->
+
 - [PHP 學習筆記](#php-學習筆記)
   - [運算子、判斷](#運算子判斷)
-    - [`+`: 算術相加](#-算術相加)
-    - [`.`: 字串相加](#-字串相加)
-    - [`gettype()`: 判斷變數的型態](#gettype-判斷變數的型態)
-    - [`(int)($var1 + $var2)`: 只取商](#intvar1--var2-只取商)
-    - [`isset($var)`: 檢查變數是否有設置](#issetvar-檢查變數是否有設置)
-    - [`empty($var)`: 檢查變數是否為空值](#emptyvar-檢查變數是否為空值)
-    - [`is_null($var)`: 檢查變數是否為 null](#is_nullvar-檢查變數是否為-null)
-    - [`var_dump($var);`: 將變數的訊息印出於螢幕上](#var_dumpvar-將變數的訊息印出於螢幕上)
-    - [`instanceof` 型態運算子](#instanceof-型態運算子)
   - [Autoload 自動載入](#autoload-自動載入)
   - [魔術常數](#魔術常數)
     - [`__LINE__` 檔案中的當前行號](#__line__-檔案中的當前行號)
@@ -74,35 +67,37 @@
   - [在 Linux 執行 php 檔](#在-linux-執行-php-檔)
     - [方法一](#方法一)
 
+<!-- /TOC -->
+
 ## 運算子、判斷
 
-### `+`: 算術相加
+- `+`: 算術相加
 
-### `.`: 字串相加
+- `.`: 字串相加
 
-### `gettype()`: 判斷變數的型態
+- `gettype()`: 判斷變數的型態
 
-### `(int)($var1 + $var2)`: 只取商
+- `(int)($var1 + $var2)`: 只取商
 
-### `isset($var)`: 檢查變數是否有設置
+- `isset($var)`: 檢查變數是否有設置
 
-### `empty($var)`: 檢查變數是否為空值
+- `empty($var)`: 檢查變數是否為空值
 
-### `is_null($var)`: 檢查變數是否為 null
+- `is_null($var)`: 檢查變數是否為 null
 
-|                 | gettype() |   isset()   |   empty()   |  is_null()  |
-| :-------------: | :-------: | :---------: | :---------: | :---------: |
-| $x is undefined |   null    | **_false_** |  [true](#)  |  [true](#)  |
-|    $x = null    |   null    | **_false_** |  [true](#)  |  [true](#)  |
-|     $x = 0      |    int    |  [true](#)  |  [true](#)  | **_false_** |
-|    $x = "0"     |    str    |  [true](#)  |  [true](#)  | **_false_** |
-|     $x = 1      |    int    |  [true](#)  | **_false_** | **_false_** |
-|     $x = ""     |    str    |  [true](#)  |  [true](#)  | **_false_** |
-|   $x = "PHP"    |    str    |  [true](#)  | **_false_** | **_false_** |
+  |                 | gettype() |   isset()   |   empty()   |  is_null()  |
+  | :-------------: | :-------: | :---------: | :---------: | :---------: |
+  | $x is undefined |   null    | **_false_** |  [true](#)  |  [true](#)  |
+  |    $x = null    |   null    | **_false_** |  [true](#)  |  [true](#)  |
+  |     $x = 0      |    int    |  [true](#)  |  [true](#)  | **_false_** |
+  |    $x = "0"     |    str    |  [true](#)  |  [true](#)  | **_false_** |
+  |     $x = 1      |    int    |  [true](#)  | **_false_** | **_false_** |
+  |     $x = ""     |    str    |  [true](#)  |  [true](#)  | **_false_** |
+  |   $x = "PHP"    |    str    |  [true](#)  | **_false_** | **_false_** |
 
-### `var_dump($var);`: 將變數的訊息印出於螢幕上
+- `var_dump($var);`: 將變數的訊息印出於螢幕上
 
-### `instanceof` 型態運算子
+- `instanceof` 型態運算子
 
 - 用於確定一個 php 物件是否屬於某一類別
 

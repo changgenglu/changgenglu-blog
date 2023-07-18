@@ -1,5 +1,7 @@
 # PHP 物件導向
 
+<!-- TOC -->
+
 - [PHP 物件導向](#php-物件導向)
   - [物件和類別 `Objects` and `Classes`](#物件和類別-objects-and-classes)
   - [建立類別 `Class`](#建立類別-class)
@@ -26,6 +28,8 @@
     - [抽象類別(Abstract)](#抽象類別abstract)
   - [`trait` 的應用](#trait-的應用)
   - [參考資料](#參考資料)
+
+<!-- /TOC -->
 
 ## 物件和類別 `Objects` and `Classes`
 
@@ -176,8 +180,7 @@ echo $obj2->getProperty();
 輸出結果
 
 ```html
-I'm a class property! I'm a class property! I'm a new property value! I belong
-to the second instance!
+I'm a class property! I'm a class property! I'm a new property value! I belong to the second instance!
 ```
 
 - 物件導向將 `object` 視為獨立的個體，依照藍圖蓋出來的房子，每一間都是獨立的。
@@ -316,8 +319,7 @@ echo "End of file.<br />";
 最後輸出畫面
 
 ```html
-The class "MyClass" was initiated! I'm a class property! End of file. The class
-"MyClass" was destroyed.
+The class "MyClass" was initiated! I'm a class property! End of file. The class "MyClass" was destroyed.
 ```
 
 - 當物件使用完畢，PHP 會自動釋放記憶體。
@@ -369,8 +371,7 @@ echo "End of file.<br />";
 結果會輸出
 
 ```html
-The class "MyClass" was initiated! I'm a class property! The class "MyClass" was
-destroyed. End of file.
+The class "MyClass" was initiated! I'm a class property! The class "MyClass" was destroyed. End of file.
 ```
 
 ### `__toString`
@@ -390,8 +391,7 @@ echo $obj;
 輸出結果
 
 ```html
-The class "MyClass" was initiated! Catchable fatal error: Object of class
-MyClass could not be converted to string
+The class "MyClass" was initiated! Catchable fatal error: Object of class MyClass could not be converted to string
 ```
 
 加入 `__toString` 函數，來做轉換處理。
@@ -446,8 +446,7 @@ echo "End of file.<br />";
 輸出結果為
 
 ```html
-The class "MyClass" was initiated! Using the toString method: I'm a class
-property! The class "MyClass" was destroyed. End of file.
+The class "MyClass" was initiated! Using the toString method: I'm a class property! The class "MyClass" was destroyed. End of file.
 ```
 
 ### `__get` `__set` 強制封裝
@@ -545,8 +544,7 @@ echo $new_object->getProperty();
 結果輸出
 
 ```html
-The class "MyClass" was initiated! From a new method in MyOtherClass. I'm a
-class property! The class "MyClass" was destroyed.
+The class "MyClass" was initiated! From a new method in MyOtherClass. I'm a class property! The class "MyClass" was destroyed.
 ```
 
 ### 覆寫(Override) 繼承的方法和屬性
@@ -612,8 +610,7 @@ echo $new_object->getProperty();
 在新類別中，覆寫 `__construct` 方法的輸出結果
 
 ```html
-A new constructor in MyOtherClass. From a new method in MyOtherClass. I'm a
-class property! The class "MyClass" was destroyed.
+A new constructor in MyOtherClass. From a new method in MyOtherClass. I'm a class property! The class "MyClass" was destroyed.
 ```
 
 ### `final` 避免被覆寫
@@ -708,8 +705,8 @@ echo $new_object->getProperty();
 結果輸出
 
 ```html
-The class "MyClass" was initiated! A new constructor in MyOtherClass. From a new
-method in MyOtherClass. I'm a class property! The class "MyClass" was destroyed.
+The class "MyClass" was initiated! A new constructor in MyOtherClass. From a new method in MyOtherClass. I'm a class property! The class
+"MyClass" was destroyed.
 ```
 
 ## 將屬性和方法加上可視性(Visibility)
@@ -781,8 +778,8 @@ echo $new_object->getProperty();
 結果輸出
 
 ```html
-The class "MyClass" was initiated! A new constructor in MyOtherClass. Fatal
-error: Call to protected method MyClass::getProperty() from context ''
+The class "MyClass" was initiated! A new constructor in MyOtherClass. Fatal error: Call to protected method MyClass::getProperty() from
+context ''
 ```
 
 在子類別 MyOtherClass 中新增一個方法來調用父層的 `protected` `getProperty()` 方法
@@ -849,8 +846,7 @@ echo $new_object->callProtected();
 輸出結果
 
 ```html
-The class "MyClass" was initiated! A new constructor in MyOtherClass. I'm a
-class property! The class "MyClass" was destroyed.
+The class "MyClass" was initiated! A new constructor in MyOtherClass. I'm a class property! The class "MyClass" was destroyed.
 ```
 
 ### `Private` 隱私的
@@ -919,8 +915,8 @@ echo $new_object->callProtected();
 輸出結果
 
 ```html
-The class "MyClass" was initiated! A new constructor in MyOtherClass. Fatal
-error: Call to private method MyClass::getProperty() from context 'MyOtherClass'
+The class "MyClass" was initiated! A new constructor in MyOtherClass. Fatal error: Call to private method MyClass::getProperty() from
+context 'MyOtherClass'
 ```
 
 ### `Static` 靜態的
@@ -1000,8 +996,8 @@ do {
 輸出結果
 
 ```html
-The count is 1. The count is 2. The count is 3. The count is 4. The count is 5.
-The count is 6. The count is 7. The count is 8. The count is 9. The count is 10.
+The count is 1. The count is 2. The count is 3. The count is 4. The count is 5. The count is 6. The count is 7. The count is 8. The count is
+9. The count is 10.
 ```
 
 ## 介面與抽象類別的應用
@@ -1207,9 +1203,8 @@ class Child
 因為 CountAge 與 Child 中都存在 `$age` 這個屬性，此時便會產生
 
 ```html
-PHP Fatal error: Child and CountAge define the same property ($age) in the
-composition of Child. However, the definition differs and is considered
-incompatible.
+PHP Fatal error: Child and CountAge define the same property ($age) in the composition of Child. However, the definition differs and is
+considered incompatible.
 ```
 
 在使用這個 `trait` 的 `class` 都可以使用其所定義的方法。`trait` 中定義的方法為共有的。
