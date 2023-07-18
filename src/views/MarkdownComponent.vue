@@ -6,7 +6,7 @@
         </div>
     </div>
     <div id="to-footer-btn">
-        <button class="btn btn-outline-success" @click="scrollToFooter()">跳到頁尾</button>
+        <button class="btn btn-outline-success" @click="scrollToFooter()">go 2 top</button>
     </div>
     <div style="text-align:center" class="m-5">
         <router-link to="/" class="btn btn-lg btn-outline-success">
@@ -39,7 +39,7 @@ export default {
             })
         },
         scrollToFooter() {
-            window.scrollTo(0, document.body.scrollHeight);
+            window.scrollTo(0, 0);
         }
     },
     mounted() {
