@@ -5,15 +5,15 @@
 - [Vue 學習筆記](#vue-學習筆記)
   - [Vue 實體的生命週期](#vue-實體的生命週期)
   - [Vue 屬性](#vue-屬性)
-    - [監聽器(watch)](#監聽器watch)
+    - [watch 監聽器](#watch-監聽器)
       - [$watch](#watch)
       - [watch](#watch-1)
-    - [計算(computed)](#計算computed)
+    - [computed 計算](#computed-計算)
       - [watch 和 computed 差別](#watch-和-computed-差別)
         - [依賴更新才會重新執行](#依賴更新才會重新執行)
     - [computed、watch 和 methods 的使用時機](#computedwatch-和-methods-的使用時機)
-  - [eventHub 事件中心 (vue 2)](#eventhub-事件中心-vue-2)
-  - [指令(directive)](#指令directive)
+  - [eventHub 事件中心: vue 2](#eventhub-事件中心-vue-2)
+  - [directive 指令](#directive-指令)
     - [屬性綁定](#屬性綁定)
     - [表單綁定 `v-model`](#表單綁定-v-model)
       - [input](#input)
@@ -71,7 +71,7 @@
 
 ## Vue 屬性
 
-### 監聽器(watch)
+### watch 監聽器
 
 當資料變化時調用函數，函數會有兩個傳入參數：改變前的值、改變後的後的值，可以使用這個函數做跟此資料變化有的處理。
 
@@ -144,7 +144,7 @@ watch: (
     - immediate 布林值 使否在實體初始化時立即調用 callback
   - array 當有多個監聽器時，使用陣列帶入多個 callback 函數
 
-### 計算(computed)
+### computed 計算
 
 和 watch 一樣，都是用來監聽數據的方式，但使用場景不同。
 
@@ -242,7 +242,7 @@ createApp({
 
 當三者都能實現同一效果，但 computed 的效能較好
 
-## eventHub 事件中心 (vue 2)
+## eventHub 事件中心: vue 2
 
 在無關聯的組件之間，互相傳遞 data
 
@@ -337,7 +337,7 @@ export default {
 };
 ```
 
-## 指令(directive)
+## directive 指令
 
 ### 屬性綁定
 

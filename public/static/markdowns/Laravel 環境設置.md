@@ -5,14 +5,14 @@
 - [Laravel 環境設置](#laravel-環境設置)
   - [環境初始設定](#環境初始設定)
     - [1. 安裝 XAMPP or phpEnv](#1-安裝-xampp-or-phpenv)
-      - [xampp 更改 php 版本 (版本 5 =\> 7)](#xampp-更改-php-版本-版本-5--7)
+      - [xampp 更改 php 版本: 版本 5 =\> 7](#xampp-更改-php-版本-版本-5--7)
       - [macOS Monterey 上安裝 PHP](#macos-monterey-上安裝-php)
     - [2. 安裝 composer](#2-安裝-composer)
       - [windows 透過 composer 官網下載 composer 安裝檔](#windows-透過-composer-官網下載-composer-安裝檔)
-      - [下載 Composer(MacOS)](#下載-composermacos)
-      - [全局調用 Composer (MacOS)](#全局調用-composer-macos)
+      - [下載 Composer: MacOS](#下載-composer-macos)
+      - [全局調用 Composer: MacOS](#全局調用-composer-macos)
     - [3. 安裝 Visual Studio Code or phpStorm](#3-安裝-visual-studio-code-or-phpstorm)
-    - [4. Laravel 全域安裝 (XAMPP)](#4-laravel-全域安裝-xampp)
+    - [4. Laravel 全域安裝 XAMPP](#4-laravel-全域安裝-xampp)
   - [從 Git clone Laravel 專案](#從-git-clone-laravel-專案)
     - [開發環境設定](#開發環境設定)
     - [上線環境設定](#上線環境設定)
@@ -28,7 +28,7 @@
 
 ### 1. 安裝 XAMPP or phpEnv
 
-#### xampp 更改 php 版本 (版本 5 => 7)
+#### xampp 更改 php 版本: 版本 5 => 7
 
 > 注意！php 8.1 不相容 laravel 6.x 以下(包含 6)
 
@@ -165,7 +165,7 @@
 
 #### windows 透過 composer 官網下載 composer 安裝檔
 
-#### 下載 Composer(MacOS)
+#### 下載 Composer: MacOS
 
 - 代碼以[Composer 官網](https://getcomposer.org/download/)為主
 
@@ -201,7 +201,7 @@ php -r "unlink('composer-setup.php');"
   - macOS: $HOME/.composer/vendor/bin
   - Windows: %USERPROFILE%\AppData\Roaming\Composer\vendor\bin
 
-#### 全局調用 Composer (MacOS)
+#### 全局調用 Composer: MacOS
 
 確認是否成功安裝 Composer
 
@@ -225,7 +225,7 @@ composer
 
 ### 3. 安裝 Visual Studio Code or phpStorm
 
-### 4. Laravel 全域安裝 (XAMPP)
+### 4. Laravel 全域安裝 XAMPP
 
 ```bash
 cd c:\xampp\htdocs

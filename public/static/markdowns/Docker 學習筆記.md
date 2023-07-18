@@ -3,7 +3,7 @@
 <!-- TOC -->
 
 - [Docker 學習筆記](#docker-學習筆記)
-  - [安裝 Docker (Docker for Windows)](#安裝-docker-docker-for-windows)
+  - [安裝 Docker: Docker for Windows](#安裝-docker-docker-for-windows)
   - [基本概念](#基本概念)
     - [Image](#image)
     - [Container](#container)
@@ -38,7 +38,7 @@
 >
 > [Laravel 實戰經驗分享 - Day26 Dockerize 你的 Laravel 專案](https://ithelp.ithome.com.tw/articles/10251844)
 
-## 安裝 Docker (Docker for Windows)
+## 安裝 Docker: Docker for Windows
 
 > Windows 10
 > 需啟用 Hyper-v

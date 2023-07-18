@@ -17,9 +17,9 @@
       - [First-class Object](#first-class-object)
       - [宣告 function](#宣告-function)
       - [呼叫 function](#呼叫-function)
-      - [IIFF (Immediately Invoked Function Expression) 或稱自我調用函式](#iiff-immediately-invoked-function-expression-或稱自我調用函式)
+      - [IIFF](#iiff)
       - [Scope 作用域](#scope-作用域)
-        - [Lexical Scope(語彙範疇)](#lexical-scope語彙範疇)
+        - [Lexical Scope 語彙範疇](#lexical-scope-語彙範疇)
         - [參數也屬於內層 scope](#參數也屬於內層-scope)
         - [巢狀 scope](#巢狀-scope)
   - [運算式與運算子](#運算式與運算子)
@@ -28,7 +28,7 @@
     - [比較運算子](#比較運算子)
     - [算數運算子](#算數運算子)
     - [邏輯運算子](#邏輯運算子)
-    - [其餘運算子與展開運算子 `...`](#其餘運算子與展開運算子-)
+    - [其餘運算子與展開運算子](#其餘運算子與展開運算子)
     - [三元運算式](#三元運算式)
     - [if else](#if-else)
   - [流程判斷與迴圈](#流程判斷與迴圈)
@@ -40,8 +40,8 @@
   - [函式 function](#函式-function)
     - [定義函式](#定義函式)
     - [箭頭函式](#箭頭函式)
-    - [變數的有效範圍 (Scope)](#變數的有效範圍-scope)
-    - [提升(Hoisting)](#提升hoisting)
+    - [Scope 變數的有效範圍](#scope-變數的有效範圍)
+    - [Hoisting 提升](#hoisting-提升)
       - [變數提升](#變數提升)
       - [函式提升](#函式提升)
       - [為何會有 Hoisting 的現象？](#為何會有-hoisting-的現象)
@@ -50,14 +50,13 @@
   - [方法](#方法)
     - [取得 base\_url](#取得-base_url)
     - [document](#document)
-      - [`.querySelector()` 元素選擇器](#queryselector-元素選擇器)
-      - [`.querySelectorAll()` 選取所有指定元素](#queryselectorall-選取所有指定元素)
-    - [prototype.forEach()](#prototypeforeach)
-    - [prototype.map()](#prototypemap)
-    - [prototype.push()](#prototypepush)
-    - [`Math.round()` 四捨五入](#mathround-四捨五入)
-    - [`Array.prototype.filter()`](#arrayprototypefilter)
-    - [`Array.prototype.splice()` 新增刪除陣列中的元素](#arrayprototypesplice-新增刪除陣列中的元素)
+      - [`.querySelector` 元素選擇器](#queryselector-元素選擇器)
+      - [`.querySelectorAll` 選取所有指定元素](#queryselectorall-選取所有指定元素)
+    - [prototype.forEach](#prototypeforeach)
+    - [prototype.map](#prototypemap)
+    - [prototype.push](#prototypepush)
+    - [`Math.round` 四捨五入](#mathround-四捨五入)
+    - [`Array.prototype.filter`](#arrayprototypefilter)
     - [物件取值、新增與刪除](#物件取值新增與刪除)
       - [物件取值](#物件取值)
       - [物件轉為陣列](#物件轉為陣列)
@@ -68,8 +67,8 @@
       - [陣列與集合間轉換](#陣列與集合間轉換)
       - [過濾陣列中重複的元素](#過濾陣列中重複的元素)
     - [JSON 轉換](#json-轉換)
-      - [`JSON.stringify()` 將物件轉為 json 字串](#jsonstringify-將物件轉為-json-字串)
-      - [`JSON.parse()` 將 json 字串轉換為物件](#jsonparse-將-json-字串轉換為物件)
+      - [`JSON.stringify` 將物件轉為 json 字串](#jsonstringify-將物件轉為-json-字串)
+      - [`JSON.parse` 將 json 字串轉換為物件](#jsonparse-將-json-字串轉換為物件)
   - [屬性描述器](#屬性描述器)
     - [使用字面值宣告屬性的特徵](#使用字面值宣告屬性的特徵)
     - [取得屬性特徵](#取得屬性特徵)
@@ -88,7 +87,7 @@
     - [資料處理器與存取器處理器](#資料處理器與存取器處理器)
     - [取值器與設值器的應用](#取值器與設值器的應用)
   - [額外補充](#額外補充)
-    - [random(亂數)公式](#random亂數公式)
+    - [random 公式](#random-公式)
 
 <!-- /TOC -->
 
@@ -562,7 +561,9 @@ console.log(box1, box2); //100,200
   console.log(a); // myFunction {}
   ```
 
-#### IIFF (Immediately Invoked Function Expression) 或稱自我調用函式
+#### IIFF
+
+> (Immediately Invoked Function Expression) 或稱自我調用函式
 
 IIFE 有兩種特性：
 
@@ -602,7 +603,7 @@ IIFE 除了會自動執行以外，與一般 function 的特性都是一模一�
 >
 > javascript 和大多數的語言都是採用 Lexical Scope(語彙範疇)
 
-##### Lexical Scope(語彙範疇)
+##### Lexical Scope 語彙範疇
 
 代表著區塊間的包裹關係，被包裹在內層的區塊可以保護自己的變數不被外層取用；相反的，外層區域的變數還是可以被內層區塊使用
 
@@ -856,7 +857,7 @@ console.log(x); // 回傳3，回傳之後再設定
     }
     ```
 
-### 其餘運算子與展開運算子 `...`
+### 其餘運算子與展開運算子
 
 - 其餘運算子
 
@@ -907,7 +908,7 @@ console.log(x); // 回傳3，回傳之後再設定
   console.log(avg(1, 3, 5, 7, 9)); // 5
   ```
 
-- 展開運算子
+- 展開運算子 `...`
 
   關鍵字與其餘運算子相同，但功能與其餘運算子相反，展開運算子可以把陣列中的元素取出。
 
@@ -1148,7 +1149,7 @@ var answer = test(5); //呼叫點，test(5)會將刮號內的參數傳到functio
 
 - 箭頭函式僅用於 function 內只有一條運算式時
 
-### 變數的有效範圍 (Scope)
+### Scope 變數的有效範圍
 
 > 全域變數和區域變數的差異
 
@@ -1186,7 +1187,7 @@ console.log(x); // 100
 
 此例中，function 中未宣告新變數 x，因此 javascript 向外層尋找同名的變數，直到最外層的全域變數，並將其賦值。
 
-### 提升(Hoisting)
+### Hoisting 提升
 
 #### 變數提升
 
@@ -1304,7 +1305,7 @@ var square = function (number) {
 
 ### document
 
-#### `.querySelector()` 元素選擇器
+#### `.querySelector` 元素選擇器
 
 用法和 css 一樣，選取 id 元素時用 `#`，選取 class 元素時用 `.`
 
@@ -1312,11 +1313,11 @@ var square = function (number) {
 document.querySelector(".title");
 ```
 
-#### `.querySelectorAll()` 選取所有指定元素
+#### `.querySelectorAll` 選取所有指定元素
 
 用法和 `.querySelector()` 一樣，但不同於 `.querySelector()`，`.querySelectorAll()` 可以一次選取所有具有相同元素的內容
 
-### prototype.forEach()
+### prototype.forEach
 
 forEach 會修改原始陣列，且不會回傳值
 
@@ -1334,7 +1335,7 @@ people.forEach(function (item, index, array) {
 console.log(people); // 全部 age + 1
 ```
 
-### prototype.map()
+### prototype.map
 
 使用 map 時會需要回傳一個值，他會透過函式內所回傳的值組成一個陣列。
 
@@ -1368,7 +1369,7 @@ console.log(A); // [9000, 8500, 5500, 6500] - 原陣列不會被修改
 console.log(B); // [18000, 17000, 11000, 13000] 回傳新陣列
 ```
 
-### prototype.push()
+### prototype.push
 
 添加一個或多個元素至陣列末端，並回傳陣列的新長度。
 
@@ -1378,7 +1379,7 @@ arr.push(element1[, ...[, elementN]])
 
 - `elementN` 欲添加至陣列末端的元素
 
-### `Math.round()` 四捨五入
+### `Math.round` 四捨五入
 
 ```javascript
 Math.round(3.14); // 3
@@ -1395,7 +1396,7 @@ Math.round(data * 100) / 100; // 18.63
 Math.round(data * 1000) / 1000; // 18.626
 ```
 
-### `Array.prototype.filter()`
+### `Array.prototype.filter`
 
 - `arr.filter(function(item, index, array), thisValue)`
   - `item` 必須，目前元素的值
@@ -1421,7 +1422,7 @@ function myFunction() {
 var myArrayNew = myArray.filter((el) => el);
 ```
 
-### `Array.prototype.splice()` 新增刪除陣列中的元素
+[### `Array.prototype.splice` 新增刪除陣列中的元素
 
 - `array.splice(start, deleteCount, item)`
 
@@ -1655,9 +1656,9 @@ mySet.add({ a: 1, b: 2 }); // Set { 1, 5, 'some text', { a: 1, b: 2 }, { a: 1, b
 - 在使用 {} 建立物件時，屬性名稱的引號可以省略，但在 json 格式中，屬性名稱一定要有引號。
 - 若物件中的值為 function 時，無法透過 json 傳遞。
 
-#### `JSON.stringify()` 將物件轉為 json 字串
+#### `JSON.stringify` 將物件轉為 json 字串
 
-#### `JSON.parse()` 將 json 字串轉換為物件
+#### `JSON.parse` 將 json 字串轉換為物件
 
 ## 屬性描述器
 
@@ -2062,7 +2063,7 @@ console.log(obj.prop1); // 200
 
 ## 額外補充
 
-### random(亂數)公式
+### random 公式
 
 ```javascript
 function getRandom(start, end) {

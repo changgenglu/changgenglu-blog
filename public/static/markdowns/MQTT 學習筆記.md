@@ -8,8 +8,8 @@
   - [概述](#概述)
     - [MQTT 訊息格式](#mqtt-訊息格式)
     - [重要特色](#重要特色)
-  - [在 windows 建立 MQTT 測試主機(Eclipse Mosquitto)](#在-windows-建立-mqtt-測試主機eclipse-mosquitto)
-  - [在虛擬主機建立 MQTT Broker (Mosquitto)](#在虛擬主機建立-mqtt-broker-mosquitto)
+  - [在 windows 建立 MQTT 測試主機: Eclipse Mosquitto](#在-windows-建立-mqtt-測試主機-eclipse-mosquitto)
+  - [在虛擬主機建立 MQTT Broker: Mosquitto](#在虛擬主機建立-mqtt-broker-mosquitto)
   - [Mosquitto conf 設定與啟動](#mosquitto-conf-設定與啟動)
     - [設定使用者須使用帳號密碼連線](#設定使用者須使用帳號密碼連線)
     - [重新啟動 Mosquitto](#重新啟動-mosquitto)
@@ -17,12 +17,12 @@
   - [測試 Broker](#測試-broker)
     - [Chrome 瀏覽器擴充程式：MQTTLens](#chrome-瀏覽器擴充程式mqttlens)
     - [MQTT Explorer](#mqtt-explorer)
-  - [安裝身分驗證套件(mosquitto-auth-plugin)](#安裝身分驗證套件mosquitto-auth-plugin)
+  - [安裝身分驗證套件: mosquitto-auth-plugin](#安裝身分驗證套件-mosquitto-auth-plugin)
     - [設置 mosquitto](#設置-mosquitto)
     - [安裝 mosquitto-auth-plug 套件](#安裝-mosquitto-auth-plug-套件)
     - [若 mosquitto 無法正常運行](#若-mosquitto-無法正常運行)
-  - [安裝身分驗證套件(mosquitto-go-auth)](#安裝身分驗證套件mosquitto-go-auth)
-    - [設置 mosquitto (同 mosquitto-auth-plug 套件)](#設置-mosquitto-同-mosquitto-auth-plug-套件)
+  - [安裝身分驗證套件: mosquitto-go-auth](#安裝身分驗證套件-mosquitto-go-auth)
+    - [設置 mosquitto: 同 mosquitto-auth-plug 套件](#設置-mosquitto-同-mosquitto-auth-plug-套件)
     - [安裝 mosquitto-go-auth](#安裝-mosquitto-go-auth)
     - [acl 權限設定](#acl-權限設定)
   - [MQTT Client](#mqtt-client)
@@ -68,7 +68,7 @@ MQTT 可以針對網路品質(QoS)，決定操作等級
 - `QoS Level1`: Publisher 丟出訊息後，Broker 必回傳 PUBACK 以確定訊息有收到，倘若沒收到 PUBACK，Publisher 會再重傳一次資料。(缺點為若回傳 PUBACK 時斷線，Publisher 會判斷傳送失敗而再重傳一次資料，將導致 Subscriber 重複收到相同的資料)
 - `QoS Level2`: 在 Publisher 確認 Broker 有收到訊息後，Broker 才將資料傳遞給 Subscriber，且 Subscriber 收到訊息後，也須回傳 PUBACK 給 Publisher，可避免收到重複的訊息，但較佔頻寬。
 
-## 在 windows 建立 MQTT 測試主機(Eclipse Mosquitto)
+## 在 windows 建立 MQTT 測試主機: Eclipse Mosquitto
 
 - 在[官網](https://mosquitto.org/download/)下載。
 - 在 `Choose Components` 中，如果勾選 `service` 的選項，MQTT Broker 就會變成 windows 的服務，當開機時便會被執行。(若測試環境，建議手動開啟即可)
@@ -83,7 +83,7 @@ MQTT 可以針對網路品質(QoS)，決定操作等級
   - 接著設定輸出規則，步驟相同，一樣指定 TPC 與埠號 1833
   - 最後確認輸入及輸出正常啟用即可
 
-## 在虛擬主機建立 MQTT Broker (Mosquitto)
+## 在虛擬主機建立 MQTT Broker: Mosquitto
 
 - 下載 mosquitto 程式庫
 
@@ -238,7 +238,7 @@ sudo systemctl restart mosquitto
 
 - [| ESP32 教學 | Mosquitto conf 設定與 MQTT 測試](https://jimirobot.tw/esp32-mosquitto-conf-mqtt-tutorial/)
 
-## 安裝身分驗證套件(mosquitto-auth-plugin)
+## 安裝身分驗證套件: mosquitto-auth-plugin
 
 > Ubuntu 20
 >
@@ -431,7 +431,7 @@ auth_opt_ssl_enabled true
 - libmosquitto.so.1:cannot open shard object
   - 運行 `sudo /sbin/ldconfig` 更新庫的連接器緩存
 
-## 安裝身分驗證套件(mosquitto-go-auth)
+## 安裝身分驗證套件: mosquitto-go-auth
 
 > 僅支援 Linux (Debian, Ubuntu and Mintus) 和 MacOS
 >
@@ -441,7 +441,7 @@ auth_opt_ssl_enabled true
 >
 > [Uninstalling Go (golang)](https://askubuntu.com/questions/742078/uninstalling-go-golang)
 
-### 設置 mosquitto (同 mosquitto-auth-plug 套件)
+### 設置 mosquitto: 同 mosquitto-auth-plug 套件
 
 ### 安裝 mosquitto-go-auth
 

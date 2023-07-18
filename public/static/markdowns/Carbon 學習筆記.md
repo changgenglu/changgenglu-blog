@@ -1,33 +1,14 @@
 # Carbon 學習筆記
 
-> php 常用處理時間格式的套件
->
-> 在 laravel 5.0 之後為預設套件
->
-> 底層是使用 PHP `Datetime` 的 `strtotime` 方法
->
-> ---
->
-> 參考資料：
->
-> [Carbon 使用技巧整理 (上)](https://reurl.cc/eWWbLm)
->
-> [Carbon 使用技巧整理 (下)](https://reurl.cc/X55rGD)
->
-> [Laravel 5 學習筆記 - Carbon 時間套件](https://www.kancloud.cn/kancloud/laravel-5-learning-notes/50163)
-
-## 目錄
-
 <!-- TOC -->
 
 - [Carbon 學習筆記](#carbon-學習筆記)
-  - [目錄](#目錄)
   - [物件建立](#物件建立)
     - [建立當下時間](#建立當下時間)
     - [解析並產生時間物件](#解析並產生時間物件)
     - [依規則建立](#依規則建立)
     - [Bug 與安全模式](#bug-與安全模式)
-  - [時間格式(時區、本地化)](#時間格式時區本地化)
+  - [時間格式 時區、本地化](#時間格式-時區本地化)
     - [本地語系](#本地語系)
     - [Format](#format)
   - [Getter \& Setter](#getter--setter)
@@ -46,6 +27,22 @@
   - [口語化修改器](#口語化修改器)
 
 <!-- /TOC -->
+
+> php 常用處理時間格式的套件
+>
+> 在 laravel 5.0 之後為預設套件
+>
+> 底層是使用 PHP `Datetime` 的 `strtotime` 方法
+>
+> ---
+>
+> 參考資料：
+>
+> [Carbon 使用技巧整理 (上)](https://reurl.cc/eWWbLm)
+>
+> [Carbon 使用技巧整理 (下)](https://reurl.cc/X55rGD)
+>
+> [Laravel 5 學習筆記 - Carbon 時間套件](https://www.kancloud.cn/kancloud/laravel-5-learning-notes/50163)
 
 ## 物件建立
 
@@ -104,7 +101,7 @@ Carbon::create(2022, 1, 35);        // 2022-02-04
 Carbon::createSafe(2022, 1, 35);    //  throw InvalidDateException
 ```
 
-## 時間格式(時區、本地化)
+## 時間格式 時區、本地化
 
 |         單位          | 縮寫 |
 | :-------------------: | :--: |

@@ -6,44 +6,44 @@
   - [Collections 集合](#collections-集合)
     - [運算類](#運算類)
       - [Integer](#integer)
-        - [`count()` 計數](#count-計數)
+        - [`count` 計數](#count-計數)
       - [Boolean](#boolean)
-        - [`contains()` 判斷集合是否包含指定的條件](#contains-判斷集合是否包含指定的條件)
+        - [`contains` 判斷集合是否包含指定的條件](#contains-判斷集合是否包含指定的條件)
       - [Array](#array)
-        - [`diff()` 比較集合或陣列的值](#diff-比較集合或陣列的值)
+        - [`diff` 比較集合或陣列的值](#diff-比較集合或陣列的值)
     - [迭代類](#迭代類)
-      - [`filter()` 傳入匿名函式篩選集合](#filter-傳入匿名函式篩選集合)
-      - [`map()` 遍歷集合](#map-遍歷集合)
+      - [`filter` 傳入匿名函式篩選集合](#filter-傳入匿名函式篩選集合)
+      - [`map` 遍歷集合](#map-遍歷集合)
     - [分組類](#分組類)
-      - [`countBy()` 計算指定數值](#countby-計算指定數值)
+      - [`countBy` 計算指定數值](#countby-計算指定數值)
     - [變形類](#變形類)
       - [維度與順序](#維度與順序)
-        - [`collapse()` , `flatten()`](#collapse--flatten)
-        - [`sort()` 將陣列重新排列](#sort-將陣列重新排列)
+        - [`collapse` , `flatten`](#collapse--flatten)
+        - [`sort` 將陣列重新排列](#sort-將陣列重新排列)
       - [組合](#組合)
-        - [`combine()` 將一個集合的值作為 key，用來和另一陣列或集合的值進行組合](#combine-將一個集合的值作為-key用來和另一陣列或集合的值進行組合)
-        - [`merge()` 合併指定的陣列或是集合到原集合](#merge-合併指定的陣列或是集合到原集合)
-        - [`concat()` 將傳入的值追加到集合的末端](#concat-將傳入的值追加到集合的末端)
-        - [`push()` 把指定的值加入集合的末端](#push-把指定的值加入集合的末端)
-        - [`prepend()` 將指定的值加入集合的開頭](#prepend-將指定的值加入集合的開頭)
+        - [`combine` 將一個集合的值作為 key，用來和另一陣列或集合的值進行組合](#combine-將一個集合的值作為-key用來和另一陣列或集合的值進行組合)
+        - [`merge` 合併指定的陣列或是集合到原集合](#merge-合併指定的陣列或是集合到原集合)
+        - [`concat` 將傳入的值追加到集合的末端](#concat-將傳入的值追加到集合的末端)
+        - [`push` 把指定的值加入集合的末端](#push-把指定的值加入集合的末端)
+        - [`prepend` 將指定的值加入集合的開頭](#prepend-將指定的值加入集合的開頭)
       - [擷取](#擷取)
-        - [`except()` 擷取除了 a, b 以外的](#except-擷取除了-a-b-以外的)
-        - [`only()` 只擷取 a, b](#only-只擷取-a-b)
-        - [`get()` 取得特定 key 的值](#get-取得特定-key-的值)
-        - [`forget()` 直接刪除指定 key 值對應的 value](#forget-直接刪除指定-key-值對應的-value)
-        - [`pull()` 和 `get()` 雷同，會修改原本的 collection](#pull-和-get-雷同會修改原本的-collection)
-        - [`pluck()` 取得集合中所有陣列的 key 值](#pluck-取得集合中所有陣列的-key-值)
+        - [`except` 擷取除了 a, b 以外的](#except-擷取除了-a-b-以外的)
+        - [`only` 只擷取 a, b](#only-只擷取-a-b)
+        - [`get` 取得特定 key 的值](#get-取得特定-key-的值)
+        - [`forget` 直接刪除指定 key 值對應的 value](#forget-直接刪除指定-key-值對應的-value)
+        - [`pull` 和 `get` 雷同，會修改原本的 collection](#pull-和-get-雷同會修改原本的-collection)
+        - [`pluck` 取得集合中所有陣列的 key 值](#pluck-取得集合中所有陣列的-key-值)
         - [`intersect` 從原集合中移除在指定陣列中或集合中不存在的值](#intersect-從原集合中移除在指定陣列中或集合中不存在的值)
-        - [`keys()`, `values()` 取出集合中的 key 或 value](#keys-values-取出集合中的-key-或-value)
+        - [`keys`, `values` 取出集合中的 key 或 value](#keys-values-取出集合中的-key-或-value)
       - [轉型](#轉型)
-        - [`toArray()`, `toJson()` 提供轉成陣列或是 json 等常用格式](#toarray-tojson-提供轉成陣列或是-json-等常用格式)
+        - [`toArray`, `toJson` 提供轉成陣列或是 json 等常用格式](#toarray-tojson-提供轉成陣列或是-json-等常用格式)
     - [Where](#where)
       - ['first' 返回陣列中指令條件的第一元素](#first-返回陣列中指令條件的第一元素)
     - [軟體操作類](#軟體操作類)
-      - [`collect()` 複製一個新的 collection，記憶體位置不衝突](#collect-複製一個新的-collection記憶體位置不衝突)
+      - [`collect` 複製一個新的 collection，記憶體位置不衝突](#collect-複製一個新的-collection記憶體位置不衝突)
   - [Helper 輔助函數](#helper-輔助函數)
-    - [`Arr::add()` 將數值加入陣列](#arradd-將數值加入陣列)
-    - [`after()` 返回傳入的字串的值後面所有的內容](#after-返回傳入的字串的值後面所有的內容)
+    - [`Arr::add` 將數值加入陣列](#arradd-將數值加入陣列)
+    - [`after` 返回傳入的字串的值後面所有的內容](#after-返回傳入的字串的值後面所有的內容)
 
 <!-- /TOC -->
 
@@ -59,7 +59,7 @@
 
 #### Integer
 
-##### `count()` 計數
+##### `count` 計數
 
 ```php
 $collection = collect([1, 2, 3, 4]);
@@ -71,7 +71,7 @@ $collection->count();
 
 #### Boolean
 
-##### `contains()` 判斷集合是否包含指定的條件
+##### `contains` 判斷集合是否包含指定的條件
 
 傳入值
 
@@ -116,7 +116,7 @@ $collection->contains(function ($value, $key) {
 
 #### Array
 
-##### `diff()` 比較集合或陣列的值
+##### `diff` 比較集合或陣列的值
 
 返回不存在此方法參數中的值
 
@@ -129,7 +129,7 @@ $diff->all();
 
 ### 迭代類
 
-#### `filter()` 傳入匿名函式篩選集合
+#### `filter` 傳入匿名函式篩選集合
 
 返回通過篩選的項目
 
@@ -143,7 +143,7 @@ $filtered->all();
 // [3, 4]
 ```
 
-#### `map()` 遍歷集合
+#### `map` 遍歷集合
 
 將集合的值透過傳入的匿名函數修改並返回，生成修改過的新集合
 
@@ -161,7 +161,7 @@ $multiplied->all();
 
 ### 分組類
 
-#### `countBy()` 計算指定數值
+#### `countBy` 計算指定數值
 
 ```php
 $collection = collect([1, 2, 2, 2, 3]);
@@ -193,12 +193,12 @@ $counted->all();
 
 #### 維度與順序
 
-##### `collapse()` , `flatten()`
+##### `collapse` , `flatten`
 
 兩者都是將維度從多維降為一維，collapse 較適用 Array 形式的資料，flatten 更適合有 Key-Value 形式的資料。
 兩個函式的用途，都是將例如 [[1,2,3], [4,5,6]] 轉變成 [1,2,3,4,5,6]
 
-##### `sort()` 將陣列重新排列
+##### `sort` 將陣列重新排列
 
 ```php
 use Illuminate\Support\Arr;
@@ -264,7 +264,7 @@ array:5 [
 
 #### 組合
 
-##### `combine()` 將一個集合的值作為 key，用來和另一陣列或集合的值進行組合
+##### `combine` 將一個集合的值作為 key，用來和另一陣列或集合的值進行組合
 
 ```php
 $collection = collect(['name', 'age']);
@@ -276,7 +276,7 @@ $combined->all();
 // ['name' => 'George', 'age' => 29]
 ```
 
-##### `merge()` 合併指定的陣列或是集合到原集合
+##### `merge` 合併指定的陣列或是集合到原集合
 
 若傳入的集合中的 key 值與原集合中的 key 值相同，則傳入的值將會將原集合中的值覆蓋。
 
@@ -302,7 +302,7 @@ $merged->all();
 // ['Desk', 'Chair', 'Bookcase', 'Door']
 ```
 
-##### `concat()` 將傳入的值追加到集合的末端
+##### `concat` 將傳入的值追加到集合的末端
 
 ```php
 $collection = collect(['John Doe']);
@@ -314,7 +314,7 @@ $concatenated->all();
 // ['John Doe', 'Jane Doe', 'Johnny Doe']
 ```
 
-##### `push()` 把指定的值加入集合的末端
+##### `push` 把指定的值加入集合的末端
 
 ```php
 $collection = collect([1, 2, 3, 4]);
@@ -324,7 +324,7 @@ $collection->all();
 // [1, 2, 3, 4, 5]
 ```
 
-##### `prepend()` 將指定的值加入集合的開頭
+##### `prepend` 將指定的值加入集合的開頭
 
 ```php
 $collection = collect([1, 2, 3, 4, 5]);
@@ -338,17 +338,17 @@ $collection->all();
 
 #### 擷取
 
-##### `except()` 擷取除了 a, b 以外的
+##### `except` 擷取除了 a, b 以外的
 
-##### `only()` 只擷取 a, b
+##### `only` 只擷取 a, b
 
-##### `get()` 取得特定 key 的值
+##### `get` 取得特定 key 的值
 
-##### `forget()` 直接刪除指定 key 值對應的 value
+##### `forget` 直接刪除指定 key 值對應的 value
 
-##### `pull()` 和 `get()` 雷同，會修改原本的 collection
+##### `pull` 和 `get` 雷同，會修改原本的 collection
 
-##### `pluck()` 取得集合中所有陣列的 key 值
+##### `pluck` 取得集合中所有陣列的 key 值
 
 ```php
 $collection = collect([
@@ -371,11 +371,11 @@ $intersect = $collection->intersect(['a', 'c', 'e', 'f']);
 $intersect->all(); // [0 => 'a', 2 => 'c']
 ```
 
-##### `keys()`, `values()` 取出集合中的 key 或 value
+##### `keys`, `values` 取出集合中的 key 或 value
 
 #### 轉型
 
-##### `toArray()`, `toJson()` 提供轉成陣列或是 json 等常用格式
+##### `toArray`, `toJson` 提供轉成陣列或是 json 等常用格式
 
 ### Where
 
@@ -401,11 +401,11 @@ collect([1, 2])->first();
 
 ### 軟體操作類
 
-#### `collect()` 複製一個新的 collection，記憶體位置不衝突
+#### `collect` 複製一個新的 collection，記憶體位置不衝突
 
 ## Helper 輔助函數
 
-### `Arr::add()` 將數值加入陣列
+### `Arr::add` 將數值加入陣列
 
 ```php
 use Illuminate\Support\Arr;
@@ -420,7 +420,7 @@ $array = Arr::add(['name' => 'Desk', 'price' => null], 'price', 100);
 
 ```
 
-### `after()` 返回傳入的字串的值後面所有的內容
+### `after` 返回傳入的字串的值後面所有的內容
 
 如果傳入的值不存在，將返回整個字串
 

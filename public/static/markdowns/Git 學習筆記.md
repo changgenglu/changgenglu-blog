@@ -9,7 +9,7 @@
   - [Git Flow 開發流程觀念](#git-flow-開發流程觀念)
     - [分支介紹](#分支介紹)
       - [長期分支](#長期分支)
-      - [任務分支(Topic)](#任務分支topic)
+      - [Topic 任務分支](#topic-任務分支)
         - [feature](#feature)
         - [release](#release)
         - [hotfix](#hotfix)
@@ -33,7 +33,7 @@
       - [主要指令](#主要指令)
     - [解決合併衝突](#解決合併衝突)
     - [更改 git remote 位置](#更改-git-remote-位置)
-    - [取消 merge (清除合併紀錄)](#取消-merge-清除合併紀錄)
+    - [取消 merge 清除合併紀錄](#取消-merge-清除合併紀錄)
     - [新增遠端儲存庫](#新增遠端儲存庫)
     - [Git 別名](#git-別名)
   - [Git 管理](#git-管理)
@@ -105,7 +105,7 @@
 - **develop**  
    所有開發分支的基礎，當新增/修改功能時，會從此分支切出去，完成後再合併回來。
 
-#### 任務分支(Topic)
+#### Topic 任務分支
 
 ##### feature
 
@@ -623,7 +623,7 @@ git commit
   git remote -v
   ```
 
-### 取消 merge (清除合併紀錄)
+### 取消 merge 清除合併紀錄
 
 > [Git 實戰技巧 - 取消合併](https://blog.darkthread.net/blog/git-undo-merge/)
 
