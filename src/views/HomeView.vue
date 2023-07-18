@@ -1,7 +1,12 @@
 <template>
   <div class="container">
+    <div class="d-flex justify-content-center m-3">
+      <span class="h4 mt-2">搜尋筆記：</span>
+      <input type="text" v-model="searchText" placeholder="Laravel" class="form-control" style="width:12vw">
+    </div>
     <div class="row" style="width: 100%">
-      <div v-for="(item, index) in files.slice(pageStart, pageEnd)" :key="index" class="col-6">
+      <div v-for="(item, index) in searchResults.slice(pageStart, pageEnd)" :key="index" class="col-6"
+        v-show="searchResults.length !== files.length">
         <router-link :to="`/markdown/${item.name}`">
           <div class="card mb-3">
             <div class="card-header  d-flex justify-content-between">
@@ -20,8 +25,33 @@
           </div>
         </router-link>
       </div>
+      <div v-for="(item, index) in files.slice(pageStart, pageEnd)" :key="index" class="col-6"
+        v-show="searchResults.length === files.length">
+        <router-link :to="`/markdown/${item.name}`">
+          <div class="card mb-3">
+            <div class="card-header  d-flex justify-content-between">
+              <span class="h5">
+                {{ item.name }}
+              </span>
+              <span>
+                {{ countDate(item.date) }} ago
+              </span>
+            </div>
+            <div class="card-body text-center">
+              <div v-for="title, index in item.matchingLines" :key="index">
+                {{ title }}
+              </div>
+            </div>
+          </div>
+        </router-link>
+      </div>
+      <div v-show="searchResults.length === 0">
+        <div class="h2 text-center m-5">
+          查無資料
+        </div>
+      </div>
       <!-- pagination -->
-      <ul class="pagination">
+      <ul class="pagination" v-show="searchResults.length !== 0">
         <li class="page-item" @click.prevent="setPage(currentPage - 1)">
           <a class="page-link" href="#" aria-label="Previous">
             <span aria-hidden="true">&laquo;</span>
@@ -51,12 +81,23 @@ export default {
     return {
       files: [],
       dataInPage: 6,
-      currentPage: 1
+      currentPage: 1,
+      searchText: '',
+      searchResults: []
+    }
+  },
+  watch: {
+    searchText: function () {
+      this.search();
     }
   },
   computed: {
     totalPages() {
-      return Math.ceil(this.files.length / this.dataInPage)
+      if (this.searchResults.length === 0) {
+        return Math.ceil(this.files.length / this.dataInPage)
+      } else {
+        return Math.ceil(this.searchResults.length / this.dataInPage)
+      }
       //Math.ceil()取最小整數
     },
     pageStart() {
@@ -68,6 +109,10 @@ export default {
     }
   },
   methods: {
+    search: function () {
+      const searchText = this.searchText.toLowerCase();
+      this.searchResults = this.files.filter(file => file.name.toLowerCase().includes(searchText));
+    },
     getFilesInFolder: function () {
       this.files = AllMyArticle.map(item => (
         {
@@ -131,6 +176,7 @@ export default {
   },
   mounted() {
     this.getFilesInFolder();
+    this.searchResults = this.files;
   },
 }
 </script>

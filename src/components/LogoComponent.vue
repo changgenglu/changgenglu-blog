@@ -1,5 +1,5 @@
 <template>
-    <div style="text-align: center; margin: 5vh;">
+    <div style="text-align: center; margin-top: 5vh;">
         <router-link to="/" class="text-dark">
             <img alt="my logo" src="../assets/profile.jpg" class="myLogo">
             <h1>
