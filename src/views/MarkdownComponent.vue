@@ -5,6 +5,9 @@
             <Markdown :source="markdownContent" />
         </div>
     </div>
+    <div id="to-footer-btn">
+        <button class="btn btn-outline-success" @click="scrollToFooter()">跳到頁尾</button>
+    </div>
     <div style="text-align:center" class="m-5">
         <router-link to="/" class="btn btn-lg btn-outline-success">
             back 2 menu
@@ -34,6 +37,9 @@ export default {
                     this.markdownContent = item.content
                 }
             })
+        },
+        scrollToFooter() {
+            window.scrollTo(0, document.body.scrollHeight);
         }
     },
     mounted() {
@@ -47,6 +53,13 @@ export default {
     height: 100%;
     top: 3vh;
     overflow-y: scroll;
-    
+
+}
+
+#to-footer-btn {
+    position: fixed;
+    right: 3%;
+    top: 90%;
+    width: 8em;
 }
 </style>
