@@ -23,24 +23,24 @@
           查無資料
         </div>
       </div>
-      <!-- pagination -->
-      <ul class="pagination" v-show="searchResults.length !== 0">
-        <li class="page-item" @click.prevent="setPage(currentPage - 1)">
-          <a class="page-link" href="#" aria-label="Previous">
-            <span aria-hidden="true">&laquo;</span>
-          </a>
-        </li>
-        <li class="page-item" :class="{ 'active': (currentPage === (n)) }" v-for="(n, index) in totalPages" :key="index"
-          @click.prevent="setPage(n)">
-          <a class="page-link" href="#">{{ n }}</a>
-        </li>
-        <li class="page-item" @click.prevent="setPage(currentPage + 1)">
-          <a class="page-link" href="#" aria-label="Next">
-            <span aria-hidden="true">&raquo;</span>
-          </a>
-        </li>
-      </ul>
     </div>
+    <!-- pagination -->
+    <ul class="pagination" v-show="searchResults.length !== 0">
+      <li class="page-item" @click.prevent="setPage(currentPage - 1)">
+        <a class="page-link" href="#" aria-label="Previous">
+          <span aria-hidden="true">&laquo;</span>
+        </a>
+      </li>
+      <li class="page-item" :class="{ 'active': (currentPage === (n)) }" v-for="(n, index) in totalPages" :key="index"
+        @click.prevent="setPage(n)">
+        <a class="page-link" href="#">{{ n }}</a>
+      </li>
+      <li class="page-item" @click.prevent="setPage(currentPage + 1)">
+        <a class="page-link" href="#" aria-label="Next">
+          <span aria-hidden="true">&raquo;</span>
+        </a>
+      </li>
+    </ul>
   </div>
 </template>
 
@@ -164,6 +164,8 @@ export default {
 </script>
 
 <style>
+
+
 a {
   text-decoration: none;
 }

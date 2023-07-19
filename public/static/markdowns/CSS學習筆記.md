@@ -31,6 +31,7 @@
       - [inline-block](#inline-block)
       - [inline-table](#inline-table)
       - [inline-flex](#inline-flex)
+  - [CSS 簡易暗黑模式](#css-簡易暗黑模式)
 
 <!-- /TOC -->
 
@@ -272,3 +273,30 @@
 #### inline-flex
 
 - flex 時父元素為 block，而 inline-flex 則是父元素變成 inline，他會根據子元素所有的 div 大小自適應寬度和高度
+
+## CSS 簡易暗黑模式
+
+```css
+@media (prefers-color-scheme: dark) {
+  html {
+    filter: invert(90%) hue-rotate(180deg);
+  }
+
+  img,
+  video,
+  svg,
+  code[class*="language-"] {
+    filter: invert(110%) hue-rotate(180deg);
+    opacity: 0.8;
+  }
+
+  img {
+    background: #fff;
+  }
+}
+```
+
+- `invert` 將所有色值反轉，hue-rotate 將黑白以外的其他主題色調再反轉過來(防止頁面主題色出現過大變化)
+- `code[class*="language-"]` 為 markdown 語法中的程式碼區塊
+- 若 html 反轉 90% 則圖片等元素需反轉 110%
+- 去背圖片在黑暗模式中因為背景變成黑底色，可能就會造成深色內容被深色背景吃掉的問題，為了避免這個問題，建議 img 的背景一律調成跟正常模式的背景色

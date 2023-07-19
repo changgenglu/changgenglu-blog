@@ -15,8 +15,6 @@
     - [重新啟動 Mosquitto](#重新啟動-mosquitto)
     - [啟動 MQTT Broker](#啟動-mqtt-broker)
   - [測試 Broker](#測試-broker)
-    - [Chrome 瀏覽器擴充程式：MQTTLens](#chrome-瀏覽器擴充程式mqttlens)
-    - [MQTT Explorer](#mqtt-explorer)
   - [安裝身分驗證套件: mosquitto-auth-plugin](#安裝身分驗證套件-mosquitto-auth-plugin)
     - [設置 mosquitto](#設置-mosquitto)
     - [安裝 mosquitto-auth-plug 套件](#安裝-mosquitto-auth-plug-套件)
@@ -230,13 +228,10 @@ sudo systemctl restart mosquitto
 
 ## 測試 Broker
 
-### Chrome 瀏覽器擴充程式：MQTTLens
-
-- [MQTT 教學（四）：使用 MQTTLens 訂閱與發布 MQTT 訊息](https://swf.com.tw/?p=1009)
-
-### MQTT Explorer
-
-- [| ESP32 教學 | Mosquitto conf 設定與 MQTT 測試](https://jimirobot.tw/esp32-mosquitto-conf-mqtt-tutorial/)
+- Chrome 瀏覽器擴充程式：MQTTLens
+  - [MQTT 教學（四）：使用 MQTTLens 訂閱與發布 MQTT 訊息](https://swf.com.tw/?p=1009)
+- MQTT Explorer
+  - [| ESP32 教學 | Mosquitto conf 設定與 MQTT 測試](https://jimirobot.tw/esp32-mosquitto-conf-mqtt-tutorial/)
 
 ## 安裝身分驗證套件: mosquitto-auth-plugin
 

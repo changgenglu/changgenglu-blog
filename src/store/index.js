@@ -1,24 +1,9 @@
 import { createStore } from "vuex";
 
 export default createStore({
-  state: {
-    files: [],
-    searchResults: [],
-    pageStart: "",
-    pageEnd: "",
-  },
+  state: {},
   getters: {},
-  mutations: {
-    getFiles(state, payload) {
-      state.files = payload;
-    },
-    pageStart(state, payload) {
-      state.pageStart = payload
-    },
-    pageEnd(state, payload) {
-      state.pageEnd = payload
-    },
-  },
+  mutations: {},
   actions: {},
   modules: {},
 });
