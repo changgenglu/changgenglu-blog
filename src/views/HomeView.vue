@@ -114,11 +114,8 @@ export default {
       // 取得本地時間
       var now = new Date();
 
-      // 指定時間的字串
-      var specifiedTime = fileDate;
-
       // 將指定時間轉換為日期物件
-      var specifiedDate = new Date(specifiedTime);
+      var specifiedDate = new Date(fileDate);
 
       // 計算本地時間與指定時間的差距（以毫秒為單位）
       var differenceMilliseconds = now.getTime() - specifiedDate.getTime();
@@ -131,27 +128,23 @@ export default {
       var months = Math.floor(differenceMilliseconds / (1000 * 60 * 60 * 24 * 30)) % 12;
       var years = Math.floor(differenceMilliseconds / (1000 * 60 * 60 * 24 * 30 * 12));
 
-      function addS(date) {
-        if (date > 1) {
-          return "s ";
-        } else {
-          return "";
-        }
+      function addS(value, unit) {
+        return value !== 1 ? unit + "s" : unit;
       }
 
       // 輸出語意化時間
       if (years > 0) {
-        return years + ` year${addS(years)} `;
+        return years + ` ${addS(years, "year")} `;
       } else if (months > 0) {
-        return months + ` month${addS(months)} `;
+        return months + ` ${addS(months, "month")} `;
       } else if (days > 0) {
-        return days + ` day${addS(days)} `;
+        return days + ` ${addS(days, "day")} `;
       } else if (hours > 0) {
-        return hours + ` day${addS(hours)} `;
+        return hours + ` ${addS(hours, "hour")} `;
       } else if (minutes > 0) {
-        return minutes + ` minute${addS(minutes)} `;
+        return minutes + ` ${addS(minutes, "minute")} `;
       } else if (seconds > 0) {
-        return seconds + ` second${addS(seconds)}`;
+        return seconds + ` ${addS(seconds, "second")} `;
       }
     }
 
@@ -164,8 +157,6 @@ export default {
 </script>
 
 <style>
-
-
 a {
   text-decoration: none;
 }
