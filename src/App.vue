@@ -36,8 +36,6 @@ export default {
     filter: invert(110%) hue-rotate(180deg);
   }
 
-
-  /* 去背圖片在黑暗模式中因為背景變成黑底色，可能就會造成深色內容被深色背景吃掉的問題，為了避免這個問題，建議 img 的背景一律調成跟正常模式的背景色 */
   img {
     background: #fff;
   }

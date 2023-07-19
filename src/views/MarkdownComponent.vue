@@ -66,19 +66,19 @@ export default {
 #menu::-webkit-scrollbar-track {
     -webkit-box-shadow: inset 0 0 6px rgba(0, 0, 0, 0.3);
     border-radius: 10px;
-    background-color: #1b2631;
+    background-color: #c7c7c7;
 }
 
 /* //捲軸寬度 */
 #menu::-webkit-scrollbar {
     width: 6px;
-    background-color: #F5F5F5;
+    /* background-color: #F5F5F5; */
 }
 
 /* //捲軸本體顏色 */
 #menu::-webkit-scrollbar-thumb {
     border-radius: 10px;
-    background-color: #6a99c9;
+    background-color: #383838;
 }
 
 #to-footer-btn {
