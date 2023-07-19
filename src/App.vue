@@ -22,6 +22,17 @@ export default {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   color: #2c3e50;
+  position: relative;
+  min-height: 88vh;
+}
+
+.content {
+  padding-bottom: 10px;
+}
+
+.footer {
+  position: absolute;
+  bottom: -70px;
 }
 
 @media (prefers-color-scheme: dark) {
