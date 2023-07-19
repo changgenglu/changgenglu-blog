@@ -31,6 +31,16 @@
       - [inline-block](#inline-block)
       - [inline-table](#inline-table)
       - [inline-flex](#inline-flex)
+  - [HTML 佈局](#html-佈局)
+    - [盒子模型](#盒子模型)
+    - [Position](#position)
+      - [Static](#static)
+      - [Relative](#relative)
+      - [Absolute](#absolute)
+      - [Fixed](#fixed)
+      - [sticky](#sticky)
+    - [float](#float)
+    - [float 和 position 的兼容問題](#float-和-position-的兼容問題)
   - [CSS 簡易暗黑模式](#css-簡易暗黑模式)
 
 <!-- /TOC -->
@@ -273,6 +283,86 @@
 #### inline-flex
 
 - flex 時父元素為 block，而 inline-flex 則是父元素變成 inline，他會根據子元素所有的 div 大小自適應寬度和高度
+
+## HTML 佈局
+
+### 盒子模型
+
+在 HTML 中元素的盒子模型分為兩種，塊狀元素(block)和行內元素(inline)。其兩種元素和 display 屬性中的 inline block 兩個屬性不盡相同。
+
+盒子模型中的 inline, block 類似於 display 屬性的父類，如：display 屬性中的 list-item 屬性質是屬於塊狀(block)類型。
+
+塊狀(block)和行內(inline)的區別:
+
+- block 可以設置 width, height 屬性。inline 設置無效。
+- block 類型的元素會獨佔一行，而 inline 會在同一行內顯示
+- block 元素的 width 預設為 100%，而 inline 則是根據自身的 內容及子元素來決定寬度。
+
+下面是一些常見的元素分類
+
+- block: p, div, ul, il, dd, dt......
+- inline: a, img, span, strong
+
+### Position
+
+> 設定物件定位時所要的參考對象
+
+- 目前可以用的
+  - static 靜態的
+  - relative 相對定位
+  - fixed 固定定位
+  - absolute 絕對定位
+  - sticky 黏貼定位
+
+#### Static
+
+靜態定位，將其他定位特性取消，回到最原始的狀態，為一般網頁最原始的預設值。
+
+#### Relative
+
+相對定位，將設定的物件其參考空間，設定為自身原始的資料流位置，且此種定位值並不會將物件獨立一層，搭配其他 css 屬性如：`top`, `bottom`, `left`, `right`可以做到顯示位置的偏移。
+
+#### Absolute
+
+絕對定位，將設定的物件，其參考空間設定為「階層離自身最近，且具備定位設定的父層空間」，若沒有任何父層空間具備定位設定，該物件將採用視窗空間座位參考空間，而父層只要具備以下四種定位類型之一，即可被絕對定位當作參考空間：
+
+- relative
+- absolute
+- fixed
+- sticky
+
+此外當物件設定了 abstract 後，將會自己獨立一層，不在其他物件關連，可以利用此一特性，進行物件堆疊的視覺效果。
+
+#### Fixed
+
+固定定位，將設定的物件，將其參考空間設定為視窗，因此無論如何捲動視窗捲軸，這個物件都會固定在原位。固定定位和絕對定位一樣，都會自己獨立一層。
+
+#### sticky
+
+黏貼定位，結合 relative 和 fixed 兩大特性
+
+1. 預設定位在父層空間
+2. 當視窗捲動到該物件時，會依據對該物件設定的 top 值來讓該物件呈現 fixed 在視窗中的效果。
+3. 當物件呈現 fixed 的效果時，其所能 fixed 的空間是該物件的父層空間。
+4. 當視窗向下捲動超過 sticky 物件的父層空間時，該物件不會再呈現 fixed 效果，而是被捲離視窗範圍。
+
+### float
+
+float 的屬性只有 none, left, right。
+
+1. 只有橫向浮動，沒有縱向浮動
+2. 當元素應用了 float 時將會脫離一般資料流，其容器元素將得不到脫離原始資料流的子元素高度
+3. 一個元素會圍繞著浮動元素(文繞圖)，與應用了 position 的元素相比，浮動元素並不會遮蓋後一個元素。
+4. 浮動元素前一個元素不會受到任何影響，若想將兩塊狀元素並排顯示，則需將兩個塊狀元素都應用 float。
+5. 會將元素的 display 屬性更變為 block
+
+### float 和 position 的兼容問題
+
+元素若同時應用 position: relative, float, (top, bottom, right and left) 屬性時，則元素會先浮動到相對應位置，再根據 (top, bottom, right and left)設置的距離來發生偏移。
+
+若不將 float 元素的 position 設置為 relative，此時若要設置 float 的 z-index 來實現覆蓋 position: absolute 會無效。
+
+同理可證，float 元素若下面存在 position: absolute 的子元素，若不將 float 元素的 position 設為 relative，absolute 元素是無法定位到 float 元素的。
 
 ## CSS 簡易暗黑模式
 
