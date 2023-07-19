@@ -24,11 +24,6 @@ export default {
   color: #2c3e50;
 }
 
-* {
-  /* outline: 2px solid red; */
-}
-
-
 @media (prefers-color-scheme: dark) {
   html {
     filter: invert(90%) hue-rotate(180deg);
