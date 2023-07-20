@@ -36,6 +36,7 @@
     - [取消 merge 清除合併紀錄](#取消-merge-清除合併紀錄)
     - [新增遠端儲存庫](#新增遠端儲存庫)
     - [Git 別名](#git-別名)
+    - [建立 git 遠端 repository](#建立-git-遠端-repository)
   - [Git 管理](#git-管理)
     - [使用 VSCode 管理 Git](#使用-vscode-管理-git)
   - [GitHub 操作](#github-操作)
@@ -717,6 +718,28 @@ st = status
 ptlg = log --color --graph --pretty=format:'%C(yellow)%h%Creset %C(bold brightred)%d%Creset %C()%s%Creset \n %C(blue italic dim)-- %an%Creset %C(green italic dim)(%cr)%Creset'
 adal = add --all
 ```
+
+### 建立 git 遠端 repository
+
+> 主機架設 ssh server
+>
+> 主機安裝好 git
+
+1. 在要建立遠端 repository 的資料夾底下，新增專案資料夾 `<project-name>.git`
+2. 切換到新建的資要夾底下，初始化遠端倉庫
+
+   ```shell
+    $ git init --bare
+   ```
+
+3. 確認資料夾中以建立的檔案
+
+   ```shell
+    $ ls
+    branches  config  description  HEAD  hooks  info  objects  refs
+   ```
+
+4. 提交本地專案或將本地專案的遠端指向此 repository
 
 ## Git 管理
 
