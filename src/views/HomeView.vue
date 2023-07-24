@@ -4,15 +4,15 @@
       <span class="h4 mt-2">搜尋筆記：</span>
       <input type="text" v-model="searchText" placeholder="筆記標題" class="form-control" style="width:12vw">
     </div>
-    <div class="row" style="width: 100%">
-      <div v-for="(item, index) in searchResult" :key="index" class="col-6">
+    <div class="row">
+      <div v-for="(item, index) in searchResult" :key="index" :class="{ 'col-6': isMobile }">
         <router-link :to="`/markdown/${item.name}`">
           <div class="card mb-3">
             <div class="card-header  d-flex justify-content-between">
               <span class="h5">{{ item.name.split('.md')[0] }}</span>
               <span>{{ countDate(item.date) }} ago</span>
             </div>
-            <div class="card-body text-center">
+            <div class="card-body text-center" v-show="isMobile">
               <div v-for="title, index in item.matchingLines" :key="index">{{ title }}</div>
             </div>
           </div>
@@ -56,12 +56,17 @@ export default {
       dataInPage: 6,
       currentPage: 1,
       searchText: '',
-      searchResults: []
+      searchResults: [],
+      windowSize: window.innerWidth,
+      isMobile: true,
     }
   },
   watch: {
     searchText: function () {
       this.search();
+    },
+    windowSize: function () {
+      this.checkDevice()
     }
   },
   computed: {
@@ -91,6 +96,11 @@ export default {
     }
   },
   methods: {
+    checkDevice() {
+      if (this.windowSize < 768) {
+        this.isMobile = false;
+      }
+    },
     search: function () {
       const searchText = this.searchText.toLowerCase();
       this.searchResults = this.files.filter(file => file.name.toLowerCase().includes(searchText));
@@ -152,6 +162,7 @@ export default {
   mounted() {
     this.getFilesInFolder();
     this.searchResults = this.files;
+    this.checkDevice();
   },
 }
 </script>
