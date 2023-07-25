@@ -26,6 +26,8 @@ export default {
   min-height: 88vh;
 }
 
+*{outline: 2px solid;}
+
 .content {
   padding-bottom: 10px;
 }

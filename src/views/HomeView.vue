@@ -2,10 +2,10 @@
   <div class="container">
     <div class="d-flex justify-content-center p-4">
       <div class="row">
-        <div class="col-4 pt-1">
+        <div class="col-5 pt-1">
           <span>搜尋筆記：</span>
         </div>
-        <div class="col-8">
+        <div class="col-7">
           <input type="text" v-model="searchText" placeholder="筆記標題" class="form-control form-control-sm">
         </div>
       </div>
