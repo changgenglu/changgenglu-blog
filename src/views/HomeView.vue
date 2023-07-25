@@ -1,8 +1,14 @@
 <template>
   <div class="container">
-    <div class="d-flex justify-content-center m-3">
-      <span class="h4 mt-2">搜尋筆記：</span>
-      <input type="text" v-model="searchText" placeholder="筆記標題" class="form-control" style="width:12vw">
+    <div class="d-flex justify-content-center p-4">
+      <div class="row">
+        <div class="col-4 pt-1">
+          <span>搜尋筆記：</span>
+        </div>
+        <div class="col-8">
+          <input type="text" v-model="searchText" placeholder="筆記標題" class="form-control form-control-sm">
+        </div>
+      </div>
     </div>
     <div class="row">
       <div v-for="(item, index) in searchResult" :key="index" :class="{ 'col-6': isMobile }">
