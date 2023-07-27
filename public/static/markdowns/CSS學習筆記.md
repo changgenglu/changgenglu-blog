@@ -42,6 +42,7 @@
     - [float](#float)
     - [float 和 position 的兼容問題](#float-和-position-的兼容問題)
   - [CSS 簡易暗黑模式](#css-簡易暗黑模式)
+  - [變數宣告](#變數宣告)
 
 <!-- /TOC -->
 
@@ -390,3 +391,18 @@ float 的屬性只有 none, left, right。
 - `code[class*="language-"]` 為 markdown 語法中的程式碼區塊
 - 若 html 反轉 90% 則圖片等元素需反轉 110%
 - 去背圖片在黑暗模式中因為背景變成黑底色，可能就會造成深色內容被深色背景吃掉的問題，為了避免這個問題，建議 img 的背景一律調成跟正常模式的背景色
+
+## 變數宣告
+
+- 定義變數：必需要定義在 css 選取器中，建議定義在 `:root` 最高層及的選取器以便於使用，使用 `--自訂名稱` 作為屬性的方式來宣告變數
+- 取用變數值：`var(變數名稱)`
+
+```css
+:root {
+  --dangerous-color: red;
+}
+
+.table {
+  background-color: var(--dangerous-color);
+}
+```
