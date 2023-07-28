@@ -83,6 +83,11 @@ export default {
     color: #1b2631;
 }
 
+#toggle-menu-btn {
+    width: 70%;
+    margin: auto
+}
+
 /* //捲軸底色 */
 #menu::-webkit-scrollbar-track {
     -webkit-box-shadow: inset 0 0 6px rgba(0, 0, 0, 0.3);

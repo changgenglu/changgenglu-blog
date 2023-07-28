@@ -11,14 +11,14 @@
       </div>
     </div>
     <div class="row">
-      <div v-for="(item, index) in searchResult" :key="index" :class="{ 'col-6': isMobile }">
+      <div v-for="(item, index) in searchResult" :key="index" :class="{ 'col-6': !isMobile }">
         <router-link :to="`/markdown/${item.name}`">
           <div class="card mb-3">
             <div class="card-header  d-flex justify-content-between">
               <span class="h5">{{ item.name.split('.md')[0] }}</span>
               <span>{{ countDate(item.date) }} ago</span>
             </div>
-            <div class="card-body text-center" v-show="isMobile">
+            <div class="card-body text-center" v-show="!isMobile">
               <div v-for="title, index in item.matchingLines" :key="index">{{ title }}</div>
             </div>
           </div>
@@ -64,7 +64,7 @@ export default {
       searchText: '',
       searchResults: [],
       windowSize: window.innerWidth,
-      isMobile: true,
+      isMobile: false,
     }
   },
   watch: {
@@ -104,7 +104,7 @@ export default {
   methods: {
     checkDevice() {
       if (this.windowSize < 768) {
-        this.isMobile = false;
+        this.isMobile = true;
       }
     },
     search: function () {
@@ -163,7 +163,6 @@ export default {
         return seconds + ` ${addS(seconds, "second")} `;
       }
     }
-
   },
   mounted() {
     this.getFilesInFolder();
