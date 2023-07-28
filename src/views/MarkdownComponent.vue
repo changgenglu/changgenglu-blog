@@ -1,21 +1,24 @@
 <template>
-    <div class="container mt-5 mb-5 d-flex">
-        <Markdown class="sticky-sm-top col-3" id="menu" :source="markdownMenu" v-show="markdownMenu !== ''" />
-        <div :class="{ 'col-9 position-sticky-end ms-3': markdownMenu }">
-            <Markdown :source="markdownContent" />
+    <div class="container mt-3 mb-5">
+        <div id="toggle-menu-btn" class="col-12 mb-3" v-show="isMobile && markdownMenu !== ''">
+            <button class="btn btn-outline-dark w-100" @click="toggleMenu">
+                <i class="fa-solid fa-bars"></i>
+            </button>
+        </div>
+        <div :class="{ 'd-flex': !isMobile }">
+            <div v-show="showMenu" :class="{ 'col-3': !isMobile, 'col-12': isMobile }">
+                <Markdown class="sticky-sm-top" id="menu" :source="markdownMenu" v-show="showMenu" />
+            </div>
+            <div class='position-sticky-end' :class="{ 'ms-3': !isMobile }">
+                <Markdown :source="markdownContent" />
+            </div>
         </div>
     </div>
-    <div id="to-footer-btn">
-        <!-- <button class="btn btn-outline-success" @click="scrollToFooter()">go 2 top</button> -->
-        <router-link :to="`/`" class="btn btn-outline-success">
-            back 2 menu
-        </router-link>
+    <div id="to-footer-btn" v-show="isMobile">
+        <button class="btn btn-outline-success" @click="scrollToFooter()">
+            <i class="fa-solid fa-chevron-up"></i>
+        </button>
     </div>
-    <!-- <div style="text-align:center" class="m-5">
-        <router-link to="/" class="btn btn-lg btn-outline-success">
-            back 2 menu
-        </router-link>
-    </div> -->
 </template>
 
 <script>
@@ -30,6 +33,8 @@ export default {
             markdownContent: '',
             markdownMenu: '',
             fileName: this.$route.params.title,
+            showMenu: true,
+            isMobile: false
         }
     },
     methods: {
@@ -43,10 +48,26 @@ export default {
         },
         scrollToFooter() {
             window.scrollTo(0, 0);
-        }
+        },
+        toggleMenu() {
+            if (this.markdownMenu === '') {
+                this.showMenu = false;
+            } else {
+                this.showMenu = !this.showMenu;
+            }
+        },
+        checkDevice() {
+            if (window.innerWidth < 768) {
+                this.isMobile = true;
+                this.showMenu = false
+            } else {
+                this.isMobile = false;
+            }
+        },
     },
     mounted() {
         this.loadMarkdown();
+        this.checkDevice();
     },
 }
 </script>
@@ -72,7 +93,6 @@ export default {
 /* //捲軸寬度 */
 #menu::-webkit-scrollbar {
     width: 6px;
-    /* background-color: #F5F5F5; */
 }
 
 /* //捲軸本體顏色 */
@@ -82,10 +102,9 @@ export default {
 }
 
 #to-footer-btn {
-    display: none;
     position: fixed;
-    right: 3%;
+    right: 0%;
     top: 88%;
-    width: 8em;
+    width: 3.5em;
 }
 </style>
