@@ -23,6 +23,6 @@
 
 .logoBag > a {
     color: #2c3e50;
-    /* font-family: Gambarino,serif; */
+    font-family: Gambarino,serif;
 }
 </style>
