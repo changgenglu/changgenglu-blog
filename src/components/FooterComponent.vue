@@ -1,16 +1,11 @@
 <template>
-    <footer class="py-4 bg-light footer w-100">
-        <div class="container-fluid px-4">
+    <footer class="py-4 pb-1 bg-light footer w-100">
+        <div class="container-fluid">
             <div class="d-flex align-items-center justify-content-center small">
                 <div class="text-muted">
                     powered by:
                     <a href="https://github.com/changgenglu">
                         changgenglu
-                    </a>
-                    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-                    logo by:
-                    <a href="https://www.designevo.com/tw/">
-                        DesignEvo
                     </a>
                 </div>
             </div>
@@ -24,4 +19,11 @@ export default {
 }
 </script>
 
-<style></style>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Borel&display=swap');
+
+.text-muted > a{
+    font-family: 'Borel', cursive;
+    font-size: 1.5rem;
+}
+</style>

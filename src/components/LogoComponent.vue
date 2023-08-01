@@ -21,7 +21,8 @@
     margin-top: 5vh;
 }
 
-.logoBag>a {
+.logoBag > a {
     color: #2c3e50;
+    /* font-family: Gambarino,serif; */
 }
 </style>

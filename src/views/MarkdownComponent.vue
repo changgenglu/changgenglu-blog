@@ -9,7 +9,7 @@
             <div v-show="showMenu" :class="{ 'col-3': !isMobile, 'col-12': isMobile }">
                 <Markdown class="sticky-sm-top" id="menu" :source="markdownMenu" v-show="showMenu" />
             </div>
-            <div class='position-sticky-end' :class="{ 'ms-3': !isMobile }">
+            <div class='position-sticky-end' :class="{ 'ms-3 col-9': !isMobile }">
                 <Markdown :source="markdownContent" />
             </div>
         </div>
@@ -83,6 +83,15 @@ export default {
     color: #1b2631;
 }
 
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+    font-family: Gambarino, serif;
+}
+
 #toggle-menu-btn {
     width: 70%;
     margin: auto
@@ -111,5 +120,4 @@ export default {
     right: 0%;
     top: 88%;
     width: 3.5em;
-}
-</style>
+}</style>

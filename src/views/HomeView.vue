@@ -14,7 +14,7 @@
       <div v-for="(item, index) in searchResult" :key="index" :class="{ 'col-6': !isMobile }">
         <router-link :to="`/markdown/${item.name}`">
           <div class="card mb-3">
-            <div class="card-header  d-flex justify-content-between">
+            <div class="card-header d-flex justify-content-between">
               <span class="h5">{{ item.name.split('.md')[0] }}</span>
               <span>{{ countDate(item.date) }} ago</span>
             </div>
@@ -180,5 +180,9 @@ a {
 .pagination {
   padding: 0;
   justify-content: center;
+}
+
+.h5 {
+  font-family: Gambarino, serif;
 }
 </style>
