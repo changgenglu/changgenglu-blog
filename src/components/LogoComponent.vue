@@ -1,11 +1,13 @@
 <template>
     <div class="logoBag">
-        <router-link to="/">
-            <img alt="my logo" src="../assets/profile.jpg" class="myLogo">
-            <h1>
-                Changgenglu
-            </h1>
-        </router-link>
+        <div class="w-25 m-auto">
+            <router-link to="/">
+                <img alt="my logo" src="../assets/profile.jpg" class="myLogo">
+                <div class="fs-1">
+                    Changgenglu
+                </div>
+            </router-link>
+        </div>
     </div>
 </template>
 
@@ -18,11 +20,14 @@
 
 .logoBag {
     text-align: center;
-    margin-top: 5vh;
+    padding-top: 5vh;
+    padding-bottom: 2vh;
+    background-color: rgb(14, 20, 20);
 }
 
-.logoBag > a {
-    color: #2c3e50;
-    font-family: Gambarino,serif;
+.logoBag a {
+    color: #dddddd;
+    font-family: Gambarino, serif;
+    font-weight: bold;
 }
 </style>

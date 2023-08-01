@@ -13,13 +13,15 @@
     <div class="row">
       <div v-for="(item, index) in searchResult" :key="index" :class="{ 'col-6': !isMobile }">
         <router-link :to="`/markdown/${item.name}`">
-          <div class="card mb-3">
-            <div class="card-header d-flex justify-content-between">
-              <span class="h5">{{ item.name.split('.md')[0] }}</span>
+          <div class="card mb-3 bg-transparent border-light">
+            <div class="card-header d-flex justify-content-between border-light">
+              <p class="h5">{{ item.name.split('.md')[0] }}</p>
               <span>{{ countDate(item.date) }} ago</span>
             </div>
             <div class="card-body text-center" v-show="!isMobile">
-              <div v-for="title, index in item.matchingLines" :key="index">{{ title }}</div>
+              <div v-for="title, index in item.matchingLines" :key="index">
+                <span>{{ title }}</span>
+              </div>
             </div>
           </div>
         </router-link>
@@ -173,6 +175,16 @@ export default {
 </script>
 
 <style>
+.card span {
+  color: #888888;
+}
+
+.card p {
+  color: #dddddd;
+  font-weight: bolder;
+  margin: 0;
+}
+
 a {
   text-decoration: none;
 }
