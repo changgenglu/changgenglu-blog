@@ -30,7 +30,7 @@ body {
   background-color: rgb(17, 28, 29);
   color: #dddddd;
   position: relative;
-  min-height: 88vh;
+  min-height: 92.85vh;
 }
 
 .content {
@@ -42,6 +42,7 @@ body {
   position: absolute;
   bottom: -70px;
 }
+
 
 /* @media (prefers-color-scheme: dark) {
   html {
