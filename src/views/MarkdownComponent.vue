@@ -87,6 +87,23 @@ export default {
     color: #888888;
 }
 
+
+.markdown-content td {
+    border: #888888 1px solid;
+    padding: 3px;
+}
+
+
+.markdown-content tbody {
+    border: rgb(17, 28, 29) 2px solid;
+    /* padding: 3px; */
+}
+
+.markdown-content li code {
+    padding: 5px;
+    padding-right: 10px;
+}
+
 h1,
 h2,
 h3,
