@@ -41,8 +41,8 @@ body {
   background-color: rgb(14, 20, 20);
   position: absolute;
   bottom: -70px;
+  z-index: 999;
 }
-
 
 /* @media (prefers-color-scheme: dark) {
   html {
@@ -59,5 +59,4 @@ body {
   img {
     background: #fff;
   }
-} */
-</style>
+} */</style>

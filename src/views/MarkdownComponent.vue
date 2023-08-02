@@ -14,19 +14,16 @@
             </div>
         </div>
     </div>
-    <div id="to-footer-btn" v-show="isMobile">
-        <button class="btn btn-outline-success" @click="scrollToFooter()">
-            <i class="fa-solid fa-chevron-up"></i>
-        </button>
-    </div>
+    <scroll-to-top-button v-show="isMobile" />
 </template>
 
 <script>
+import ScrollToTopButton from '@/components/ScrollToTopButton.vue';
 import Markdown from 'vue3-markdown-it';
 import AllMyArticle from '../assets/fileNames.json'
 
 export default {
-    components: { Markdown },
+    components: { Markdown, ScrollToTopButton },
     name: 'MarkdownComponent',
     data() {
         return {
