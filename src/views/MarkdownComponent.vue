@@ -92,6 +92,7 @@ export default {
     padding: 20px;
     padding-top: 40px;
     padding-right: 10px;
+
 }
 
 .markdown-content pre code::-webkit-scrollbar {
@@ -111,11 +112,17 @@ export default {
 
 .markdown-content pre code {
     position: relative;
+    background-color: #282827;
+    /* background-color: #3c3c3b; */
     border-radius: 8px !important;
-    box-shadow: 5px -5px 20px 5px rgba(0, 0, 0, 0.2);
+    /* box-shadow: 5px -5px 20px 5px rgba(0, 0, 0, 0.2); */
     padding: 20px;
     padding-top: 40px;
-    margin: 30px 0;
+    margin: 30px 30px;
+    box-shadow: inset 0px 12px 39px -25px #ABABAB, 1px 1px 35px 0px #000000;
+    -webkit-box-shadow: inset 0px 12px 39px -25px #ABABAB, 1px 1px 35px 0px #000000;
+    -moz-box-shadow: inset 0px 12px 39px -25px #ABABAB, 1px 1px 35px 0px #000000;
+    -o-box-shadow: inset 0px 12px 39px -25px #ABABAB, 1px 1px 35px 0px #000000;
 }
 
 .markdown-content pre code::before {
@@ -124,7 +131,7 @@ export default {
     border-radius: 8px 8px 0 0;
     height: 45px;
     line-height: 30px;
-    background: #21252b;
+    background: #3c3c3b;
     font-size: 16px;
     position: absolute;
     top: -20px;
@@ -177,7 +184,7 @@ h6 {
 #menu::-webkit-scrollbar-track {
     -webkit-box-shadow: inset 0 0 6px rgba(0, 0, 0, 0.3);
     border-radius: 10px;
-    background-color: #c7c7c7;
+    /* background-color: #c7c7c7; */
 }
 
 /* //捲軸寬度 */
