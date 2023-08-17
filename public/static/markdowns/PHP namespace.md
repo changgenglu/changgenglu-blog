@@ -25,7 +25,7 @@
 
   同名稱的兩個 function 在同一個空間存取會報錯，錯誤碼：
 
-  ```log
+  ```txt
   Fatal error: Cannot redeclare getInfo() (previously declared in...)
   ```
 
@@ -50,7 +50,7 @@
 
   相同命名的兩個 function 放到不同空間進行存取，最後輸出：
 
-  ```log
+  ```txt
   hello from test 1
   hello from test 2
   ```
@@ -99,7 +99,7 @@
   echo USER;
   ```
 
-  ```log
+  ```txt
   ivan_1
   ivan_2
   ```
@@ -392,14 +392,14 @@ CommonSpace.php 有 namespace，CommonSpace1.php 沒有(CommonSpace1.php 處於�
 
 若在 CommonSpace.php 中將 function fi() 註解，此時 f1() 呼叫的 function 為公共空間 function f1()，輸出：
 
-```log
+```txt
 okay
 ivan
 ```
 
 將 CommonSpace.php 的 function f1() 取消註解，此時 f1() 呼叫的是 AAA 命名空間的 function f1()。
 
-```log
+```txt
 in good mood
 ivan
 ```
@@ -432,7 +432,7 @@ ivan
 
   若 f3(); 沒有註解掉會報錯：
 
-  ```log
+  ```txt
   good
   cindy
   ivan
@@ -442,7 +442,7 @@ ivan
 
   將其註解後輸出：
 
-  ```log
+  ```txt
   good
   cindy
   ivan

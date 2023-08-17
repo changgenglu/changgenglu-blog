@@ -685,7 +685,7 @@ var example1 = new Vue({
 
 輸出
 
-```log
+```txt
 Foo
 Bar
 ```
@@ -708,7 +708,7 @@ var example2 = new Vue({
 });
 ```
 
-```log
+```txt
 parent-0-Foo
 parent-1-Bar
 ```
@@ -734,7 +734,7 @@ new Vue({
 });
 ```
 
-```log
+```txt
 How to do lists in Vue
 Jane Doe
 2016-04-10
@@ -746,7 +746,7 @@ Jane Doe
 <div v-for="(value, name) in object">{{ name }}: {{ value }}</div>
 ```
 
-```log
+```txt
 title: How to do lists in Vue
 author: Jane Doe
 publishedAt: 2016-04-10
@@ -758,7 +758,7 @@ publishedAt: 2016-04-10
 <div v-for="(value, name, index) in object">{{ index }}. {{ name }}: {{ value }}</div>
 ```
 
-```log
+```txt
 0. title: How to do lists in Vue
 1. author: Jane Doe
 2. **publishedAt**: 2016-04-10

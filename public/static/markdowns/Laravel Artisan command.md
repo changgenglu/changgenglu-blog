@@ -95,7 +95,7 @@ public function handle()
     $name $this->choice('what is ur name', ['Sunny', 'Taylor', 'Dayle'], $defaultIndex);
     ```
 
-    ```log
+    ```txt
     What is your name? [Taylor]: //在這個$defaultIndex = 1
       [0] Sunny
       [1] Taylor

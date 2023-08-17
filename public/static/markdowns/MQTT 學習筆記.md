@@ -514,7 +514,7 @@ auth_opt_mysql_aclquery SELECT topic FROM test_acl WHERE test_user_id = (SELECT 
 
 其實一般而言只會使用到權限 2、5、7
 
-```log
+```txt
 0: no access (NULL)
 1: read access (r)  // 不會動
 2: write access (w)

@@ -273,7 +273,7 @@ setAsLiteralObj(myObj);
 console.log(myObj);
 ```
 
-```log
+```txt
 <!-- setAsLiteralObj(myString) -->
 "target_1: "
 "hello world"
@@ -722,7 +722,7 @@ x = x - y;
 - string 長度跟內容不一樣，包括空白，它們就不相等。
 - 如果參考至同一個物件、陣列、函式，相同的記憶體位置，他們就相等，若無，就算內容的值一樣，它們也不相等，不同的記憶體位置存相同的值。
 
-```javascript=
+```javascript
 console.log('1' === 1); //false
 console.log(null === null); //true
 console.log(undefined === undefined); //true

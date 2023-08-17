@@ -61,10 +61,25 @@ export default {
                 this.isMobile = false;
             }
         },
+        addLang() {
+            let getCodeType = document.getElementsByTagName('code');
+            let attrData = document.getElementsByClassName('code-wrapper');
+            let codeType = [];
+
+            for (let i = 0; i < getCodeType.length; i++) {
+                codeType = getCodeType[i].className.split(" ")[1];
+                attrData[i].setAttribute("data-rel", codeType);
+
+                codeType === 'applescript' ?
+                    attrData[i].setAttribute("data-rel", '') :
+                    attrData[i].setAttribute("data-rel", codeType);
+            }
+        }
     },
     mounted() {
         this.loadMarkdown();
         this.checkDevice();
+        this.addLang();
     },
 }
 </script>
@@ -84,21 +99,63 @@ export default {
     color: #888888;
 }
 
-
 .markdown-content td {
     border: #888888 1px solid;
     padding: 3px;
 }
 
+.markdown-content li code {
+    padding: 20px;
+    padding-top: 40px;
+    padding-right: 10px;
+}
+
+.markdown-content pre code {
+    position: relative;
+    border-radius: 8px !important;
+    box-shadow: 5px -5px 20px 5px rgba(0, 0, 0, 0.2);
+    padding: 20px;
+    padding-top: 40px;
+    margin: 30px 0;
+}
+
+.markdown-content pre code::before {
+    color: rgb(197, 197, 197);
+    content: attr(data-rel);
+    border-radius: 8px 8px 0 0;
+    height: 45px;
+    line-height: 30px;
+    background: #21252b;
+    font-size: 16px;
+    position: absolute;
+    top: -20px;
+    left: 0;
+    width: 100%;
+    font-family: 'Source Sans Pro', sans-serif;
+    font-weight: bold;
+    padding: 0 65px;
+    text-indent: 15px;
+    float: left;
+}
+
+.markdown-content pre code::after {
+    content: '';
+    position: absolute;
+    -webkit-border-radius: 50%;
+    border-radius: 50%;
+    background: #fc625d;
+    width: 12px;
+    height: 12px;
+    top: 3px;
+    left: 10px;
+    margin-top: 4px;
+    -webkit-box-shadow: 20px 0px #fdbc40, 40px 0px #35cd4b;
+    box-shadow: 20px 0px #fdbc40, 40px 0px #35cd4b;
+    z-index: 3;
+}
 
 .markdown-content tbody {
     border: rgb(17, 28, 29) 2px solid;
-    /* padding: 3px; */
-}
-
-.markdown-content li code {
-    padding: 5px;
-    padding-right: 10px;
 }
 
 h1,

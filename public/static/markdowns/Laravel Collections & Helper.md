@@ -252,7 +252,7 @@ Arr::sort($list, function ($value, $key) {
 
 輸出
 
-```log
+```txt
 array:5 [
   1 => 5
   2 => 4
