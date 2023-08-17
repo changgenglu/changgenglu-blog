@@ -86,8 +86,7 @@ export default {
 
 <style>
 #menu {
-    height: 70vh;
-    top: 3vh;
+    height: 100vh;
     overflow-y: auto;
 }
 
@@ -109,6 +108,21 @@ export default {
     padding-top: 40px;
     padding-right: 10px;
 }
+
+.markdown-content pre code::-webkit-scrollbar {
+    height: 8px;
+}
+
+.markdown-content pre code::-webkit-scrollbar-track {
+    /* -webkit-box-shadow: inset 0 0 6px rgba(0, 0, 0, 0.5); */
+    border-radius: 10px;
+}
+
+.markdown-content pre code::-webkit-scrollbar-thumb {
+    border-radius: 10px;
+    -webkit-box-shadow: inset 0 0 9999px rgba(80, 80, 80, 0.7);
+}
+
 
 .markdown-content pre code {
     position: relative;
@@ -158,14 +172,14 @@ export default {
     border: rgb(17, 28, 29) 2px solid;
 }
 
-h1,
+.markdown-content h1,
 h2,
 h3,
 h4,
 h5,
 h6 {
     font-family: Gambarino, serif;
-    color: #dddddd;
+    color: #e4ece4;
     font-weight: bolder;
 }
 

@@ -804,7 +804,8 @@ publishedAt: 2016-04-10
 #### 傳遞字串
 
 ```vue
-<blog-post post-title="Blog1" post-content="I\'m content1" post-complete="true" post-total-num="500" post="{title:'Blog1'}"></blog-post>
+<blog-post post-title="Blog1" post-content="I\'m content1" post-complete="true" post-total-num="500" post="{title:'Blog1'}">
+</blog-post>
 ```
 
 只要是直接傳遞(靜態傳遞)都是字串，所以 prop 接收的值 log1、I\'m content1、true、500、{...} 等等都是字串。
