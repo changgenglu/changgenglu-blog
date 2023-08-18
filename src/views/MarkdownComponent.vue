@@ -113,9 +113,7 @@ export default {
 .markdown-content pre code {
     position: relative;
     background-color: #282827;
-    /* background-color: #3c3c3b; */
     border-radius: 8px !important;
-    /* box-shadow: 5px -5px 20px 5px rgba(0, 0, 0, 0.2); */
     padding: 20px;
     padding-top: 40px;
     margin: 30px 30px;

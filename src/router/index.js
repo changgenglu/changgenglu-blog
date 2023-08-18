@@ -15,7 +15,7 @@ const routes = [
     component: HomeView
   },
   {
-    path: '/markdown/:title',
+    path: '/:title',
     name: "Markdown",
     // route level code-splitting
     // this generates a separate chunk (about.[hash].js) for this route

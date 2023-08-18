@@ -12,7 +12,7 @@
     </div>
     <div class="row">
       <div v-for="(item, index) in searchResult" :key="index" :class="{ 'col-6': !isMobile }">
-        <router-link :to="`/markdown/${item.name}`">
+        <router-link :to="`/${item.name}`">
           <div class="card mb-3 bg-transparent border-light">
             <div class="card-header d-flex justify-content-between border-light">
               <p class="h5">{{ item.name.split('.md')[0] }}</p>
