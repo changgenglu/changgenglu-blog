@@ -48,7 +48,7 @@
       - [在 methods 中](#在-methods-中)
       - [在 mounted 中](#在-mounted-中)
       - [在 computed 中](#在-computed-中)
-    - [子組件傳遞參數給父組件的方法](#子組件傳遞參數給父組件的方法)
+  - [emit 子組件向父組件傳遞參數](#emit-子組件向父組件傳遞參數)
   - [ref 取得 Dom 元素](#ref-取得-dom-元素)
     - [基本用法：取得 dom 元素](#基本用法取得-dom-元素)
     - [獲取子組件中的 data 和調用子組件的方法](#獲取子組件中的-data-和調用子組件的方法)
@@ -1030,7 +1030,7 @@ props: ['channelNames', 'regionId', 'bxMac'],
 </script>
 ```
 
-### 子組件傳遞參數給父組件的方法
+## emit 子組件向父組件傳遞參數
 
 ```vue
 <!-- 子組件 HelloWorld.vue -->
