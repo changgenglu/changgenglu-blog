@@ -48,10 +48,10 @@
       - [在 methods 中](#在-methods-中)
       - [在 mounted 中](#在-mounted-中)
       - [在 computed 中](#在-computed-中)
+    - [子組件傳遞參數給父組件的方法](#子組件傳遞參數給父組件的方法)
   - [ref 取得 Dom 元素](#ref-取得-dom-元素)
     - [基本用法：取得 dom 元素](#基本用法取得-dom-元素)
     - [獲取子組件中的 data 和調用子組件的方法](#獲取子組件中的-data-和調用子組件的方法)
-    - [子組件呼叫父組件的方法](#子組件呼叫父組件的方法)
     - [this.$refs 介紹](#thisrefs-介紹)
   - [備註](#備註)
     - [判斷當前環境是否為開發環境](#判斷當前環境是否為開發環境)
@@ -1030,6 +1030,61 @@ props: ['channelNames', 'regionId', 'bxMac'],
 </script>
 ```
 
+### 子組件傳遞參數給父組件的方法
+
+```vue
+<!-- 子組件 HelloWorld.vue -->
+<template>
+  <div></div>
+</template>
+
+<script>
+  export default {
+    methods: {
+      open() {
+        console.log("已呼叫");
+        // 呼叫父組件方法
+        this.$emit("refresh-data");
+      },
+    },
+  };
+</script>
+```
+
+```vue
+<!-- 父組件 -->
+<template>
+  <div id="app">
+    <!-- 子組件傳遞的方法 refresh-data -->
+    <HelloWorld ref="hello" @refresh-data="getData" />
+    <button @click="getHello">取得 HelloWorld 組件中的值</button>
+  </div>
+</template>
+
+<script>
+  import HelloWorld from "./components/HelloWorld.vue";
+
+  export default {
+    components: {
+      HelloWorld,
+    },
+    data() {
+      return {};
+    },
+    methods: {
+      getHello() {
+        this.$refs.hello.open();
+      },
+      getData() {
+        console.log("111111111");
+      },
+    },
+  };
+</script>
+```
+
+最後輸出時，`已呼叫`為子組件輸出，`111111111111`為父組件輸出
+
 ## ref 取得 Dom 元素
 
 > `refs` 是 vue 提供的一個 api，可以讓我們在 vue 中取得 Dom 元素
@@ -1106,60 +1161,6 @@ this.$ref.children;
   };
 </script>
 ```
-
-### 子組件呼叫父組件的方法
-
-```vue
-<!-- 子組件 -->
-<template>
-  <div></div>
-</template>
-
-<script>
-  export default {
-    methods: {
-      open() {
-        console.log("已呼叫");
-        // 呼叫父組件方法
-        this.$emit("refreshData");
-      },
-    },
-  };
-</script>
-```
-
-```vue
-<!-- 父組件 -->
-<template>
-  <div id="app">
-    <HelloWorld ref="hello" @refreshData="getData" />
-    <button @cilck="getHello">取得 HelloWorld 組件中的值</button>
-  </div>
-</template>
-
-<script>
-  import HelloWorld from "./components/HelloWorld.vue";
-
-  export default {
-    components: {
-      HelloWorld,
-    },
-    data() {
-      return {};
-    },
-    methods: {
-      getHello() {
-        this.$refs.hello.open();
-      },
-      getData() {
-        console.log("111111111");
-      },
-    },
-  };
-</script>
-```
-
-最後輸出時，`已呼叫`為子組件輸出，`111111111111`為父組件輸出
 
 ### this.$refs 介紹
 
