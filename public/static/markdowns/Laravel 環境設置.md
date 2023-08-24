@@ -6,7 +6,8 @@
   - [環境初始設定](#環境初始設定)
     - [1. 安裝 XAMPP or phpEnv](#1-安裝-xampp-or-phpenv)
       - [xampp 更改 php 版本: 版本 5 =\> 7](#xampp-更改-php-版本-版本-5--7)
-      - [macOS Monterey 上安裝 PHP](#macos-monterey-上安裝-php)
+      - [XAMPP 除錯](#xampp-除錯)
+    - [macOS Monterey 上安裝 PHP](#macos-monterey-上安裝-php)
     - [2. 安裝 composer](#2-安裝-composer)
       - [windows 透過 composer 官網下載 composer 安裝檔](#windows-透過-composer-官網下載-composer-安裝檔)
       - [下載 Composer: MacOS](#下載-composer-macos)
@@ -87,7 +88,44 @@
 6. 至 XAMPP 面板重啟 Apache
 7. 重新執行 composer update
 
-#### macOS Monterey 上安裝 PHP
+#### XAMPP 除錯
+
+> 問題：XAMPP 開啟 MySQL 失敗
+
+錯誤訊息：
+
+```txt
+2023-08-24 16:06:19 0 [Note] InnoDB: Mutexes and rw_locks use Windows interlocked functions
+2023-08-24 16:06:19 0 [Note] InnoDB: Uses event mutexes
+2023-08-24 16:06:19 0 [Note] InnoDB: Compressed tables use zlib 1.2.12
+2023-08-24 16:06:19 0 [Note] InnoDB: Number of pools: 1
+2023-08-24 16:06:19 0 [Note] InnoDB: Using SSE2 crc32 instructions
+2023-08-24 16:06:19 0 [Note] InnoDB: Initializing buffer pool, total size = 16M, instances = 1, chunk size = 16M
+2023-08-24 16:06:19 0 [Note] InnoDB: Completed initialization of buffer pool
+2023-08-24 16:06:19 0 [Note] InnoDB: 128 out of 128 rollback segments are active.
+2023-08-24 16:06:19 0 [Note] InnoDB: Creating shared tablespace for temporary tables
+2023-08-24 16:06:19 0 [Note] InnoDB: Setting file 'C:\xampp\mysql\data\ibtmp1' size to 12 MB. Physically writing the file full; Please wait ...
+2023-08-24 16:06:19 0 [Note] InnoDB: File 'C:\xampp\mysql\data\ibtmp1' size is now 12 MB.
+2023-08-24 16:06:19 0 [Note] InnoDB: Waiting for purge to start
+2023-08-24 16:06:19 0 [Note] InnoDB: 10.4.27 started; log sequence number 72915773; transaction id 17227
+2023-08-24 16:06:19 0 [Note] InnoDB: Loading buffer pool(s) from C:\xampp\mysql\data\ib_buffer_pool
+2023-08-24 16:06:19 0 [Note] Plugin 'FEEDBACK' is disabled.
+2023-08-24 16:06:19 0 [Note] Server socket created on IP: '::'.
+```
+
+解決辦法：
+
+1. 先到路徑：`C:\xampp\mysql\data`
+2. 將 data 資料夾備份
+3. 再建立一個新的 data 資料夾
+4. 建立後重啟 mysql
+5. 重啟失敗後，data 資料夾會新增程式自動建立的檔案
+6. 此時將`C:\xampp\mysql\backup`中的資料夾複製到 data 資料夾中
+7. 這時再重啟 mysql 已經可以正常運行了，接下來將就的資料庫加回來
+8. 此時先關閉 mysql，將剛剛備份的 data 資料夾底下的資料夾與 `ibdata1` 檔案，複製到新的 data 資料夾底下
+9. 重啟 mysql 即可
+
+### macOS Monterey 上安裝 PHP
 
 > 問題：安裝完 MAMP 之後，要用終端機安裝 composer，結果出現`zsh: command not found: php`
 >
