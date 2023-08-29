@@ -1517,6 +1517,17 @@ $difference = date_diff($date_time_start, $date_time_end);
 - $start 要開始擷取的位置(須為數字，可為正數或負數)
 - $length 要擷取的字串長度(須為數字，可為正數或負數)
 
+```php
+echo substr("abcde", -1);       // 輸出 e，因為從字尾開始算一個字母。
+echo substr("abcde", -2);       // 輸出 de，因為從字尾開始算，共取兩個字母。
+
+echo substr("abcd", -3, 1);     // 輸出 b，因為從字尾開始算，先取三個字母為 bcd，接著長度在從 bcd 取 1 位。
+echo substr("abcdef", 0, -1);   // 輸出 abcde，因為程式先從零開始取整段字串，長度再由字串尾扣掉一個。
+echo substr("abcdef", 2, -1);   // 輸出 cde，因為程式先從第二個字元開始，取得 cdef 這幾個字，再由取得的字串尾扣掉一個。
+echo substr("abcdef", 5, -2);   // 回傳 false，因為程式一開始先取得 f，然後扣掉五個字元，就什麼都沒有囉！
+echo substr("abcdef", -4, -2);  // 輸出 cd，因為程式先取得 cdef 這四個字元，再從其中的字尾開始扣掉兩個字元。
+```
+
 ### 轉換字母大小寫
 
 #### `ucfirst` 將字串的首字母轉為大寫
