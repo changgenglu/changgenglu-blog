@@ -13,10 +13,12 @@
     <div class="row">
       <div v-for="(item, index) in searchResult" :key="index" :class="{ 'col-6': !isMobile }">
         <router-link :to="`/${item.name}`">
-          <div class="card mb-3 bg-transparent border-light">
-            <div class="card-header d-flex justify-content-between border-light">
-              <p class="h5">{{ item.name.split('.md')[0] }}</p>
-              <span>{{ countDate(item.date) }} ago</span>
+          <div class="card mb-3 bg-transparent" :class="{ 'border-light': isMobile }">
+            <div class="card-header d-flex"
+              :class="{ 'justify-content-between': isMobile, 'justify-content-around': !isMobile }">
+              <span style="width: 65px;" v-show="!isMobile"></span>
+              <p class="h6 pt-1">{{ item.name.split('.md')[0] }}</p>
+              <span class="fs-6 fst-italic fw-lighter">{{ countDate(item.date) }} ago</span>
             </div>
             <div class="card-body text-center" v-show="!isMobile">
               <div v-for="title, index in item.matchingLines" :key="index">
@@ -196,5 +198,51 @@ a {
 
 .h5 {
   font-family: Gambarino, serif;
+}
+
+@media screen and (min-width: 768px) {
+  .card {
+    min-height: 190px;
+    position: relative;
+    border-radius: 8px !important;
+    box-shadow: inset 0px 12px 39px -25px #ABABAB, 1px 1px 35px 0px #000000;
+    -webkit-box-shadow: inset 0px 12px 39px -25px #ABABAB, 1px 1px 35px 0px #000000;
+    -moz-box-shadow: inset 0px 12px 39px -25px #ABABAB, 1px 1px 35px 0px #000000;
+    -o-box-shadow: inset 0px 12px 39px -25px #ABABAB, 1px 1px 35px 0px #000000;
+  }
+
+  .card .card-header {
+    color: rgb(197, 197, 197);
+    content: attr(data-rel);
+    /* border-radius: 8px 8px 0 0; */
+    height: 30px;
+    line-height: 30px;
+    background-color: #3c3c3b;
+    width: 100%;
+    padding: 0;
+    float: left;
+  }
+
+  .card .card-body {
+    background-color: #282827;
+    border-radius: 8px !important;
+  }
+
+  .card .card-header::after {
+    content: '';
+    position: absolute;
+    -webkit-border-radius: 50%;
+    border-radius: 50%;
+    background: #fc625d;
+    width: 12px;
+    height: 12px;
+    top: 3px;
+    left: 10px;
+    margin-top: 5px;
+    -webkit-box-shadow: 20px 0px #fdbc40, 40px 0px #35cd4b;
+    box-shadow: 20px 0px #fdbc40, 40px 0px #35cd4b;
+    z-index: 3;
+  }
+
 }
 </style>
