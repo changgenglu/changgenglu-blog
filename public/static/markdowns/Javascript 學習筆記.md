@@ -69,6 +69,9 @@
     - [JSON 轉換](#json-轉換)
       - [`JSON.stringify` 將物件轉為 json 字串](#jsonstringify-將物件轉為-json-字串)
       - [`JSON.parse` 將 json 字串轉換為物件](#jsonparse-將-json-字串轉換為物件)
+    - [計時器](#計時器)
+      - [setTimeout()](#settimeout)
+      - [setInterval()](#setinterval)
   - [屬性描述器](#屬性描述器)
     - [使用字面值宣告屬性的特徵](#使用字面值宣告屬性的特徵)
     - [取得屬性特徵](#取得屬性特徵)
@@ -723,13 +726,13 @@ x = x - y;
 - 如果參考至同一個物件、陣列、函式，相同的記憶體位置，他們就相等，若無，就算內容的值一樣，它們也不相等，不同的記憶體位置存相同的值。
 
 ```javascript
-console.log('1' === 1); //false
+console.log("1" === 1); //false
 console.log(null === null); //true
 console.log(undefined === undefined); //true
 console.log(null === undefined); //false
 console.log(NaN === NaN); //false
 console.log(NaN !== NaN); //true
-console.log('ABC' === 'ABC '); //false
+console.log("ABC" === "ABC "); //false
 ```
 
 `>`：大於
@@ -1659,6 +1662,51 @@ mySet.add({ a: 1, b: 2 }); // Set { 1, 5, 'some text', { a: 1, b: 2 }, { a: 1, b
 #### `JSON.stringify` 將物件轉為 json 字串
 
 #### `JSON.parse` 將 json 字串轉換為物件
+
+### 計時器
+
+瀏覽器內建的計時器
+
+#### setTimeout()
+
+來設定一段時間過後，自動執行某個函數(callback)，這個計時器只會執行一次。
+
+```javascript
+const timeoutId = setTimeout(func, delay[, param1, param2, ...]);
+const timeoutId = setTimeout(func, delay);
+```
+
+`func` 時間到執行的函數。
+`delay` 等候時間，單位為毫秒。
+`param*` 用來指定要傳入 `func` 的參數
+`setTimeout()` 執行後會返回一個數字，表示這個計時器的 id
+
+```javascript
+const timeoutId = setTimeout(myAlert, 5000);
+
+function myAlert() {
+  alert("五秒鐘到了");
+}
+```
+
+若取消計時器，可以使用 `clearTimeout(timeoutId)`;
+
+#### setInterval()
+
+用來設定每過一段時間，就會自動執行某個函數(callback)，這個計時器會重複執行。
+
+```javascript
+const intervalId = setInterval(func, delay[, param1, param2, ...]);
+const intervalId = setInterval(func, delay);
+```
+
+```javascript
+const intervalId = setInterval(function () {
+  alert("十秒鐘又到了");
+}, 10000);
+```
+
+若取消計時器，可以使用 `clearInterval(intervalId)`;
 
 ## 屬性描述器
 
