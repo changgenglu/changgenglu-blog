@@ -40,6 +40,13 @@
     - [紀錄檔輪替頻率設定](#紀錄檔輪替頻率設定)
     - [紀錄檔壓縮](#紀錄檔壓縮)
     - [測試 logrotate 設定](#測試-logrotate-設定)
+  - [安全性設定](#安全性設定)
+    - [登入伺服器建立自訂帳號](#登入伺服器建立自訂帳號)
+    - [開啟安全性更新](#開啟安全性更新)
+    - [修改 ssh port](#修改-ssh-port)
+    - [關閉 root 的 SSH 權限，允許 SSH 登入帳號](#關閉-root-的-ssh-權限允許-ssh-登入帳號)
+    - [設定 SSH 免密碼登入](#設定-ssh-免密碼登入)
+    - [關閉 SSH 密碼登入功能](#關閉-ssh-密碼登入功能)
 
 <!-- /TOC -->
 
@@ -619,3 +626,172 @@ sudo logrotate -d /etc/logrotate.conf
 如果沒出現錯誤訊息，就完成了
 
 logrotate 是透過 cron 來觸發的，通常是寫在 /etc/cron.daily/logrotate 中，所以更改 logrotate 設定檔之後，只要確認設定無誤，就會自動生效，不需要重新載入設定檔的動作。
+
+## 安全性設定
+
+> 參考資料
+>
+> [Ubuntu VPS 第一步：安全性設定](https://blog.jsy.tw/2124/ubuntu-vps-security-settings/)
+>
+> 目前只能透過 GCP 的瀏覽器 ssh 指定 2022 port 連線到虛擬機
+
+### 登入伺服器建立自訂帳號
+
+為了避免駭客直接用 root 連線進來，應該要限制 root 使用 ssh。
+
+首先使用 root 建立一個新的帳號
+
+1. 用 ssh 登入 root 帳號
+
+   ```bash
+    ssh root@<server-ip>
+   ```
+
+2. 修改 root 密碼
+
+   ```bash
+    passwd
+   ```
+
+3. 新增帳號
+
+   ```bash
+    adduser <new-account>
+   ```
+
+4. 允許此帳號使用 sudo 權限
+
+   ```bash
+    usermod -aG sudo <new-account>
+   ```
+
+### 開啟安全性更新
+
+一般若開啟自動更新，容易增加網站運作上的不穩定，所以有些人會選擇關閉。但這邊會開啟最基本的安全更新。
+
+1. 更新 ubuntu
+
+   ```bash
+    apt update
+    apt dist-upgrade
+   ```
+
+2. 更新完成後，重新啟動 ubuntu
+
+   ```bash
+    reboot
+   ```
+
+3. 開啟 ubuntu 的 unattended-upgrades 設定檔
+
+   ```bash
+    sudo vim /etc/apt/apt.conf.d/50unattended-upgrades
+   ```
+
+4. 將安全性更新以外的全部註解
+
+   ```txt
+   Unattended-Upgrade::Allowed-Origins {
+   //      "${distro_id}:${distro_codename}";  // 發行版的預設軟體源
+        "${distro_id}:${distro_codename}-security";  // 安全性更新
+        "${distro_id}ESM:${distro_codename}";  // 針對過期的 LTS 版提供的付費延展安全性更新
+   //      "${distro_id}:${distro_codename}-updates"; // 官方建議的軟體更新（功能更新、Bug 修復等）
+   //      "${distro_id}:${distro_codename}-proposed";  // 尚未官方建議的軟體更新
+   //      "${distro_id}:${distro_codename}-backports";  // 針對舊版 Ubuntu 提供的新軟體更新
+   };
+   ```
+
+5. 開啟 ubuntu 的 auto-upgrades
+
+   ```bash
+    vim /etc/apt/apt.conf.d/20auto-upgrades
+   ```
+
+6. 修改指令
+
+   ```bash
+   // 指定自動更新套件庫清單 (apt update) 的週期，單位是天。
+   APT::Periodic::Update-Package-Lists "1";
+   // 指定自動把可更新的套件下載下來 (apt upgrade -d) 的週期，單位是天。
+   APT::Periodic::Download-Upgradeable-Packages "1";
+   // 指定自動把目前已經不可下載，但是先前已經被下載下來的套件清除 (apt autoclean) 的週期，單位是天。
+   APT::Periodic::AutocleanInterval "7";
+   // 與套件「unattended-upgrades」互相搭配使用。可以指定要自動下載並安裝套件 (類似 apt upgrade) 的週期，單位是天。
+   APT::Periodic::Unattended-Upgrade "1";
+   ```
+
+### 修改 ssh port
+
+修改 SSH 預設的 22 port。
+
+1. 列出哪一些 port 是可以使用的
+
+   ```bash
+    ss -tulpn | grep LISTEN
+   ```
+
+2. 開啟 ssh 設定檔
+
+   ```bash
+    vim /etc/ssh/sshd_config
+   ```
+
+3. 找到以 Port 開頭的那一行，並更改成你想要的 port
+
+   ```text
+   Port <ur-new-port>
+   ```
+
+4. 在檔案任一處加入下方指令，以限制 SSH 永遠使用 Protocol 2。這會使 SSH 連線更加安全
+
+   ```text
+   protocol 2
+   ```
+
+5. 重新啟動 ssh
+
+   ```bash
+    sudo systemctl restart ssh
+   ```
+
+### 關閉 root 的 SSH 權限，允許 SSH 登入帳號
+
+1. 測試要允許登入的帳號是否具有 sudo 的權限
+
+   ```bash
+    sudo -v
+   ```
+
+2. 開啟 ssh 設定檔
+
+   ```bash
+    sudo vim /etc/ssh/sshd_config
+   ```
+
+3. 關閉 root 登入並新增登入的帳號
+
+   ```text
+   PermitRootLogin no
+   AllowUsers <your_user_account>
+   ```
+
+4. 重新啟動 ssh
+
+### 設定 SSH 免密碼登入
+
+使用 ssh key 機制來達成免密碼登入，利用演算法建構出複雜的公私鑰(題目與密碼)，將公鑰放在伺服器上，每次登入時系統自動將本地端的私鑰去對應伺服器上面的公鑰，來確認是否為本人以達成免本人輸入密碼的登入。
+
+除了方便以外，極為複雜且加密過的鑰匙，也可以讓被暴力破解的機會降低。
+
+### 關閉 SSH 密碼登入功能
+
+為了降低 ssh 的連線風險，接著要進一步將 SSH 密碼登入功能關閉。
+
+1. 開啟 SSH 設定檔
+
+   ```bash
+    sudo vim /etc/ssh/sshd_config
+   ```
+
+2. 將 `PasswordAuthentication` 的數值改為 `no`
+3. 重新啟動 ssh
