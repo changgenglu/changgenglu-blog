@@ -1,5 +1,5 @@
 <template>
-  <div class="container">
+  <div class="container-lg">
     <div class="d-flex justify-content-center p-4">
       <div class="row">
         <div class="col-5 pt-1">

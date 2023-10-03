@@ -1,5 +1,5 @@
 <template>
-    <div class="container mt-3 mb-5">
+    <div class="mt-3 mb-5">
         <div id="toggle-menu-btn" class="col-12 mb-3" v-show="isMobile && markdownMenu !== ''">
             <button class="btn btn-outline-light w-100" @click="toggleMenu">
                 <i class="fa-solid fa-bars"></i>
@@ -9,7 +9,7 @@
             <div v-show="showMenu" :class="{ 'col-3': !isMobile, 'col-12': isMobile }">
                 <Markdown class="sticky-sm-top" id="menu" :source="markdownMenu" v-show="showMenu" />
             </div>
-            <div class='markdown-content position-sticky-end' :class="{ 'ms-3 col-9': !isMobile }">
+            <div class='markdown-content px-3  position-sticky-end' :class="{ 'col-9': !isMobile }">
                 <Markdown :source="markdownContent" />
             </div>
         </div>
