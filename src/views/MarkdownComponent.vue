@@ -1,5 +1,5 @@
 <template>
-    <div class="mt-3 mb-5">
+    <div class="container-lg mt-3 mb-5">
         <div id="toggle-menu-btn" class="col-12 mb-3" v-show="isMobile && markdownMenu !== ''">
             <button class="btn btn-outline-light w-100" @click="toggleMenu">
                 <i class="fa-solid fa-bars"></i>
