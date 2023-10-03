@@ -9,13 +9,6 @@
     - [指令](#指令)
       - [`chown` 更改檔案所有權給其他使用者](#chown-更改檔案所有權給其他使用者)
       - [`chmod` 更改檔案權限](#chmod-更改檔案權限)
-      - [`&` 背景執行程式](#-背景執行程式)
-      - [`jobs` 檢視任務](#jobs-檢視任務)
-      - [`fg` 將任務切換至前景執行，`bg` 將任務切換至背景執行](#fg-將任務切換至前景執行bg-將任務切換至背景執行)
-      - [`disown` 卸除目前預設的背景行程](#disown-卸除目前預設的背景行程)
-      - [`ps aux | less` 顯示所有正在執行中的進程](#ps-aux--less-顯示所有正在執行中的進程)
-      - [`kill 10000` 刪除執行中的進程，`kill` 加上 PID 的數字即可](#kill-10000-刪除執行中的進程kill-加上-pid-的數字即可)
-      - [`nohup` 讓程式可以在離線或是登出系統後繼續執行](#nohup-讓程式可以在離線或是登出系統後繼續執行)
   - [安裝 php](#安裝-php)
   - [安裝 MySQL](#安裝-mysql)
     - [更新軟體庫](#更新軟體庫)
@@ -47,6 +40,14 @@
     - [關閉 root 的 SSH 權限，允許 SSH 登入帳號](#關閉-root-的-ssh-權限允許-ssh-登入帳號)
     - [設定 SSH 免密碼登入](#設定-ssh-免密碼登入)
     - [關閉 SSH 密碼登入功能](#關閉-ssh-密碼登入功能)
+  - [常用指令](#常用指令)
+    - [`&` 背景執行程式](#-背景執行程式)
+    - [`jobs` 檢視任務](#jobs-檢視任務)
+    - [`fg` 將任務切換至前景執行，`bg` 將任務切換至背景執行](#fg-將任務切換至前景執行bg-將任務切換至背景執行)
+    - [`disown` 卸除目前預設的背景行程](#disown-卸除目前預設的背景行程)
+    - [`ps aux | less` 顯示所有正在執行中的進程](#ps-aux--less-顯示所有正在執行中的進程)
+    - [`kill 10000` 刪除執行中的進程，`kill` 加上 PID 的數字即可](#kill-10000-刪除執行中的進程kill-加上-pid-的數字即可)
+    - [`nohup` 讓程式可以在離線或是登出系統後繼續執行](#nohup-讓程式可以在離線或是登出系統後繼續執行)
 
 <!-- /TOC -->
 
@@ -216,62 +217,6 @@ drwx------ 2 rexlite_public rexlite_public  4096 Sep  2 01:10 .ssh/
     `chmod a+w < filename >`
   - 若要將權限去除，而不更動其他已存在的權限  
     `chmod a-x < filename >`
-
-#### `&` 背景執行程式
-
-- 在執行程式後面加上 `&` 使程式可以在背景執行
-
-```bash
-php subscribe_with_auth.php &
-```
-
-#### `jobs` 檢視任務
-
-```bash
-jobs -l
-[1]+ 1040421 Running php subscribe_with_auth.php &
-```
-
-#### `fg` 將任務切換至前景執行，`bg` 將任務切換至背景執行
-
-```bash
-jobs -l
-[1]+ 1040421 Running php subscribe_with_auth.php &
-```
-
-#### `disown` 卸除目前預設的背景行程
-
-- `disown -a` 卸除所有工作，無論其狀態是否在執行中或是暫停
-- `disown -ar` 僅卸除所有執行中的工作
-- `disown -h` 不要卸除工作，只是單純讓程式可以在登出後繼續執行。
-
-```bash
-jobs -l
-[1]+ 1040421 Running php subscribe_with_auth.php &
-```
-
-#### `ps aux | less` 顯示所有正在執行中的進程
-
-#### `kill 10000` 刪除執行中的進程，`kill` 加上 PID 的數字即可
-
-```bash
-USER         PID %CPU %MEM    VSZ   RSS TTY      STAT START   TIME COMMAND
-root           1  0.0  0.3 173272 12812 ?        Ss    2022  85:07 /lib/systemd/systemd --system --deserialize 23
-root           2  0.0  0.0      0     0 ?        S     2022   0:06 [kthreadd]
-root           3  0.0  0.0      0     0 ?        I<    2022   0:00 [rcu_gp]
-root           4  0.0  0.0      0     0 ?        I<    2022   0:00 [rcu_par_gp]
-root           5  0.0  0.0      0     0 ?        I<    2022   0:00 [netns]
-root           7  0.0  0.0      0     0 ?        I<    2022   0:00 [kworker/0:0H-events_highpri]
-root           9  0.0  0.0      0     0 ?        I<    2022   2:45 [kworker/0:1H-events_highpri]
-```
-
-#### `nohup` 讓程式可以在離線或是登出系統後繼續執行
-
-當 Linux 使用者登出系統後正在執行的程式會接收到 SIGHUP(hangup) 信號，收到信號的程式會立刻停止執行。
-
-```bash
-nohup /path/my_program &
-```
 
 ## 安裝 php
 
@@ -795,3 +740,61 @@ logrotate 是透過 cron 來觸發的，通常是寫在 /etc/cron.daily/logrotat
 
 2. 將 `PasswordAuthentication` 的數值改為 `no`
 3. 重新啟動 ssh
+
+## 常用指令
+
+### `&` 背景執行程式
+
+- 在執行程式後面加上 `&` 使程式可以在背景執行
+
+```bash
+php subscribe_with_auth.php &
+```
+
+### `jobs` 檢視任務
+
+```bash
+jobs -l
+[1]+ 1040421 Running php subscribe_with_auth.php &
+```
+
+### `fg` 將任務切換至前景執行，`bg` 將任務切換至背景執行
+
+```bash
+jobs -l
+[1]+ 1040421 Running php subscribe_with_auth.php &
+```
+
+### `disown` 卸除目前預設的背景行程
+
+- `disown -a` 卸除所有工作，無論其狀態是否在執行中或是暫停
+- `disown -ar` 僅卸除所有執行中的工作
+- `disown -h` 不要卸除工作，只是單純讓程式可以在登出後繼續執行。
+
+```bash
+jobs -l
+[1]+ 1040421 Running php subscribe_with_auth.php &
+```
+
+### `ps aux | less` 顯示所有正在執行中的進程
+
+### `kill 10000` 刪除執行中的進程，`kill` 加上 PID 的數字即可
+
+```bash
+USER         PID %CPU %MEM    VSZ   RSS TTY      STAT START   TIME COMMAND
+root           1  0.0  0.3 173272 12812 ?        Ss    2022  85:07 /lib/systemd/systemd --system --deserialize 23
+root           2  0.0  0.0      0     0 ?        S     2022   0:06 [kthreadd]
+root           3  0.0  0.0      0     0 ?        I<    2022   0:00 [rcu_gp]
+root           4  0.0  0.0      0     0 ?        I<    2022   0:00 [rcu_par_gp]
+root           5  0.0  0.0      0     0 ?        I<    2022   0:00 [netns]
+root           7  0.0  0.0      0     0 ?        I<    2022   0:00 [kworker/0:0H-events_highpri]
+root           9  0.0  0.0      0     0 ?        I<    2022   2:45 [kworker/0:1H-events_highpri]
+```
+
+### `nohup` 讓程式可以在離線或是登出系統後繼續執行
+
+當 Linux 使用者登出系統後正在執行的程式會接收到 SIGHUP(hangup) 信號，收到信號的程式會立刻停止執行。
+
+```bash
+nohup /path/my_program &
+```
