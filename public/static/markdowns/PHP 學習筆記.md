@@ -35,6 +35,7 @@
     - [`array_combine` 將傳入的參數合併為陣列](#array_combine-將傳入的參數合併為陣列)
     - [`array_unique` 從陣列中刪除重複的值](#array_unique-從陣列中刪除重複的值)
     - [`array_diff` 判斷陣列之間差異](#array_diff-判斷陣列之間差異)
+    - [`array_slice` 從陣列中取得一段連續的元素](#array_slice-從陣列中取得一段連續的元素)
     - [日期/時間](#日期時間)
       - [`date` 格式化 Unix timestamps](#date-格式化-unix-timestamps)
       - [`mktime` 取得指定日期的時間戳](#mktime-取得指定日期的時間戳)
@@ -1019,6 +1020,28 @@ Array
 [6] => Daffodil
 [7] => Daisy
 )
+```
+
+### `array_slice` 從陣列中取得一段連續的元素
+
+此方法會返回一個新的陣列，包含從原陣列取得的元素，而原始陣列不會被修改。
+
+- `array_slice(array $array, int $offset, int $length = null, bool $preserve_keys = false);`
+  - `$array` 目標的陣列
+  - `$offset` 從陣列的哪一個位置開始取得元素
+  - `$length` 可選參數，指定取得的元素個數，若未設置，則從 $offset 開始擷取到陣列最後的所有元素。
+  - `$preserve_keys` 可選參數，若為 `true`，則保留原始陣列的 key 值，預設為 `false`
+
+```php
+$fruits = ['apple', 'banana', 'cherry', 'date','fig'];
+
+// 擷取陣列前三個元素
+$slice1 = array_slice($fruits, 0, 3);
+print_r($slice1); // 输出：['apple', 'banana', 'cherry']
+
+// 擷取陣列的後兩個元素
+$slice2 = array_slice($fruits, -2);
+print_r($slice2); // 输出：['date', 'fig']
 ```
 
 ### 日期/時間
