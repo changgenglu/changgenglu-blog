@@ -22,6 +22,8 @@
   - [Laravel 安裝 bootstrap](#laravel-安裝-bootstrap)
     - [Laravel 8](#laravel-8)
     - [Laravel 6](#laravel-6)
+  - [Laravel Telescope](#laravel-telescope)
+    - [安裝](#安裝)
 
 <!-- /TOC -->
 
@@ -660,3 +662,34 @@ php artisan serve
    <link rel="stylesheet" href="/css/app.css">
    <script src="/js/app.js"></script>
    ```
+
+## Laravel Telescope
+
+提供察看 laravel 中的請求、異常、日誌、資料庫查詢等等功能
+
+### 安裝
+
+利用 composer 安裝到 laravel 中
+
+```bash
+composer require laravel/telescope
+```
+
+安裝後使用 artisan 命令發布資產
+
+```bash
+php artisan telescope:install
+```
+
+並運行 migrate
+
+```bash
+php artisan migrate
+```
+
+若指定在開發環境中安裝，則再發布資產後薛將配置文件，從 config/app.php 中註解，並在 AppServiceProvider 手動註冊服務
+
+```bash
+# 指定在開發環境中安裝
+composer require laravel/telescope --dev
+```

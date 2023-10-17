@@ -23,6 +23,7 @@
     - [`__set` 設置一個類別的成員變數時呼叫](#__set-設置一個類別的成員變數時呼叫)
     - [`__isset()` 當私有屬性呼叫 isset() 或 empty() 時呼叫此方法](#__isset-當私有屬性呼叫-isset-或-empty-時呼叫此方法)
   - [方法](#方法)
+    - [`in_array()` 檢查陣列中是否包含特定的數值](#in_array-檢查陣列中是否包含特定的數值)
     - [`foreach`](#foreach)
     - [`scandir` 掃描指定的目錄，並返回為陣列](#scandir-掃描指定的目錄並返回為陣列)
     - [`list` 宣告陣列中的值，使其成為變數](#list-宣告陣列中的值使其成為變數)
@@ -685,6 +686,32 @@ $Person->say();
 ### `__isset()` 當私有屬性呼叫 isset() 或 empty() 時呼叫此方法
 
 ## 方法
+
+### `in_array()` 檢查陣列中是否包含特定的數值
+
+- `bool in_array(mixed $needle, array $haystack, bool $strict = false)`
+  - `$needle` 要查找的值
+  - `$haystack` 要檢查的陣列
+  - `#strict` 可選，若為 `true`，則不僅檢查直是否相等，還要檢查型別是否相等。預設為 `false`
+
+```php
+$fruits = ["apple", "banana", "cherry", "date"];
+
+// 使用 in_array 检查数组中是否包含 "cherry"，不考虑数据类型
+if (in_array("cherry", $fruits)) {
+    echo "数组中包含 'cherry'。";
+} else {
+    echo "数组中不包含 'cherry'。";
+}
+
+// 使用 in_array 检查数组中是否包含 2，考虑数据类型
+if (in_array(2, $fruits, true)) {
+    echo "数组中包含 2（考虑数据类型）。";
+} else {
+    echo "数组中不包含 2（考虑数据类型）。";
+}
+
+```
 
 ### `foreach`
 
