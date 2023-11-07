@@ -48,7 +48,7 @@
     - [分割字串](#分割字串)
       - [`explode`](#explode)
       - [`str_split`](#str_split)
-      - [`array_slice`](#array_slice)
+    - [`array_slice` 從陣列中取出想要的元素](#array_slice-從陣列中取出想要的元素)
     - [`implode` 將陣列轉為字串](#implode-將陣列轉為字串)
     - [`array_filter` 過濾陣列元素(刪除陣列空值)](#array_filter-過濾陣列元素刪除陣列空值)
     - [`str_pad` 填充字串為指定長度](#str_pad-填充字串為指定長度)
@@ -1358,7 +1358,7 @@ $difference = date_diff($date_time_start, $date_time_end);
   )
   ```
 
-#### `array_slice`
+### `array_slice` 從陣列中取出想要的元素
 
 - `array_slice($array, $start, $length, $preserve)`
 
