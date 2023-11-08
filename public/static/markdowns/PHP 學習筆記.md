@@ -48,6 +48,7 @@
     - [分割字串](#分割字串)
       - [`explode`](#explode)
       - [`str_split`](#str_split)
+      - [preg\_split](#preg_split)
     - [`array_slice` 從陣列中取出想要的元素](#array_slice-從陣列中取出想要的元素)
     - [`implode` 將陣列轉為字串](#implode-將陣列轉為字串)
     - [`array_filter` 過濾陣列元素(刪除陣列空值)](#array_filter-過濾陣列元素刪除陣列空值)
@@ -1357,6 +1358,31 @@ $difference = date_diff($date_time_start, $date_time_end);
       [1] => 2
   )
   ```
+
+#### preg_split
+
+- `preg_split ( string $pattern , string $subject , int $limit , int $flags )`
+
+- `pattern` 用於搜索的模式，字串形式
+- `subject` 輸入字串
+- `limit` 可選，用來設定分割後的單位總數量，預設值為 -1
+- `flags` 可選
+  - `PREG_SPLIT_NO_EMPTY`只返回非空白部分
+  - `PREG_SPLIT_DELIM_CAPTURE`和字串中的正規表達式一起返回
+  - `PREG_SPLIT_OFFSET_CAPTURE`將每個返回增加字串的偏移量
+
+```php
+//根據空格切開
+$NewString1 = preg_split("/[\s,]+/", "Welcome to Wibibi.Have a good day.");
+print_r($NewString1);
+
+echo '<br>';
+
+//把每個英文字母切開
+$NewString2 = 'Welcome';
+$NewString2 = preg_split('//', $NewString2, -1, PREG_SPLIT_NO_EMPTY);
+print_r($NewString2);
+```
 
 ### `array_slice` 從陣列中取出想要的元素
 
