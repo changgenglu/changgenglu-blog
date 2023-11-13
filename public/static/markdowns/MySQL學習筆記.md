@@ -436,8 +436,6 @@ SELECT * FROM mysql.time_zone_name;
 
 #### 分割槽
 
-
-
 ## DB 命名原則
 
 - 命名只能使用英文字母、數字、下劃線，以英文字母開頭
@@ -677,6 +675,40 @@ create table test
 
   -- 刪除索引
   drop index <索引名>
+  ```
+
+  建立資料表時同時建立索引
+
+  ```sql
+  CREATE TABLE your_table_name (
+    column1 datatype,
+    column2 datatype,
+    -- 其他列定義
+    INDEX index_name (column_name)  -- 在這裡添加索引
+  );
+  ```
+
+  當建立 `your_table_name` 時，同時定義了一個名為 `index_name` 的索引，並指定了要建立索引的列 `column_name`。
+  可以依照需求在資料表定義中添加多個索引。
+
+  - `INDEX` 關鍵字用於定義一個普通索引。如果要創建唯一鍵索引，您可以使用 UNIQUE INDEX。
+  - `index_name` 是您為索引指定的名稱，用於在以後引用索引。
+  - `column_name` 是您要為其建立索引的列名。
+
+  添加索引
+
+  ```sql
+  ALTER TABLE your_table_name
+  ADD INDEX index_name (column_name);
+  ```
+
+  - `your_table_name` 是您要向其添加索引的資料表名稱。
+  - `index_name` 是您為新索引指定的名稱。
+  - `column_name` 是您要為其建立索引的列名。
+
+  ```sql
+  ALTER TABLE users
+  ADD INDEX idx_users_email (email);
   ```
 
   索引是各種關係資料庫中，最常見的一種邏輯單元，是關係資料庫系統很重要的組成部分，對於提高檢索資料速度有很顯著的效果。
