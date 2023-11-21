@@ -403,7 +403,7 @@ Git 的 `reset`指令，比較像是「前往」或是「變成」，並不會�
 
 #### 確認 git 紀錄
 
-```terminal
+```bash
 git log --oneline
 af75a42 (HEAD -> develop) 0327
 1baa403 (origin/develop) no message
@@ -414,7 +414,7 @@ e09ecae init commit
 
 #### 利用相對位置取消 commit
 
-```terminal
+```bash
 git reset af75a42^
 ```
 
@@ -424,7 +424,7 @@ git reset af75a42^
 
 另外`HEAD`和`develop`也都指向`af75a42`這個 commit，所以也可以寫成
 
-```terminal
+```bash
 git reset develop^
 &
 git reset HEAD^
@@ -432,7 +432,7 @@ git reset HEAD^
 
 #### 利用絕對位置取消 commit
 
-```terminal
+```bash
 git reset 1baa403
 ```
 
@@ -440,13 +440,11 @@ git reset 1baa403
 
 ### git commit 打錯字
 
-先把前一次 add 的內容，保留在 changes to be committed 區域
-
-```terminal
-git reset --soft HEAD^
+```bash
+git commit --amend
 ```
 
-接著再重新進行一次 git commit 即可
+編輯最後一個題交的 commit
 
 ### 轉移資料庫：git mirror
 
@@ -761,7 +759,7 @@ adal = add --all
 
 當使用推送，輸入 github 密碼會出現錯誤。
 
-```terminal
+```bash
 changgenglu@masenyuandeMacBook-Air ~ % git push -u origin master
 remote: Support for password authentication was removed on August 13, 2021. Please use a personal access token instead.
 remote: Please see https://github.blog/2020-12-15-token-authentication-requirements-for-git-operations/ for more information.
@@ -782,7 +780,7 @@ fatal: unable to access 'https://github.com/changgenglu/your_project.git/': The 
 
 再次使用終端機推送
 
-```terminal
+```bash
 git push -u origin master
 ```
 
@@ -792,13 +790,13 @@ git push -u origin master
 
 #### 輸入指令產生 SHH
 
-```terminal
+```bash
 ssh-keygen
 ```
 
 產生
 
-```terminal
+```bash
 $ Enter file in which to save the key (/Users/changgenglu/.ssh/id_rsa):
 # 這行只是確定存在哪
 $ Overwrite (y/n)?
@@ -812,13 +810,13 @@ $ Enter same passphrase again:
 
 #### 產生 SSH 連線所需的公鑰內容
 
-```terminal
+```bash
 cat ~/.ssh/id_rsa.pub
 ```
 
 輸出實例
 
-```terminal
+```bash
 ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABgQDFp+A3qe4qm1Dkw66LN/vNGlufX5iC9VERfuUiXHNM5L3hQuz6wO8WuzFv+zDIHRPGUl616oLXTHTqommuO0GZavDo+lbUIRkSBM9j/9tr+hlF4LPTT4ggjOgzLCHTrSyzcmcdykgBfnDgX3aYfZbhCEcWdERUxWFNnDf+YYlNd8L6LMKSIce61nhqiSLNbugDCrE0IH+/1hoS3LNoag9V05Qwo5yZ6srLNJT8uISoqvJv5BwSpBL9ImnePx+LzDiVXlJMisKf1GSXdVuWmVWlKrZOsadk4ZkSNH2cL1wgkNvAUbydWKG9Ag4TfI/khKwUXyhT+7V4jWsJusDXZxafylZma4qeOsaLAN4ScSStnOoSm1CxeNqmPsQpAGbtvx49yB2+c4HFsa68VzcwV1oejhh2E67iqqKK53IFN/qQmYYfhUukY6rgLLHlLkmjLqdVpVcULCP0mMzn4xacFWLwDgOtZK1i97vWaLPyG6hYQQ108zK9i/Cg13p0Z+CUTCs= changgenglu@masenyuandeMacBook-Air.local
 ```
 
