@@ -50,8 +50,15 @@
   - [方法](#方法)
     - [取得 base\_url](#取得-base_url)
     - [document](#document)
+      - [`createdElement()` 建立節點](#createdelement-建立節點)
+      - [`appendChild()` 增加子節點](#appendchild-增加子節點)
       - [`.querySelector` 元素選擇器](#queryselector-元素選擇器)
       - [`.querySelectorAll` 選取所有指定元素](#queryselectorall-選取所有指定元素)
+      - [`setAttribute()` 增加標籤屬性](#setattribute-增加標籤屬性)
+      - [移除 HTML 元素](#移除-html-元素)
+        - [使用 CSS 隱藏元素](#使用-css-隱藏元素)
+        - [`removeChild()` 從 DOM 中完全移除元素](#removechild-從-dom-中完全移除元素)
+      - [`remove()` ES6 新方法](#remove-es6-新方法)
     - [prototype.forEach](#prototypeforeach)
     - [prototype.map](#prototypemap)
     - [prototype.push](#prototypepush)
@@ -1308,6 +1315,38 @@ var square = function (number) {
 
 ### document
 
+#### `createdElement()` 建立節點
+
+例如在文件中新增一個 `<em>` 標籤
+
+```javascript
+var str = document.createElement("em"); //新增 em 標籤
+str.textContent = "新增文字";
+```
+
+#### `appendChild()` 增加子節點
+
+在 html 中，新增一個 `<div>`
+
+```html
+<div class="title">title</div>
+```
+
+增加子節點
+
+```javascript
+document.querySelector(".title").appendChild(str);
+```
+
+最終 html 上面顯示：
+
+```html
+<div class="title">
+  title
+  <em class="red">新增文字</em>
+</div>
+```
+
 #### `.querySelector` 元素選擇器
 
 用法和 css 一樣，選取 id 元素時用 `#`，選取 class 元素時用 `.`
@@ -1319,6 +1358,64 @@ document.querySelector(".title");
 #### `.querySelectorAll` 選取所有指定元素
 
 用法和 `.querySelector()` 一樣，但不同於 `.querySelector()`，`.querySelectorAll()` 可以一次選取所有具有相同元素的內容
+
+#### `setAttribute()` 增加標籤屬性
+
+透過 javascript 來增加 HTML 標籤屬性，例如要動態加上一個 a 標籤連結
+
+```html
+<div class="titleClass">
+  <a href="#">Link</a>
+</div>
+<script src="js/practice1.js"></script>
+```
+
+```javascript
+const el = document.querySelector(".titleClass"); //選擇單一元素為 HTML 裡的 class 名稱為 titleClass
+el.setAttribute("href", "www.facebook.com"); //前面是屬性，後面是內容
+```
+
+動態新增 id 來操控 HTML
+
+```html
+<div class="str">title</div>
+<script src="js/practice1.js"></script>
+```
+
+```css
+#strId {
+  color: blue;
+  font-size: 18px;
+}
+```
+
+```javascript
+var elStr = document.querySelector(".str"); //選擇單一元素為 HTML 的 class 名稱為 str
+elStr.setAttribute("id", "strId"); //因為在 CSS 有動態新增一個 id，所以選擇新增的 id 屬性來控制他的值(會帶回 CSS 的設定內容)
+```
+
+#### 移除 HTML 元素
+
+##### 使用 CSS 隱藏元素
+
+```javascript
+var elem = document.querySelector("#some-element");
+elem.style.display = "none";
+```
+
+##### `removeChild()` 從 DOM 中完全移除元素
+
+```javascript
+var elem = document.querySelector("#some-element");
+elem.parentNode.removeChild(elem);
+```
+
+#### `remove()` ES6 新方法
+
+```javascript
+var elem = document.querySelector("#some-element");
+elem.remove();
+```
 
 ### prototype.forEach
 
