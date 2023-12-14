@@ -69,21 +69,11 @@
       <img src="https://dummyimage.com/1200x300/f057c5/ffffff" alt="" />
     </div>
   </div>
-  <a
-    class="carousel-control-prev"
-    href="#mydemo1"
-    role="button"
-    data-slide="prev"
-  >
+  <a class="carousel-control-prev" href="#mydemo1" role="button" data-slide="prev">
     <span class="carousel-control-prev-icon" aria-hidden="true"></span>
     <span class="sr-only">Previous</span>
   </a>
-  <a
-    class="carousel-control-next"
-    href="#mydemo1"
-    role="button"
-    data-slide="next"
-  >
+  <a class="carousel-control-next" href="#mydemo1" role="button" data-slide="next">
     <span class="carousel-control-next-icon" aria-hidden="true"></span>
     <span class="sr-only">Next</span>
   </a>
@@ -94,9 +84,7 @@
 
 ```html
 <li class="nav-item dropup">
-  <a class="nav-link active " id="navbardrop" data-toggle="dropdown">
-    珈琲體驗
-  </a>
+  <a class="nav-link active " id="navbardrop" data-toggle="dropdown"> 珈琲體驗 </a>
   <div class="dropdown-menu">
     <a class="dropdown-item" href="#"> 手沖珈琲 </a>
     <a class="dropdown-item" href="#"> 珈琲特調體驗 </a>
@@ -104,4 +92,3 @@
   </div>
 </li>
 ```
-

@@ -47,8 +47,14 @@
       - [為何會有 Hoisting 的現象？](#為何會有-hoisting-的現象)
       - [最佳實踐](#最佳實踐)
     - [全域變數](#全域變數)
+  - [Promise](#promise)
+    - [如何使用](#如何使用)
+    - [狀態](#狀態)
+    - [then 的使用](#then-的使用)
+    - [錯誤處理](#錯誤處理)
+    - [finally](#finally)
+    - [async/await 同步操作](#asyncawait-同步操作)
   - [方法](#方法)
-    - [取得 base\_url](#取得-base_url)
     - [document](#document)
       - [`createdElement()` 建立節點](#createdelement-建立節點)
       - [`appendChild()` 增加子節點](#appendchild-增加子節點)
@@ -164,7 +170,7 @@ console.log(a === b);
 // false
 ```
 
-- 將不同型態的物件通通轉為字串  
+- 將不同型態的物件通通轉為字串
   \`${}\` 在大括號中加入變數
 
 - 宣告原始值：單獨放一個記憶體位址 以 by value 運作
@@ -173,11 +179,11 @@ console.log(a === b);
 - 更改變數為參考物件(複合值)內的原始值，記憶體位址不變
 - 更改變數為原始值，會更改變數的記憶體位址
 
-- undefined  
+- undefined
   這地方沒有這個東西，所以你無法使用
-- NaN  
-   要轉型成數字時傳入參數非數字的時候
-- null  
+- NaN
+  要轉型成數字時傳入參數非數字的時候
+- null
   這地方會有一個值，但這個值目前還沒準備好的意思，所以先填入 `null`
 
 - this
@@ -522,7 +528,11 @@ console.log(box1, box2); //100,200
   和其他的內建物件型別相同，function 也可以利用 new 來新增物件
 
   ```javascript
-  var myFunction = new Function("parameter1", "parameter2", "console.log('Function declared with Function Constructor')");
+  var myFunction = new Function(
+    "parameter1",
+    "parameter2",
+    "console.log('Function declared with Function Constructor')"
+  );
   myFunction(); // Function declared with Function Constructor
   ```
 
@@ -801,10 +811,10 @@ console.log(x); // 回傳3，回傳之後再設定
   !!a === !!b; // true
   ```
 
-- 短路邏輯(短路解析)  
+- 短路邏輯(短路解析)
   Javascript 裡面只要是 `0`、`""`、`null`、`false`、`undefined`、`NaN` 都會被判定為 `false`
 
-  - 用 || 來設定變數預設值  
+  - 用 || 來設定變數預設值
     如果 obj 存在的話就維持原樣，如果不存在就給予空物件
 
     ```javascript
@@ -1295,23 +1305,178 @@ var square = function (number) {
 > 在 javascript ES6 之後有新的宣告方法 let 與 const，分別定義"變數"與"常數"
 > 和 var 不同的是，他們的作用區域是透過大括號`{}`來切分的
 
+## Promise
+
+當 javascript 在執行時，會將非同步操作留到最後進行處理。
+
+非同步操作如：文件操作、資料庫操作、AJAX 及定時器等等。
+
+javascript 有兩種實現非同步的方式：
+
+1. 回調函示 callback function
+   當需要執行多個非同步操作時，程式碼會不斷的往內嵌套，又被稱做 callback 地獄(callback hell)
+
+   ```js
+   callback(() => {
+     console.log("Hello!");
+     callback(() => {
+       console.log("Hello!");
+       callback(() => {
+         console.log("Hello!");
+         callback(() => {
+           console.log("Hello!");
+         }, 200);
+       }, 200);
+     }, 200);
+   }, 200);
+   ```
+
+2. Promise
+
+### 如何使用
+
+> 用來表示一個非同步操作的最終完成(或失敗)及其結果值
+
+Promise 為一個構造函示，透過 new 關鍵字建立一個 promise。其會接收一個函示作為參數，此函示又稱為 executor，executor 會立即執行。
+
+```js
+new Promise((resolve, reject) => {
+  console.log("即刻執行");
+});
+```
+
+而此 executor 會再接受另外兩個函示參數：
+
+- resolve 實現函數：當請求完成，成功時會調用 resolve，並回傳結果。
+- reject 拒絕函數：當請求完成，失敗時會調用。
+
+```js
+function requestData(url) {
+  return new Promise((resolve, reject) => {
+    setTimeout(() => {
+      if (url === "explainthis.io") {
+        resolve("hello welcome to explainthis");
+      } else {
+        reject("it is not explainthis");
+      }
+    }, 3000);
+  });
+}
+
+// 1. 請求成功
+requestData("explainthis.io").then((res) => {
+  console.log(res); //hello welcome to explainthis
+});
+
+// 2. 請求失敗
+requestData("explainthis.com").catch((e) => console.log(e)); //it is not explainthis
+```
+
+### 狀態
+
+Promise 狀態有三種
+
+- pending 初始狀態，已執行 executor，但還在等待中。
+- fulfilled 表示操作完成，執行 resolve 函式。
+- rejected 表示操作失敗，執行 reject 函式。
+
+### then 的使用
+
+1. 多次調用
+   promise 可以用鏈式(chaining)的方式串連多個非同步操作
+
+   ```js
+   function requestData(url) {
+     return new Promise((resolve, reject) => {
+       setTimeout(() => {
+         if (url === "explainthis.io") {
+           resolve("hello welcome to explainthis");
+         } else {
+           reject("it is not explainthis");
+         }
+       }, 3000);
+     });
+   }
+
+   requestData("explainthis.io")
+     .then((res) => {
+       console.log(res);
+       // 印出 executor 執行的結果 => hello welcome to explainthis
+       return 1;
+     })
+     .then((res) => {
+       console.log(res); // 印出前面執行結束後回傳的值 => 1
+       return 2;
+     })
+     .then((res) => {
+       console.log(res); // 印出前面執行結束後回傳的值 => 2
+     });
+   ```
+
+2. 傳入兩個參數，一是成功的回調，二是失敗的回調
+
+   ```js
+   function requestData(url) {
+     return new Promise((resolve, reject) => {
+       setTimeout(() => {
+         if (url === "explainthis.io") {
+           resolve("hello welcome to explainthis");
+         } else {
+           reject("it is not explainthis");
+         }
+       }, 0);
+     });
+   }
+
+   requestData("explainthis.com").then(
+     (res) => {
+       console.log(res);
+     },
+     (reason) => {
+       console.log(reason); // 錯誤，回傳 => it is not explainthis
+     }
+   );
+   ```
+
+### 錯誤處理
+
+Promise 的錯誤處理，只需要加上 catch 捕捉錯誤，並執行一些錯誤處理代碼。當請求失敗時，catch 方法將捕獲錯誤，並輸出錯誤訊息。
+
+```js
+fetch("https://explainthis.com/data")
+  .then((response) => response.json())
+  .then((data) => {
+    console.log(data);
+  })
+  .catch((error) => {
+    console.error("oops!", error); // 捕獲錯誤，輸出錯誤訊息
+  })
+  .finally(() => {
+    console.log("close loader"); // 操作完成，輸出 => close loader
+  });
+```
+
+### finally
+
+若有加上 `finally`，當 Promise 完成後，無論狀態為 fulfilled 或是 rejected 都會進入 finally 方法。
+
+### async/await 同步操作
+
+首先使用 async 關鍵字將函式標記為非同步函式，也就是指返回值為 Promise 物件的函式。
+
+在非同步函式中，可以調用其他非同步函式，並使用 await 語法，await 會等待 Promise 完成之後返回最終的結果。
+
+```js
+async function getData() {
+  const res = await fetch("https://getsomedata");
+  const data = await res.json();
+  console.log(data);
+}
+
+getData();
+```
+
 ## 方法
-
-### 取得 base_url
-
-- 在 html 加入 meta 標籤
-
-  ```html
-  <head>
-    <meta name="base-url" content="{{ url('/') }}" />
-  </head>
-  ```
-
-- 此時就可以透過 meta 標籤取得 base_url
-
-  ```javascript
-  window.base_url = document.head.querySelector('meta[name="base-url"]');
-  ```
 
 ### document
 

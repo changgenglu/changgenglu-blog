@@ -148,7 +148,7 @@ sudo a2enmod rewrite
 # 重啟Apache
 sudo service apache2 restart
 ```
- 
+
 ## 參考資料
 
 [Run Laravel on Google Compute Engine](https://medium.com/imarishwa-solutions/run-laravel-on-google-compute-engine-b0403a6a9240)
@@ -161,8 +161,8 @@ sudo service apache2 restart
 
 [Apache 之——多虛擬主機多站點配置的兩種實現方案](https://www.796t.com/content/1546761795.html)
 
-[ubuntu設定apache部署多個站點](https://www.796t.com/content/1545633208.html)
+[ubuntu 設定 apache 部署多個站點](https://www.796t.com/content/1545633208.html)
 
-[SSL憑證設定](https://ithelp.ithome.com.tw/articles/10081759)
+[SSL 憑證設定](https://ithelp.ithome.com.tw/articles/10081759)
 
 [輕鬆部署 Laravel 應用](https://learnku.com/blog/Wi1dcard/tags/easy-deployment-of-laravel-applications_50034)

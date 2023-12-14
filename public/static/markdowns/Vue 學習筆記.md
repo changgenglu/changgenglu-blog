@@ -54,7 +54,9 @@
     - [獲取子組件中的 data 和調用子組件的方法](#獲取子組件中的-data-和調用子組件的方法)
     - [this.$refs 介紹](#thisrefs-介紹)
   - [備註](#備註)
+    - [Truthy(真值) 與 Falsy(假值)](#truthy真值-與-falsy假值)
     - [判斷當前環境是否為開發環境](#判斷當前環境是否為開發環境)
+    - [取得 base\_url](#取得-base_url)
 
 <!-- /TOC -->
 
@@ -1198,7 +1200,10 @@ this.$ref.children;
 
 ## 備註
 
-- 註 1: `Truthy` 假值(false, 0, -0, 0n, "", null, undefined, NaN)以外的任何值皆為 true
+### Truthy(真值) 與 Falsy(假值)
+
+- `Truthy`：真值，只要是假值(false, 0, -0, 0n, "", null, undefined, NaN)以外的任何值皆為 true
+- `Falsy`：假值
 
 ### 判斷當前環境是否為開發環境
 
@@ -1209,3 +1214,21 @@ if (process.env.NODE_ENV !== "production") {
   this.is_dev = false;
 }
 ```
+
+
+### 取得 base_url
+
+- 在 html 加入 meta 標籤
+
+  ```html
+  <head>
+    <meta name="base-url" content="{{ url('/') }}" />
+  </head>
+  ```
+
+- 此時就可以透過 meta 標籤取得 base_url
+
+  ```javascript
+  window.base_url = document.head.querySelector('meta[name="base-url"]');
+  ```
+

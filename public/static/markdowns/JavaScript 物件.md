@@ -112,10 +112,10 @@ constructor(fullName, age, gender, hairColor) {
 也就是說，在建立物件後，經建構式的執行語句，這個`ivan`物件中的屬性值就會被指定完成，所以可以用下面的語法來存取屬性：
 
 ```javascript
-ivan.fullName
-ivan.age
-ivan.gender
-ivan.hairColor
+ivan.fullName;
+ivan.age;
+ivan.gender;
+ivan.hairColor;
 ```
 
 第三種情況是呼叫物件中的方法，也就是向下面的 code，this 會指向這個呼叫 toString 方法的物件，也就是 ivan
