@@ -43,6 +43,7 @@
     - [float 和 position 的兼容問題](#float-和-position-的兼容問題)
   - [CSS 簡易暗黑模式](#css-簡易暗黑模式)
   - [變數宣告](#變數宣告)
+  - [RWD 範例](#rwd-範例)
 
 <!-- /TOC -->
 
@@ -65,7 +66,6 @@
   ```css
   div,
   span {
-    //
   }
   ```
 
@@ -75,7 +75,6 @@
 
   ```css
   div > span {
-    //
   }
   ```
 
@@ -83,7 +82,6 @@
 
   ```css
   div span {
-    //
   }
   ```
 
@@ -91,7 +89,6 @@
 
   ```css
   div + span {
-    //
   }
   ```
 
@@ -99,7 +96,6 @@
 
   ```css
   div ~ span {
-    //
   }
   ```
 
@@ -111,7 +107,6 @@
 
   ```css
   p[class|="red"] {
-    //
   }
   ```
 
@@ -119,7 +114,6 @@
 
   ```css
   a[herf~="apple"] {
-    //
   }
   ```
 
@@ -127,7 +121,6 @@
 
   ```css
   a[herf^="http"] {
-    //
   }
   ```
 
@@ -135,7 +128,6 @@
 
   ```css
   a[herf$="selectors.asp"] {
-    //
   }
   ```
 
@@ -143,7 +135,6 @@
 
   ```css
   a[herf*="pseudo"] {
-    //
   }
   ```
 
@@ -154,7 +145,6 @@
   ```css
   .class {
     display: grid;
-    //
   }
   ```
 
@@ -211,7 +201,7 @@
   - Table-Column `<col>`
   - Table-Column-Group `<colgroup>`
   - Table-Header-Group `<thead>`
-  - Table-Footer-Group `<tfooder>`
+  - Table-Footer-Group `<footer>`
 
 #### Flex
 
@@ -238,16 +228,16 @@
   - align-items: flex-end 以尾端為基準
   - align-items: center 以中間為基準
   - align-items: baseline 以物件基準線為基準
-  - align-items: strrtch 以起點為基準，但會撐滿容器(瀏覽器預設)
+  - align-items: stretch 以起點為基準，但會撐滿容器(瀏覽器預設)
 
 ##### align-self 自身對齊
 
 - 單獨改變物件在橫軸上的對齊(預設為垂直方向)，若 flex-direction 為 column，則對齊方向則改為水平方向(x 軸)
-  - align-seelf: flex-start 以起點為基準
-  - align-seelf: flex-end 以尾端為基準
-  - align-seelf: center 以中間為基準
-  - align-seelf: baseline 以物件基準線為基準
-  - align-seelf: strrtch 以起點為基準，但會撐滿容器(瀏覽器預設)
+  - align-self: flex-start 以起點為基準
+  - align-self: flex-end 以尾端為基準
+  - align-self: center 以中間為基準
+  - align-self: baseline 以物件基準線為基準
+  - align-self: stretch 以起點為基準，但會撐滿容器(瀏覽器預設)
 
 #### Wrap 斷行
 
@@ -404,5 +394,49 @@ float 的屬性只有 none, left, right。
 
 .table {
   background-color: var(--dangerous-color);
+}
+```
+
+## RWD 範例
+
+```css
+/***----- media -----***/
+/*** media max1024 ***/
+
+@media (max-width: 1024px) {
+}
+
+/*** screen and media max800 ***/
+
+@media screen and (max-width: 800px) {
+}
+
+/*** media max800 ***/
+
+@media (max-width: 800px) {
+}
+
+/*** media max768 ***/
+
+@media (max-width: 768px) {
+}
+
+/*** media min768 ***/
+@media (min-width: 768px) {
+}
+
+/*** media max640 ***/
+
+@media (max-width: 640px) {
+}
+
+/*** media max480 ***/
+
+@media (max-width: 480px) {
+}
+
+/*** media max320 ***/
+
+@media (max-width: 320px) {
 }
 ```
