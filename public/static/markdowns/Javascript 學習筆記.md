@@ -82,6 +82,10 @@
     - [JSON 轉換](#json-轉換)
       - [`JSON.stringify` 將物件轉為 json 字串](#jsonstringify-將物件轉為-json-字串)
       - [`JSON.parse` 將 json 字串轉換為物件](#jsonparse-將-json-字串轉換為物件)
+    - [轉換字串為數值](#轉換字串為數值)
+      - [parseInt() 將字串轉換為以十進位表示的整數。](#parseint-將字串轉換為以十進位表示的整數)
+      - [parseFloat()](#parsefloat)
+      - [Number()](#number)
     - [計時器](#計時器)
       - [setTimeout()](#settimeout)
       - [setInterval()](#setinterval)
@@ -276,7 +280,7 @@ func(); //I eat apple
 ```javascript
 var myString = "hello world";
 var myObj = { prop1: 123 };
-function setAsLiteralobj(target) {
+function setAsLiteralObj(target) {
   console.log("target_1: ");
   console.log(target);
   target = {};
@@ -1924,6 +1928,71 @@ mySet.add({ a: 1, b: 2 }); // Set { 1, 5, 'some text', { a: 1, b: 2 }, { a: 1, b
 #### `JSON.stringify` 將物件轉為 json 字串
 
 #### `JSON.parse` 將 json 字串轉換為物件
+
+### 轉換字串為數值
+
+#### parseInt() 將字串轉換為以十進位表示的整數。
+
+- parseInt(string, radix) 將字串轉換為以十進位表示的整數。接受兩個參數。
+  - string 欲轉換的值，若不為 String，會先使用 ToString()轉換成字串。
+  - radix 代表近位系統
+
+parseInt() 會略前後空白，並根據 radix 解析第一參數，當遇到無法解析的字元，會忽略該字元及其前後的所有字元，並停止解析，回傳目前為止的結果。
+
+若第一個字元就無法解析，則回傳 NaN
+
+```js
+parseInt("5A34", 10); // 5，字元 A 無法被解析為數字，因此停止解析，回傳 5
+parseInt("5A34", 16); // 23092，依照 16 進制解析並計算為 10 進位
+parseInt(""); // NaN
+parseInt("16px", 10); // 16
+parseInt(" 332", 10); // 332，空白會被忽略
+```
+
+#### parseFloat()
+
+- parseFloat(string) 將字串轉換為以十進位表示的浮點數。僅接受一個參數。
+  - string 欲轉換的值，若第一個參數值不是 String，會先使用 ToString 轉換成字串。
+
+和 parseInt() 相同，會忽略前後空白。當遇到無法解析的字元時，會忽略其後所有字元，並停止解析，回傳目前結果。
+
+和 parseInt() 不同的是，parseFloat() 用以解析浮點數，因此會接受第一個小數點。且僅能分析十進制。
+
+```js
+parseFloat("55.44") // 55.44
+parseFloat("33.44.55") // 33.44
+```
+
+#### Number()
+
+- Number(value) 在不使用 new 運算子的狀況下，可以用來轉會型別。
+
+規則如下：
+1. 若值為 undefined，回傳 NaN
+2. 若值為 null，回傳 0
+3. 若值為 Boolean，true => 1, false => 0
+4. 若值為 Number，直接回傳該值。
+5. 若為 String
+   1. 僅包含數字與浮點數，則忽略前後空白，回傳該值
+   2. 若包含有效的進位系統，如：十六進制的 0x、八進制的 0o、二進制的 0b，則依照進位系統轉換為十進制。
+   3. 空值，回傳 0
+   4. 其他，回傳 NaN
+6. 若值為 Object，使用 valueOf() 得到該值，再根據前述規則進行轉換。
+
+```js
+Number(undefined) // NaN
+Number(null) // 0
+Number(true) // 1
+Number(false) // 0
+Number(33) // 33
+Number(33.66) // 33.66
+Number("0x11") // 17
+Number("0b11") // 3
+Number("0o11") // 9
+Number("") // 0
+Number("33") //33
+Number("16px") // 轉換值中包含無法轉換的內容
+```
 
 ### 計時器
 

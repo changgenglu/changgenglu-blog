@@ -399,6 +399,14 @@ float 的屬性只有 none, left, right。
 
 ## RWD 範例
 
+- max-width: 表示這個數字以下(包含)都適用 (<=)
+- min-width: 表示這個數字以上(包含)都適用 (>=)
+
+- landscape 縱向顯示(直式螢幕)
+  - @media all and (orientation:landscape) { … }
+- portrait 橫向顯示(橫式螢幕)
+  - @media all and (orientation:portrait) { … }
+
 ```css
 /***----- media -----***/
 /*** media max1024 ***/
