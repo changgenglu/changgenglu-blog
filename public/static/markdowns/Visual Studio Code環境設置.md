@@ -66,7 +66,7 @@
 - markdownlint
 - Markdown All in One
 - Markdown Preview Github Styling
-- Markdown TOC  
+- Markdown TOC
   markdown 自動生成目錄，作者：CharlesWan
 
 ### Git
@@ -83,6 +83,7 @@
 ### 小工具
 
 - Draw.io Integration(繪製表格、流程圖)
+- GitHub Copilot github 訓練的 AI 程式碼撰寫工具
 
 ## 調整設定
 

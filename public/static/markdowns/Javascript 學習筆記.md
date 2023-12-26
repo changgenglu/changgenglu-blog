@@ -17,9 +17,7 @@
       - [First-class Object](#first-class-object)
       - [宣告 function](#宣告-function)
       - [呼叫 function](#呼叫-function)
-      - [IIFF](#iiff)
-      - [Scope 作用域](#scope-作用域)
-        - [Lexical Scope 語彙範疇](#lexical-scope-語彙範疇)
+      - [IIFF 立即函式](#iiff-立即函式)
         - [參數也屬於內層 scope](#參數也屬於內層-scope)
         - [巢狀 scope](#巢狀-scope)
   - [運算式與運算子](#運算式與運算子)
@@ -585,9 +583,11 @@ console.log(box1, box2); //100,200
   console.log(a); // myFunction {}
   ```
 
-#### IIFF
+#### IIFF 立即函式
 
 > (Immediately Invoked Function Expression) 或稱自我調用函式
+>
+> 是一種在定義後立即執行的函式表達式
 
 IIFE 有兩種特性：
 
@@ -620,6 +620,48 @@ console.log(myString); // This is IIFE
 ```
 
 IIFE 除了會自動執行以外，與一般 function 的特性都是一模一樣的。
+
+使用 IIFE 的原因：
+
+1. 作用域隔離：IIFE 可以創建一個新的作用域，防止變數污染全域作用域。避免變數名稱衝突或保護敏感資訊。
+
+   ```js
+   (function () {
+     //在這個作用域可以用區域變數
+     var localVar = "這是區域變數";
+   })();
+
+   // localVar 在這裡為未定義
+   ```
+
+2. 模組化：IIFE 可以用於創建模組，將程式碼組織成可重複使用且相對獨立的片段。這有助於提高程式碼的可讀性與維護性。
+
+   ```js
+   var 模組 = (function () {
+     // 私有變數或函式
+     var privateVar = "私有變數";
+
+     // 返回一個公共接口
+     return {
+       getPrivateVar: function () {
+         return privateVar;
+       },
+     };
+   })();
+
+   console.log(模組.getPrivateVar(); // 可以訪問模組的公共接口
+   ```
+
+3. 防止變數提升：IIFE 可以有效防止變數提升(hoisting)，確保函式內部聲明的變數不會污染外部作用域。
+
+   ```js
+   (function() {
+    const localVar = '這是區域變數';
+    console.log(localVar); // 正確顯示區域變數的值
+   })();
+
+
+    console.log(localVar); // 未定義
 
 #### Scope 作用域
 
@@ -1959,8 +2001,8 @@ parseInt(" 332", 10); // 332，空白會被忽略
 和 parseInt() 不同的是，parseFloat() 用以解析浮點數，因此會接受第一個小數點。且僅能分析十進制。
 
 ```js
-parseFloat("55.44") // 55.44
-parseFloat("33.44.55") // 33.44
+parseFloat("55.44"); // 55.44
+parseFloat("33.44.55"); // 33.44
 ```
 
 #### Number()
@@ -1968,6 +2010,7 @@ parseFloat("33.44.55") // 33.44
 - Number(value) 在不使用 new 運算子的狀況下，可以用來轉會型別。
 
 規則如下：
+
 1. 若值為 undefined，回傳 NaN
 2. 若值為 null，回傳 0
 3. 若值為 Boolean，true => 1, false => 0
@@ -1980,18 +2023,18 @@ parseFloat("33.44.55") // 33.44
 6. 若值為 Object，使用 valueOf() 得到該值，再根據前述規則進行轉換。
 
 ```js
-Number(undefined) // NaN
-Number(null) // 0
-Number(true) // 1
-Number(false) // 0
-Number(33) // 33
-Number(33.66) // 33.66
-Number("0x11") // 17
-Number("0b11") // 3
-Number("0o11") // 9
-Number("") // 0
-Number("33") //33
-Number("16px") // 轉換值中包含無法轉換的內容
+Number(undefined); // NaN
+Number(null); // 0
+Number(true); // 1
+Number(false); // 0
+Number(33); // 33
+Number(33.66); // 33.66
+Number("0x11"); // 17
+Number("0b11"); // 3
+Number("0o11"); // 9
+Number(""); // 0
+Number("33"); //33
+Number("16px"); // 轉換值中包含無法轉換的內容
 ```
 
 ### 計時器
@@ -2452,3 +2495,5 @@ var r = getRandom(0, 255);
 var g = getRandom(0, 255);
 var b = getRandom(0, 255);
 ```
+
+debounce、throttle、flatten、cloneDeep
