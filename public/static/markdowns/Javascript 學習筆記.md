@@ -18,6 +18,8 @@
       - [宣告 function](#宣告-function)
       - [呼叫 function](#呼叫-function)
       - [IIFF 立即函式](#iiff-立即函式)
+      - [Scope 作用域](#scope-作用域)
+        - [Lexical Scope 語彙範疇](#lexical-scope-語彙範疇)
         - [參數也屬於內層 scope](#參數也屬於內層-scope)
         - [巢狀 scope](#巢狀-scope)
   - [運算式與運算子](#運算式與運算子)
@@ -80,6 +82,10 @@
     - [JSON 轉換](#json-轉換)
       - [`JSON.stringify` 將物件轉為 json 字串](#jsonstringify-將物件轉為-json-字串)
       - [`JSON.parse` 將 json 字串轉換為物件](#jsonparse-將-json-字串轉換為物件)
+    - [轉換陣列為字串](#轉換陣列為字串)
+      - [toString()](#tostring)
+      - [join()](#join)
+      - [使用型別轉換](#使用型別轉換)
     - [轉換字串為數值](#轉換字串為數值)
       - [parseInt() 將字串轉換為以十進位表示的整數。](#parseint-將字串轉換為以十進位表示的整數)
       - [parseFloat()](#parsefloat)
@@ -655,13 +661,15 @@ IIFE 除了會自動執行以外，與一般 function 的特性都是一模一�
 3. 防止變數提升：IIFE 可以有效防止變數提升(hoisting)，確保函式內部聲明的變數不會污染外部作用域。
 
    ```js
-   (function() {
-    const localVar = '這是區域變數';
-    console.log(localVar); // 正確顯示區域變數的值
+   (function () {
+     const localVar = "這是區域變數";
+     console.log(localVar); // 正確顯示區域變數的值
    })();
 
+   console.log(localVar); // 未定義
+   ```
 
-    console.log(localVar); // 未定義
+   **ES6 的`const`和`let`，取代立即函式避免汙染全域的優點**
 
 #### Scope 作用域
 
@@ -1969,7 +1977,127 @@ mySet.add({ a: 1, b: 2 }); // Set { 1, 5, 'some text', { a: 1, b: 2 }, { a: 1, b
 
 #### `JSON.stringify` 將物件轉為 json 字串
 
+可以將 javascript 任何物件或值轉換為 json 字串。
+
+- JSON.stringify(value, replacer, space)
+
+  - value 必須，任何需要轉換為字串的值
+  - replacer 可選，可以為函式或陣列，可用來替換字串中某些元素。
+
+    - 陣列用法
+
+      ```js
+      const me = {
+        name: "ivan",
+        age: 28,
+        gender: "M",
+      };
+
+      console.log(Json.stringify(me, ["name", "age"])); // {"name": "ivan", "age": 28}
+      ```
+
+    - 函式用法
+
+      ```js
+      function myReplacer(key, value) {
+        // 若 value 是字串
+        if (typeof value === "number") {
+          return undefined;
+        }
+
+        return value;
+      }
+
+      const me = {
+        name: "ivan",
+        age: 28,
+      };
+
+      console.log(JSON.stringify(me, myReplacer)); // {"name": "ivan"}
+      // 回傳結果已去除元素為數值的資料
+      ```
+
+  - space 可選，在輸出的字串中新增空格提高可讀性，可以為一個字串或數字。
+
 #### `JSON.parse` 將 json 字串轉換為物件
+
+和 `JSON.stringify()` 相反，可以接收 JSON 字串並將其轉換為 物件或是值。
+
+- `JSON.parse(reviver)`
+
+  - reviver 過濾解析後的值。
+
+    ```js
+    const me = { name: "John", age: 18 };
+
+    console.log(
+      JSON.parse({ name: "John", age: 18 }, function (key, value) {
+        if (value == "John") {
+          return (value = "ivan");
+        }
+        return value;
+      })
+    );
+    // {name: 'ivan', age: 18}
+    ```
+
+### 轉換陣列為字串
+
+#### toString()
+
+不僅適用於陣列，還適用於其他資料型別。幾乎任何東西都可以使用 `toString()` 轉換為字串。
+
+```js
+const arr = ["Google", "is", "no", "1", "search engine"].toString();
+console.log(arr);
+```
+
+```output
+"Google,is,no,1,search engine"
+```
+
+#### join()
+
+此方法將從陣列中取出每一個元素並一起形成一個字串。
+
+和 `toString()` 不同的是，可以直接傳遞分個符號，作為引數來分隔字串中的元素。
+
+```js
+const arr_1 = ["Google", "is", "no", "1", "search engine"].join();
+const arr_2 = ["Google", "is", "no", "1", "search engine"].join("-");
+const arr_3 = ["Google", "is", "no", "1", "search engine"].join("##space##");
+console.log(arr_1);
+console.log(arr_2);
+console.log(arr_3);
+```
+
+```output
+"Google,is,no,1,search engine"
+"Google-is-no-1-search engine"
+"Google##space##is##space##no##space##1##space##search engine"
+```
+
+#### 使用型別轉換
+
+javascript 中有兩種型別強制轉換：隱式強制、顯式強制。
+
+- 隱式強制：當各種運算子(+, -, '', /, 等)應用於不同型別時。
+- 顯式強制：當使用 String(), Number()之類的函式時
+
+```js
+const srt_1 = ["This", "is", 11, "clock"] + "";
+const str_2 = String(["This", "is", 11, "clock"]);
+console.log(str_1);
+console.log(str_2);
+```
+
+```output
+This,is,11,clock
+This,is,11,clock
+```
+
+`str_1` 是隱式強制轉換的一個例子，在兩種不同型別的值(一個是陣列，另一個是字串)之間使用運算子，此時輸出為一個字串。
+`str_2` 為顯式強制轉換，在 `String()` 函式中，傳遞整個陣列，並將其轉換為字串。
 
 ### 轉換字串為數值
 
