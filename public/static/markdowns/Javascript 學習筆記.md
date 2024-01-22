@@ -75,10 +75,11 @@
       - [物件轉為陣列](#物件轉為陣列)
       - [新增物件屬性](#新增物件屬性)
       - [刪除物件屬性](#刪除物件屬性)
-    - [SET 集合](#set-集合)
+    - [SET 集合物件](#set-集合物件)
       - [基本使用](#基本使用)
       - [陣列與集合間轉換](#陣列與集合間轉換)
       - [過濾陣列中重複的元素](#過濾陣列中重複的元素)
+    - [Map 物件](#map-物件)
     - [JSON 轉換](#json-轉換)
       - [`JSON.stringify` 將物件轉為 json 字串](#jsonstringify-將物件轉為-json-字串)
       - [`JSON.parse` 將 json 字串轉換為物件](#jsonparse-將-json-字串轉換為物件)
@@ -110,7 +111,18 @@
     - [setter](#setter)
     - [資料處理器與存取器處理器](#資料處理器與存取器處理器)
     - [取值器與設值器的應用](#取值器與設值器的應用)
+  - [解構賦值](#解構賦值)
+    - [從陣列解構賦值](#從陣列解構賦值)
+    - [從物件解構賦值](#從物件解構賦值)
+    - [非物件或非陣列解構賦值](#非物件或非陣列解構賦值)
+    - [解構賦值時給予預設值](#解構賦值時給予預設值)
+    - [搭配函式的傳入參數使用](#搭配函式的傳入參數使用)
+  - [Linked list 鏈結串列](#linked-list-鏈結串列)
+    - [定義](#定義)
+    - [類型](#類型)
+    - [優缺點比較](#優缺點比較)
   - [額外補充](#額外補充)
+    - [函式註解模版](#函式註解模版)
     - [random 公式](#random-公式)
 
 <!-- /TOC -->
@@ -1083,19 +1095,19 @@ switch (表達式) {
 ### while 迴圈
 
 ```javascript
-while ((A = x)) {
-  陳述句; // 當條件式"A"成立的時候，就重複做"陳述句"
-  break; // 遇到 break 就會停止，否則就會繼續執行，直到 A = F
+while (condition) {
+  陳述句; // 當 condition 為 true，就重複做"陳述句"
+  break; // 遇到 break 就會停止，否則就會繼續執行，直到 condition 為 false
 }
 ```
 
-- 完成之後再回去檢查"A"，成立就做"B"
-- 直到"A"不成立，才會離開
+- 完成之後再回去檢查 `condition`
+- 直到 `condition`不成立，才會離開
 
 ```javascript
 do {
   // 放要重複做的事情，會先執行一次再進入判斷
-} while (判斷式);
+} while (condition);
 ```
 
 ### for 迴圈
@@ -1915,32 +1927,88 @@ delete family["$"];
 console.log(family);
 ```
 
-### SET 集合
+### SET 集合物件
+
+Set 物件可儲存任何類型的唯一值，意旨相同的內容不論輸入幾次，都只會有一個，不會重複出現。
+
+若希望陣列的元素不會重複，可以用 set，若希望物件的 key 不會重複，則可以使用 Map
 
 #### 基本使用
 
-- set 裡面的值是不會重複的
+- add() 新增值到集合中
 
-```javascript
-// new Set Type
-let classroom = new Set(); //  建立教室這個 set
-let Aaron = { name: "Aaron", country: "Taiwan" };
-let Jack = { name: "Jack", country: "USA" };
-let Johnson = { name: "Johnson", country: "Korea" };
+  ```js
+  let nweSet = new Set();
+  newSet.add(1); // Set [1]
+  newSet.add(5); // Set [1,5]
+  newSet.add(5); // Set [1,5]
 
-// 把物件放入 set 中
-classroom.add(Aaron);
-classroom.add(Jack);
-classroom.add(Johnson);
+  // 新增了兩次 5，但是不會重複出現在 Set 物件中。
+  ```
 
-// 檢驗 set 中是否包含某物件
-if (classroom.has(Aaron)) console.log("Aaron is in the classroom");
+- delete() 從集合中刪除值
 
-//  把物件移除 set 中
-classroom.delete(Jack);
-console.log(classroom.size); //    看看 set 中有多少元素
-console.log(classroom);
-```
+  ```js
+  let newSet = new Set();
+
+  newSet.add(1); // Set [1]
+  newSet.add(5); // Set [1,5]
+  newSet.delete(5); // Set [1]
+  ```
+
+- size() 取得集合中元素的數量
+
+  ```js
+  let newSet = new Set();
+
+  newSet.add(1); // Set [1]
+  newSet.add(5); // Set [1,5]
+  newSet.size(); // 2
+  ```
+
+- has() 檢查集合中視否存在指定值
+
+  ```js
+  let newSet = new Set();
+
+  newSet.add(1); // Set [1]
+  newSet.add(5); // Set [1,5]
+  newSet.has(5); // true
+  newSet.has(12); // false
+  ```
+
+- clear() 清除集合中所有東西
+
+  ```js
+  let newSet = new Set();
+
+  newSet.add(1); // Set [1]
+  newSet.add(5); // Set [1,5]
+  newSet.clear(); // Set []
+  ```
+
+- 加入物件
+
+  ```javascript
+  // new Set Type
+  let classroom = new Set(); //  建立教室這個 set
+  let Aaron = { name: "Aaron", country: "Taiwan" };
+  let Jack = { name: "Jack", country: "USA" };
+  let Johnson = { name: "Johnson", country: "Korea" };
+
+  // 把物件放入 set 中
+  classroom.add(Aaron);
+  classroom.add(Jack);
+  classroom.add(Johnson);
+
+  // 檢驗 set 中是否包含某物件
+  if (classroom.has(Aaron)) console.log("Aaron is in the classroom");
+
+  //  把物件移除 set 中
+  classroom.delete(Jack);
+  console.log(classroom.size); //    看看 set 中有多少元素
+  console.log(classroom);
+  ```
 
 #### 陣列與集合間轉換
 
@@ -1968,6 +2036,69 @@ mySet.add(o); // Set { 1, 5, 'some text', { a: 1, b: 2 } }
 // // o is referencing a different object so this is okay
 mySet.add({ a: 1, b: 2 }); // Set { 1, 5, 'some text', { a: 1, b: 2 }, { a: 1, b: 2 } }
 ```
+
+### Map 物件
+
+Map() 為一種資料結構，和方法 array.map() 不同。
+
+用法和 Set 大同小異，但 Map() 重視 key/value 兩者間操作的關係。
+
+- 建立 Map
+  ```js
+  let fruitMap = new Map();
+  // 在建立時給予初始值
+  let fruitMap = new Map([
+    ["a", "apple"],
+    ["b", "banana"],
+    ["c", "cherry"],
+  ]);
+  ```
+- set() 新增 key/value 到 Map 中
+  ```js
+  let fruitMap = new Map();
+  fruitMap.set("a", "apple");
+  fruitMap.set("b", "banana");
+  fruitMap.set("c", "cherry");
+  ```
+- get() 取得 key 相對的 value
+  ```js
+  let fruitMap = new Map();
+  fruitMap.set("a", "apple");
+  fruitMap.get("a"); // apple
+  ```
+- delete() 從 Map 中刪除指定 key/value
+  ```js
+  let fruitMap = new Map();
+  fruitMap.set("a", "apple");
+  fruitMap.set("b", "banana");
+  fruitMap.set("c", "cherry");
+  fruitMap.delete("c"); // 刪除 key 為 c 的位置
+  ```
+- size() 取得 Map 中的數量
+  ```js
+  let fruitMap = new Map();
+  fruitMap.set("a", "apple");
+  fruitMap.set("b", "banana");
+  fruitMap.set("c", "cherry");
+  fruitMap.size; // 3
+  ```
+- has() 檢查指定 key 是否存在。返回 boolean
+  ```js
+  let fruitMap = new Map();
+  fruitMap.set("a", "apple");
+  fruitMap.set("b", "banana");
+  fruitMap.set("c", "cherry");
+  fruitMap.has("a"); // true
+  fruitMap.has("f"); // false
+  ```
+- clear() 清空 Map 所有東西
+  ```js
+  let fruitMap = new Map();
+  fruitMap.set("a", "apple");
+  fruitMap.set("b", "banana");
+  fruitMap.set("c", "cherry");
+  fruitMap.clear(); // Map(0) {}
+  ```
 
 ### JSON 轉換
 
@@ -2611,7 +2742,163 @@ console.log(obj.prop1); // 200
 
 上面我們宣告了一個變數 obj 並加入一個屬性 prop1，並為這個屬性同時加入 get 和 set，這兩個函式的共通點：都對 obj.prop1 進行存取。
 
+## 解構賦值
+
+> 參考資料：
+>
+> https://eyesofkids.gitbooks.io/javascript-start-from-es6/content/part4/destructuring.html
+
+用於提取(extract)陣列或物件中的資料，
+
+### 從陣列解構賦值
+
+```js
+//基本用法
+const [a, b] = [1, 2]; //a=1, b=2
+
+//先宣告後指定值，要用let才行
+let a, b;
+[a, b] = [1, 2];
+
+// 略過某些值
+const [a, , b] = [1, 2, 3]; // a=1, b=3
+
+// 其餘運算
+const [a, ...b] = [1, 2, 3]; //a=1, b=[2,3]
+
+// 失敗保護
+const [, , , a, b] = [1, 2, 3]; // a=undefined, b=undefined
+
+// 交換值
+let a = 1,
+  b = 2;
+[b, a] = [a, b]; //a=2, b=1
+
+// 多維複雜陣列
+const [a, [b, [c, d]]] = [1, [2, [[[3, 4], 5], 6]]]; // a=1, b=2, c=[ [ 3, 4 ], 5 ], d=6
+
+// 字串
+const str = "hello";
+const [a, b, c, d, e] = str; // a=h, b=e, c=l, d=l, e=o
+```
+
+### 從物件解構賦值
+
+```js
+// 基本用法
+const { user: x } = { user: 5 }; // x=5
+
+// 失敗保護(Fail-safe)
+const { user: x } = { user2: 5 }; //x=undefined
+
+// 賦予新的變數名稱
+const { prop: x, prop2: y } = { prop: 5, prop2: 10 }; // x=5, y=10
+
+// 屬性賦值語法
+const { prop: prop, prop2: prop2 } = { prop: 5, prop2: 10 }; //prop = 5, prop2=10
+
+// 相當於上一行的簡短語法(Short-hand syntax)
+const { prop, prop2 } = { prop: 5, prop2: 10 }; //prop = 5, prop2=10
+
+// ES7+的物件屬性其餘運算符
+const { a, b, ...rest } = { a: 1, b: 2, c: 3, d: 4 }; //a=1, b=2, rest={c:3, d:4}
+```
+
+### 非物件或非陣列解構賦值
+
+### 解構賦值時給予預設值
+
+### 搭配函式的傳入參數使用
+
+## Linked list 鏈結串列
+
+> 參考資料：
+>
+> https://chupai.github.io/posts/200427_ds_linkedlist/
+>
+> https://medium.com/@nchuuu/linked-list-es6-javascript%E5%AF%A6%E4%BD%9C%E5%8F%8Aleet-code%E9%A1%8C%E7%9B%AE%E8%A7%A3%E6%9E%90-4afcd9a67b3d
+
+中國稱鏈表。和陣列一樣都是線性資料結構，但和陣列不同為，他為鏈式儲存結構，也就是記憶體位置儲存為不連續性。
+
+### 定義
+
+鏈結串列是由一連串節點 `node` 組成，節點之間是透過指標來連接。所以儲存上不需要連續的空間。
+每個節點包括：
+
+1. 資料元素
+2. 指標
+   指標(又稱鏈結、引用)，通常為一或兩個，用來指向上/下個的位置。若沒有上/下節點，則為空。若指標斷裂，資料就遺失。
+
+鏈結串列就像是火車車廂一樣，一節拉一節。
+
+相較於陣列，鏈結串列的元素不是連續放置的，插入或是移除元素時，不需要移動其他元素，只需要修改上/下個指標的指向。
+
+因為鏈結串列沒有索引，所要存取特定值，需要從頭開始找起，因此相較於陣列，資料存取為費時。
+
+### 類型
+
+鏈結串列有多種類型：
+
+- 單向鏈結串列(singly linked list)：
+  - 又稱單鏈結串列、線性鏈結串列、普通鏈結串列，為最基本的鏈結串列，其特點是連結串列的鏈結方向是單向的，對鏈結串列的存取要通過頭部開始，依序向下讀取。
+- 雙向鏈結串列(doubly linked list)：
+  - 又稱為雙鏈結串列。他和單向鏈結串列最大的區別在於，每個節點中都有兩個指標，分別指向上一個和下一個節點。所以從雙向鏈結串列中的任意一個節點開始，都可以很方便的存取他的上一個和下一個節點。
+- 迴圈鏈結串列(circularly linked list)：
+  - 又稱環狀鏈結串列、循環鏈結串列，他和一般的鏈結串列操作基本一致，但串列頭尾的指標會連接在一起，行成一個環。
+
+### 優缺點比較
+
+- 陣列
+  - 優點
+    - 可利用 index 隨機存取只需要 O(1) 的時間
+    - 可靠度高，不會因為鏈結斷裂而遺失資料。
+  - 缺點
+    - 在開頭或在中間插入、刪除元素，需花費 O(n) 的時間移動元素。
+    - 連續的記憶體空間，可能有用不到的空間，進而造成浪費。
+    - 若陣列已滿，會需要花費 O(n) 的時間搬動資料到新的陣列中。
+
+- 鏈結串列
+  - 優點
+    - 資料在記憶體中非連續。
+    - 插入、刪除元素只需修改上/下個指標的指向。
+  - 缺點
+    - 只能順序存取，需花費 O(n) 的時間。
+    - 鏈結斷裂就會遺失資料。
+
+
 ## 額外補充
+
+### 函式註解模版
+
+```js
+/**
+ * functionName 函式功能說明。
+ *
+ * @param  {型態}  傳入變數名稱 - 變數說明。
+ * @return {型態}  回傳說明。
+ */
+
+function functionName(傳入變數名稱) {
+  // do something...
+  return 回傳;
+}
+```
+
+範例
+
+```js
+/**
+ * HelloWord 打招呼訊息傳送是否成功。
+ *
+ * @param  {String}  greeting - 打招呼的訊息。
+ * @return {Boolean} 傳送是否成功。
+ */
+
+function HelloWord(greeting) {
+  // do something...
+  return true;
+}
+```
 
 ### random 公式
 
