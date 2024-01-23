@@ -1,7 +1,5 @@
 # Bootstrap 學習筆記
 
-###### tags: `前端` `Bootstrap`
-
 ## html 引入
 
 ```html

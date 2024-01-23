@@ -5,8 +5,8 @@
 - [Javascript 學習筆記](#javascript-學習筆記)
   - [基本概念](#基本概念)
     - [宣告與命名](#宣告與命名)
-      - [let, const 特性](#let-const-特性)
-      - [如何分辨使用 let 和 const 的時機？](#如何分辨使用-let-和-const-的時機)
+    - [let, const 特性](#let-const-特性)
+    - [如何分辨使用 let 和 const 的時機？](#如何分辨使用-let-和-const-的時機)
     - [let 和 const 解決了什麼問題？](#let-和-const-解決了什麼問題)
     - [javascript 參數傳遞方式](#javascript-參數傳遞方式)
   - [存取資料的方法](#存取資料的方法)
@@ -19,9 +19,6 @@
       - [呼叫 function](#呼叫-function)
       - [IIFF 立即函式](#iiff-立即函式)
       - [Scope 作用域](#scope-作用域)
-        - [Lexical Scope 語彙範疇](#lexical-scope-語彙範疇)
-        - [參數也屬於內層 scope](#參數也屬於內層-scope)
-        - [巢狀 scope](#巢狀-scope)
   - [運算式與運算子](#運算式與運算子)
     - [嚴謹模式](#嚴謹模式)
     - [賦值運算子](#賦值運算子)
@@ -54,46 +51,42 @@
     - [錯誤處理](#錯誤處理)
     - [finally](#finally)
     - [async/await 同步操作](#asyncawait-同步操作)
-  - [方法](#方法)
-    - [document](#document)
-      - [`createdElement()` 建立節點](#createdelement-建立節點)
-      - [`appendChild()` 增加子節點](#appendchild-增加子節點)
-      - [`.querySelector` 元素選擇器](#queryselector-元素選擇器)
-      - [`.querySelectorAll` 選取所有指定元素](#queryselectorall-選取所有指定元素)
-      - [`setAttribute()` 增加標籤屬性](#setattribute-增加標籤屬性)
-      - [移除 HTML 元素](#移除-html-元素)
-        - [使用 CSS 隱藏元素](#使用-css-隱藏元素)
-        - [`removeChild()` 從 DOM 中完全移除元素](#removechild-從-dom-中完全移除元素)
-      - [`remove()` ES6 新方法](#remove-es6-新方法)
-    - [prototype.forEach](#prototypeforeach)
-    - [prototype.map](#prototypemap)
-    - [prototype.push](#prototypepush)
+  - [document](#document)
+    - [`createdElement()` 建立節點](#createdelement-建立節點)
+    - [`appendChild()` 增加子節點](#appendchild-增加子節點)
+    - [`.querySelector` 元素選擇器](#queryselector-元素選擇器)
+    - [`.querySelectorAll` 選取所有指定元素](#queryselectorall-選取所有指定元素)
+    - [`setAttribute()` 增加標籤屬性](#setattribute-增加標籤屬性)
+    - [移除 HTML 元素](#移除-html-元素)
+      - [使用 CSS 隱藏元素](#使用-css-隱藏元素)
+      - [`removeChild()` 從 DOM 中完全移除元素](#removechild-從-dom-中完全移除元素)
+    - [`remove()` ES6 新方法](#remove-es6-新方法)
+  - [Math](#math)
     - [`Math.round` 四捨五入](#mathround-四捨五入)
-    - [`Array.prototype.filter`](#arrayprototypefilter)
-    - [物件取值、新增與刪除](#物件取值新增與刪除)
-      - [物件取值](#物件取值)
-      - [物件轉為陣列](#物件轉為陣列)
-      - [新增物件屬性](#新增物件屬性)
-      - [刪除物件屬性](#刪除物件屬性)
-    - [SET 集合物件](#set-集合物件)
-      - [基本使用](#基本使用)
-      - [陣列與集合間轉換](#陣列與集合間轉換)
-      - [過濾陣列中重複的元素](#過濾陣列中重複的元素)
-    - [Map 物件](#map-物件)
-    - [JSON 轉換](#json-轉換)
-      - [`JSON.stringify` 將物件轉為 json 字串](#jsonstringify-將物件轉為-json-字串)
-      - [`JSON.parse` 將 json 字串轉換為物件](#jsonparse-將-json-字串轉換為物件)
-    - [轉換陣列為字串](#轉換陣列為字串)
-      - [toString()](#tostring)
-      - [join()](#join)
-      - [使用型別轉換](#使用型別轉換)
-    - [轉換字串為數值](#轉換字串為數值)
-      - [parseInt() 將字串轉換為以十進位表示的整數。](#parseint-將字串轉換為以十進位表示的整數)
-      - [parseFloat()](#parsefloat)
-      - [Number()](#number)
-    - [計時器](#計時器)
-      - [setTimeout()](#settimeout)
-      - [setInterval()](#setinterval)
+  - [物件取值、新增與刪除](#物件取值新增與刪除)
+    - [物件取值](#物件取值)
+    - [物件轉為陣列](#物件轉為陣列)
+    - [新增物件屬性](#新增物件屬性)
+    - [刪除物件屬性](#刪除物件屬性)
+  - [SET 集合物件](#set-集合物件)
+    - [基本使用](#基本使用)
+    - [陣列與集合間轉換](#陣列與集合間轉換)
+    - [過濾陣列中重複的元素](#過濾陣列中重複的元素)
+  - [Map 物件](#map-物件)
+  - [JSON 轉換](#json-轉換)
+    - [`JSON.stringify` 將物件轉為 json 字串](#jsonstringify-將物件轉為-json-字串)
+    - [`JSON.parse` 將 json 字串轉換為物件](#jsonparse-將-json-字串轉換為物件)
+  - [轉換陣列為字串](#轉換陣列為字串)
+    - [toString()](#tostring)
+    - [join()](#join)
+    - [使用型別轉換](#使用型別轉換)
+  - [轉換字串為數值](#轉換字串為數值)
+    - [parseInt() 將字串轉換為以十進位表示的整數。](#parseint-將字串轉換為以十進位表示的整數)
+    - [parseFloat()](#parsefloat)
+    - [Number()](#number)
+  - [計時器](#計時器)
+    - [setTimeout()](#settimeout)
+    - [setInterval()](#setinterval)
   - [屬性描述器](#屬性描述器)
     - [使用字面值宣告屬性的特徵](#使用字面值宣告屬性的特徵)
     - [取得屬性特徵](#取得屬性特徵)
@@ -226,7 +219,7 @@ console.log(a === b);
 
 在 ES5 之前都只會用 `var` 宣告變數，在 ES6 之後加入 `let` 和 `const`，現在應以新加入的特性進行宣告。
 
-#### let, const 特性
+### let, const 特性
 
 - 區塊作用域
 
@@ -254,7 +247,7 @@ console.log(a === b);
 - 不允許重複宣告
 - 全域變數不會成為 window 的屬性
 
-#### 如何分辨使用 let 和 const 的時機？
+### 如何分辨使用 let 和 const 的時機？
 
 > 如果變數會變，就使用 let，不變就用 const
 
@@ -689,55 +682,55 @@ IIFE 除了會自動執行以外，與一般 function 的特性都是一模一�
 >
 > javascript 和大多數的語言都是採用 Lexical Scope(語彙範疇)
 
-##### Lexical Scope 語彙範疇
+- Lexical Scope 語彙範疇
 
-代表著區塊間的包裹關係，被包裹在內層的區塊可以保護自己的變數不被外層取用；相反的，外層區域的變數還是可以被內層區塊使用
+  代表著區塊間的包裹關係，被包裹在內層的區塊可以保護自己的變數不被外層取用；相反的，外層區域的變數還是可以被內層區塊使用
 
-```javascript
-var outer = "From Outer";
-function myFunction() {
-  var inner = "From Inner";
-  console.log(outer); // "From Outer"
-  console.log(inner); // "From Inner"
-}
-console.log(outer); // "From Outer"
-console.log(inner); // Uncaught ReferenceError: inner is not defined
-```
-
-在 function 的 `{}` 區塊中宣告一個新的變數 `inner`，此一變數可以在 `myFunction(){}` 的區塊裡被取用，然而當 `myFunction(){}` 區塊外試圖取用 `inner` 時，就會發生 `innerVar is not defined` 的錯誤。
-
-##### 參數也屬於內層 scope
-
-```javascript
-var myString = "hello world";
-function setAsLiteralObj(target) {
-  target = {};
-}
-setAsLiteralObj(myString);
-console.log(myString); // 'hello world'
-console.log(target); // Uncaught ReferenceError: target is not defined
-```
-
-執行 `setAsLiteralObj(myString);` 時，`myString` 會將記憶體位置指派給 `function` 中新的參數 `target`，也就是 `target` 是再執行 `setAsLiteralObj` 時才建立的新參數，新參數 `target` 是屬於 `setAsLiteralObj` 這個 `function` 區塊，因此在外層印 `target` 時，一樣會得到錯誤訊息。
-
-##### 巢狀 scope
-
-```javascript
-var outer = "outer";
-function myFunction() {
-  // --- 內層 ---
-  var middle = "middle";
-  function myInnerFunction() {
-    // ~~~ 最內層 ~~~
-    var inner = "inner";
-    // ~~~ 最內層 ~~~
+  ```javascript
+  var outer = "From Outer";
+  function myFunction() {
+    var inner = "From Inner";
+    console.log(outer); // "From Outer"
+    console.log(inner); // "From Inner"
   }
-  myInnerFunction();
-  // --- 內層 ---
-}
+  console.log(outer); // "From Outer"
+  console.log(inner); // Uncaught ReferenceError: inner is not defined
+  ```
 
-myFunction();
-```
+  在 function 的 `{}` 區塊中宣告一個新的變數 `inner`，此一變數可以在 `myFunction(){}` 的區塊裡被取用，然而當 `myFunction(){}` 區塊外試圖取用 `inner` 時，就會發生 `innerVar is not defined` 的錯誤。
+
+- 參數也屬於內層 scope
+
+  ```javascript
+  var myString = "hello world";
+  function setAsLiteralObj(target) {
+    target = {};
+  }
+  setAsLiteralObj(myString);
+  console.log(myString); // 'hello world'
+  console.log(target); // Uncaught ReferenceError: target is not defined
+  ```
+
+  執行 `setAsLiteralObj(myString);` 時，`myString` 會將記憶體位置指派給 `function` 中新的參數 `target`，也就是 `target` 是再執行 `setAsLiteralObj` 時才建立的新參數，新參數 `target` 是屬於 `setAsLiteralObj` 這個 `function` 區塊，因此在外層印 `target` 時，一樣會得到錯誤訊息。
+
+- 巢狀 scope
+
+  ```javascript
+  var outer = "outer";
+  function myFunction() {
+    // --- 內層 ---
+    var middle = "middle";
+    function myInnerFunction() {
+      // ~~~ 最內層 ~~~
+      var inner = "inner";
+      // ~~~ 最內層 ~~~
+    }
+    myInnerFunction();
+    // --- 內層 ---
+  }
+
+  myFunction();
+  ```
 
 ## 運算式與運算子
 
@@ -1542,11 +1535,9 @@ async function getData() {
 getData();
 ```
 
-## 方法
+## document
 
-### document
-
-#### `createdElement()` 建立節點
+### `createdElement()` 建立節點
 
 例如在文件中新增一個 `<em>` 標籤
 
@@ -1555,7 +1546,7 @@ var str = document.createElement("em"); //新增 em 標籤
 str.textContent = "新增文字";
 ```
 
-#### `appendChild()` 增加子節點
+### `appendChild()` 增加子節點
 
 在 html 中，新增一個 `<div>`
 
@@ -1578,7 +1569,7 @@ document.querySelector(".title").appendChild(str);
 </div>
 ```
 
-#### `.querySelector` 元素選擇器
+### `.querySelector` 元素選擇器
 
 用法和 css 一樣，選取 id 元素時用 `#`，選取 class 元素時用 `.`
 
@@ -1586,11 +1577,11 @@ document.querySelector(".title").appendChild(str);
 document.querySelector(".title");
 ```
 
-#### `.querySelectorAll` 選取所有指定元素
+### `.querySelectorAll` 選取所有指定元素
 
 用法和 `.querySelector()` 一樣，但不同於 `.querySelector()`，`.querySelectorAll()` 可以一次選取所有具有相同元素的內容
 
-#### `setAttribute()` 增加標籤屬性
+### `setAttribute()` 增加標籤屬性
 
 透過 javascript 來增加 HTML 標籤屬性，例如要動態加上一個 a 標籤連結
 
@@ -1625,90 +1616,30 @@ var elStr = document.querySelector(".str"); //選擇單一元素為 HTML 的 cla
 elStr.setAttribute("id", "strId"); //因為在 CSS 有動態新增一個 id，所以選擇新增的 id 屬性來控制他的值(會帶回 CSS 的設定內容)
 ```
 
-#### 移除 HTML 元素
+### 移除 HTML 元素
 
-##### 使用 CSS 隱藏元素
+#### 使用 CSS 隱藏元素
 
 ```javascript
 var elem = document.querySelector("#some-element");
 elem.style.display = "none";
 ```
 
-##### `removeChild()` 從 DOM 中完全移除元素
+#### `removeChild()` 從 DOM 中完全移除元素
 
 ```javascript
 var elem = document.querySelector("#some-element");
 elem.parentNode.removeChild(elem);
 ```
 
-#### `remove()` ES6 新方法
+### `remove()` ES6 新方法
 
 ```javascript
 var elem = document.querySelector("#some-element");
 elem.remove();
 ```
 
-### prototype.forEach
-
-forEach 會修改原始陣列，且不會回傳值
-
-```javascript
-var forEachIt = people.forEach(function (item, index, array) {
-  console.log(item, index, array); // 物件, 索引, 全部陣列
-  return item; // forEach 沒在 return 的，所以這邊寫了也沒用
-});
-console.log(forEachIt); // undefined
-
-people.forEach(function (item, index, array) {
-  item.age = item.age + 1; // forEach 就如同 for，不過寫法更容易
-});
-
-console.log(people); // 全部 age + 1
-```
-
-### prototype.map
-
-使用 map 時會需要回傳一個值，他會透過函式內所回傳的值組成一個陣列。
-
-- 如不回傳，則為 undefined
-- 回傳長度等於原始長度
-
-map 很適合將原始的變數運算後，重新組合成一個新的陣列。
-
-使用語法：
-
-```Javascript
-const newArr = arr.map(function (value, index, array){
-  //...
-});
-```
-
-- `newArr` 處理後的新陣列
-- `arr` 要執行 map 的舊陣列
-- `function` 舊陣列中每個元素要執行的函式
-- `value` 陣列中正在處理的值
-- `index` 陣列中正在處理的 key 值(可略)
-- `array` 舊陣列(可略)
-
-```javascript
-let A = [9000, 8500, 5500, 6500];
-let B = A.map(function (value, index, array) {
-  return value * 2;
-});
-
-console.log(A); // [9000, 8500, 5500, 6500] - 原陣列不會被修改
-console.log(B); // [18000, 17000, 11000, 13000] 回傳新陣列
-```
-
-### prototype.push
-
-添加一個或多個元素至陣列末端，並回傳陣列的新長度。
-
-```javascript
-arr.push(element1[, ...[, elementN]])
-```
-
-- `elementN` 欲添加至陣列末端的元素
+## Math
 
 ### `Math.round` 四捨五入
 
@@ -1727,73 +1658,9 @@ Math.round(data * 100) / 100; // 18.63
 Math.round(data * 1000) / 1000; // 18.626
 ```
 
-### `Array.prototype.filter`
+## 物件取值、新增與刪除
 
-- `arr.filter(function(item, index, array), thisValue)`
-  - `item` 必須，目前元素的值
-  - `index` 可選，目前元素的 key
-  - `array` 可選，目前元素屬於的陣列
-  - `thisValue` 可選，物件作為該次呼叫時使用，傳遞給函數當作 `this` 的值，若省略，則 `this` 的值為 `undefined`
-
-```javascript
-var ages = [32, 33, 12, 40];
-
-function checkAdult(age) {
-  return age >= document.getElementById("ageToCheck").value;
-}
-
-function myFunction() {
-  document.getElementById("demo").innerHTML = ages.filter(checkAdult);
-}
-```
-
-若要去除陣列中的空值
-
-```javascript
-var myArrayNew = myArray.filter((el) => el);
-```
-
-[### `Array.prototype.splice` 新增刪除陣列中的元素
-
-- `array.splice(start, deleteCount, item)`
-
-  - start 必填，陣列中要開始改動的元素索引。若索引長度大於陣列長度，則實際開始的索引值會被預設為陣列長度。若索引值為負，則會從陣列中最後一個元素開始往前改動(起始為 -1)，若其絕對值大於陣列長度，則會被設為 0。
-  - deleteCount 可選，欲刪除的原陣列數量的整數。若省略，或其值大於可以被刪除的元素數量(從 start 到陣列最後的長度)，則將從 start 開始到陣列最後一個元素全部刪除。若 deleteCount 為 0 或負數，則不會有元素被刪除。
-  - item 1, item 2 可選，從 start 開始要加入的元素，若未傳入任何數值，則將 start 到 deleteCount 之間的元素刪除。
-
-- 從 `[2]` 的位置開始，刪除 0 個元素並插入 `drum`
-
-  ```javascript
-  var myFish = ["angel", "clown", "mandarin", "sturgeon"];
-  var removed = myFish.splice(2, 0, "drum");
-
-  // myFish 為 ["angel", "clown", "drum", "mandarin", "sturgeon"]
-  // removed 為 []，沒有任何元素被刪除
-  ```
-
-- 從 `[3]` 的位置開始，刪除一個元素
-
-  ```javascript
-  var myFish = ["angel", "clown", "drum", "mandarin", "sturgeon"];
-  var removed = myFish.splice(3, 1);
-
-  // removed 為 ["mandarin"]
-  // myFish 為 ["angel", "clown", "drum", "sturgeon"]
-  ```
-
-- 從 `[0]` 開始，刪除兩個元素，並插入 "parrot", "anemone", "blue"
-
-  ```javascript
-  var myFish = ["angel", "clown", "trumpet", "sturgeon"];
-  var removed = myFish.splice(0, 2, "parrot", "anemone", "blue");
-
-  // myFish 為 ["parrot", "anemone", "blue", "trumpet", "sturgeon"]
-  // removed 為 ["angel", "clown"]
-  ```
-
-### 物件取值、新增與刪除
-
-#### 物件取值
+### 物件取值
 
 ```javascript
 var family = {
@@ -1870,7 +1737,7 @@ family.callFamily(); // call 2 ma's family
 family["callFamily"](); // call 2 ma's family
 ```
 
-#### 物件轉為陣列
+### 物件轉為陣列
 
 陣列本身舉有許多好用的方法：`forEach`, `map`, `reduce`, `find`...，但物件無法使用這些陣列方法
 
@@ -1880,7 +1747,7 @@ family["callFamily"](); // call 2 ma's family
 - Object.keys 傳入一個物件，並將其 key 值以陣列方式呈現，僅只取 key 值。
 - Object.entries 傳入物件，並同時回傳 key 值與 values，但產生的新結構，會另外用一層陣列組成。
 
-#### 新增物件屬性
+### 新增物件屬性
 
 ```javascript
 var family = {
@@ -1901,7 +1768,7 @@ family["$"] = "money";
 console.log(family);
 ```
 
-#### 刪除物件屬性
+### 刪除物件屬性
 
 使用 `delete` 關鍵字
 
@@ -1927,13 +1794,13 @@ delete family["$"];
 console.log(family);
 ```
 
-### SET 集合物件
+## SET 集合物件
 
 Set 物件可儲存任何類型的唯一值，意旨相同的內容不論輸入幾次，都只會有一個，不會重複出現。
 
 若希望陣列的元素不會重複，可以用 set，若希望物件的 key 不會重複，則可以使用 Map
 
-#### 基本使用
+### 基本使用
 
 - add() 新增值到集合中
 
@@ -2010,7 +1877,7 @@ Set 物件可儲存任何類型的唯一值，意旨相同的內容不論輸入�
   console.log(classroom);
   ```
 
-#### 陣列與集合間轉換
+### 陣列與集合間轉換
 
 ```javascript
 // 集合轉成陣列
@@ -2020,7 +1887,7 @@ let setToArray = [...classroom]; // Array.from(classroom)
 let arrayToSet = new Set(setToArray);
 ```
 
-#### 過濾陣列中重複的元素
+### 過濾陣列中重複的元素
 
 利用 set 中元素不會重複的特性，來過濾掉陣列中重複的元素，留下唯一
 
@@ -2037,7 +1904,7 @@ mySet.add(o); // Set { 1, 5, 'some text', { a: 1, b: 2 } }
 mySet.add({ a: 1, b: 2 }); // Set { 1, 5, 'some text', { a: 1, b: 2 }, { a: 1, b: 2 } }
 ```
 
-### Map 物件
+## Map 物件
 
 Map() 為一種資料結構，和方法 array.map() 不同。
 
@@ -2100,13 +1967,13 @@ Map() 為一種資料結構，和方法 array.map() 不同。
   fruitMap.clear(); // Map(0) {}
   ```
 
-### JSON 轉換
+## JSON 轉換
 
 - json 為一組字串
 - 在使用 {} 建立物件時，屬性名稱的引號可以省略，但在 json 格式中，屬性名稱一定要有引號。
 - 若物件中的值為 function 時，無法透過 json 傳遞。
 
-#### `JSON.stringify` 將物件轉為 json 字串
+### `JSON.stringify` 將物件轉為 json 字串
 
 可以將 javascript 任何物件或值轉換為 json 字串。
 
@@ -2150,7 +2017,7 @@ Map() 為一種資料結構，和方法 array.map() 不同。
 
   - space 可選，在輸出的字串中新增空格提高可讀性，可以為一個字串或數字。
 
-#### `JSON.parse` 將 json 字串轉換為物件
+### `JSON.parse` 將 json 字串轉換為物件
 
 和 `JSON.stringify()` 相反，可以接收 JSON 字串並將其轉換為 物件或是值。
 
@@ -2172,9 +2039,9 @@ Map() 為一種資料結構，和方法 array.map() 不同。
     // {name: 'ivan', age: 18}
     ```
 
-### 轉換陣列為字串
+## 轉換陣列為字串
 
-#### toString()
+### toString()
 
 不僅適用於陣列，還適用於其他資料型別。幾乎任何東西都可以使用 `toString()` 轉換為字串。
 
@@ -2187,7 +2054,7 @@ console.log(arr);
 "Google,is,no,1,search engine"
 ```
 
-#### join()
+### join()
 
 此方法將從陣列中取出每一個元素並一起形成一個字串。
 
@@ -2208,7 +2075,7 @@ console.log(arr_3);
 "Google##space##is##space##no##space##1##space##search engine"
 ```
 
-#### 使用型別轉換
+### 使用型別轉換
 
 javascript 中有兩種型別強制轉換：隱式強制、顯式強制。
 
@@ -2230,9 +2097,9 @@ This,is,11,clock
 `str_1` 是隱式強制轉換的一個例子，在兩種不同型別的值(一個是陣列，另一個是字串)之間使用運算子，此時輸出為一個字串。
 `str_2` 為顯式強制轉換，在 `String()` 函式中，傳遞整個陣列，並將其轉換為字串。
 
-### 轉換字串為數值
+## 轉換字串為數值
 
-#### parseInt() 將字串轉換為以十進位表示的整數。
+### parseInt() 將字串轉換為以十進位表示的整數。
 
 - parseInt(string, radix) 將字串轉換為以十進位表示的整數。接受兩個參數。
   - string 欲轉換的值，若不為 String，會先使用 ToString()轉換成字串。
@@ -2250,7 +2117,7 @@ parseInt("16px", 10); // 16
 parseInt(" 332", 10); // 332，空白會被忽略
 ```
 
-#### parseFloat()
+### parseFloat()
 
 - parseFloat(string) 將字串轉換為以十進位表示的浮點數。僅接受一個參數。
   - string 欲轉換的值，若第一個參數值不是 String，會先使用 ToString 轉換成字串。
@@ -2264,7 +2131,7 @@ parseFloat("55.44"); // 55.44
 parseFloat("33.44.55"); // 33.44
 ```
 
-#### Number()
+### Number()
 
 - Number(value) 在不使用 new 運算子的狀況下，可以用來轉會型別。
 
@@ -2296,11 +2163,11 @@ Number("33"); //33
 Number("16px"); // 轉換值中包含無法轉換的內容
 ```
 
-### 計時器
+## 計時器
 
 瀏覽器內建的計時器
 
-#### setTimeout()
+### setTimeout()
 
 來設定一段時間過後，自動執行某個函數(callback)，這個計時器只會執行一次。
 
@@ -2324,7 +2191,7 @@ function myAlert() {
 
 若取消計時器，可以使用 `clearTimeout(timeoutId)`;
 
-#### setInterval()
+### setInterval()
 
 用來設定每過一段時間，就會自動執行某個函數(callback)，這個計時器會重複執行。
 
@@ -2849,6 +2716,7 @@ const { a, b, ...rest } = { a: 1, b: 2, c: 3, d: 4 }; //a=1, b=2, rest={c:3, d:4
 ### 優缺點比較
 
 - 陣列
+
   - 優點
     - 可利用 index 隨機存取只需要 O(1) 的時間
     - 可靠度高，不會因為鏈結斷裂而遺失資料。
@@ -2864,7 +2732,6 @@ const { a, b, ...rest } = { a: 1, b: 2, c: 3, d: 4 }; //a=1, b=2, rest={c:3, d:4
   - 缺點
     - 只能順序存取，需花費 O(n) 的時間。
     - 鏈結斷裂就會遺失資料。
-
 
 ## 額外補充
 

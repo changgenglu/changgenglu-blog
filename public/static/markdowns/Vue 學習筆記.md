@@ -9,9 +9,7 @@
       - [$watch](#watch)
       - [watch](#watch-1)
     - [computed 計算](#computed-計算)
-      - [watch 和 computed 差別](#watch-和-computed-差別)
-        - [依賴更新才會重新執行](#依賴更新才會重新執行)
-    - [computed、watch 和 methods 的使用時機](#computedwatch-和-methods-的使用時機)
+      - [computed 和 watch 的差別](#computed-和-watch-的差別)
   - [eventHub 事件中心: vue 2](#eventhub-事件中心-vue-2)
   - [directive 指令](#directive-指令)
     - [屬性綁定](#屬性綁定)
@@ -176,7 +174,7 @@ export default {
 <p>double count: {{ doubleCount }}</p>
 ```
 
-#### watch 和 computed 差別
+#### computed 和 watch 的差別
 
 computed 最大特點是必須回傳一個值，並且將其存入快取，當方法中的依賴改變時，才會重新執行和求值。
 
@@ -185,64 +183,58 @@ computed 最大特點是必須回傳一個值，並且將其存入快取，當�
 watch 會偵測單一個值，當她有變化時就執行。methods 只要呼叫，就會執行。
 
 - computed 的特點
+
   - 當元件被建立時(created 生命週期)，computed 方法會被建立和執行一次。之後如果依賴沒有更新，就不會重新執行和求值，僅回傳快取的值。
   - computed 只能被該 computed 修改，不能被其他方法修改。例如：this.some_computed_function = 123 就會報錯。
   - computed 的方法必須回傳一個值。
   - computed 方法無法傳入參數
+  - computed 依賴更新才會重新執行
 
-##### 依賴更新才會重新執行
+    > vue 官方文件
+    >
+    > 计算属性是基于它们的响应式依赖进行缓存的。只在相关响应式依赖发生改变时它们才会重新求值。
 
-> vue 官方文件
->
-> 计算属性是基于它们的响应式依赖进行缓存的。只在相关响应式依赖发生改变时它们才会重新求值。
+    響應式依賴：在一個 computed 方法中，他所用到在 data 建立的資料，當資料產生變化，此方法就會重新執行和求值。
 
-響應式依賴：在一個 computed 方法中，他所用到在 data 建立的資料，當資料產生變化，此方法就會重新執行和求值。
-
-```javascript
-computed:{
-    total(){
-        return this.price * this.quantity * this.discount
+    ```javascript
+    computed:{
+        total(){
+            return this.price * this.quantity * this.discount
+        }
     }
-}
-```
+    ```
 
-total 的依賴就是 this.price, this.quantity, this.discount。只要其中一樣產生變化，就會重新執行 total()，並回傳新的值。
+    total 的依賴就是 this.price, this.quantity, this.discount。只要其中一樣產生變化，就會重新執行 total()，並回傳新的值。
 
-當 computed 內所有的依賴都沒有發生變化，此 computed 函示就會一直回傳之前儲存起來的值。
+    當 computed 內所有的依賴都沒有發生變化，此 computed 函示就會一直回傳之前儲存起來的值。
 
-```javascript
-<div id="app">
-  <button @click="num = 1">按我改num</button>
-  <p> 用add方法把以下的值由0變1：</p>
-  <p> {{ add }} </p>
-</div>
-```
+    ```javascript
+    <div id="app">
+      <button @click="num = 1">按我改num</button>
+      <p> 用add方法把以下的值由0變1：</p>
+      <p> {{ add }} </p>
+    </div>
+    ```
 
-```javascript
-// 當num變成1之後，changeOne()就不會再觸發，而「我有被觸發了！」這句也不會印出來
+    ```javascript
+    // 當num變成1之後，changeOne()就不會再觸發，而「我有被觸發了！」這句也不會印出來
 
-import { createApp } from "https://cdnjs.cloudflare.com/ajax/libs/vue/3.0.9/vue.esm-browser.js";
-createApp({
-  data() {
-    return {
-      num: 0,
-    };
-  },
-  computed: {
-    add() {
-      console.log("我有被觸發了！");
-      return this.num;
-    },
-  },
-}).mount("#app");
-```
+    import { createApp } from "https://cdnjs.cloudflare.com/ajax/libs/vue/3.0.9/vue.esm-browser.js";
+    createApp({
+      data() {
+        return { num: 0 };
+      },
+      computed: {
+        add() {
+          console.log("我有被觸發了！");
+          return this.num;
+        },
+      },
+    }).mount("#app");
+    ```
 
-當元件剛建立時(created)時，會打印一次，然後第一次按下按鈕時，會在打印一次，並且 num 會變成 1。
-但第二次之後按下按鈕，就不會再觸發 add() 方法，因為每次按下按鈕，都會將 num 賦值為 1，和之前快取儲存的值相同。
-
-### computed、watch 和 methods 的使用時機
-
-當三者都能實現同一效果，但 computed 的效能較好
+    當元件剛建立時(created)時，會打印一次，然後第一次按下按鈕時，會在打印一次，並且 num 會變成 1。
+    但第二次之後按下按鈕，就不會再觸發 add() 方法，因為每次按下按鈕，都會將 num 賦值為 1，和之前快取儲存的值相同。
 
 ## eventHub 事件中心: vue 2
 
@@ -356,7 +348,10 @@ export default {
 可以在對象中傳入更多屬性，來動態切換多個 class。此外 v-bind:class 也可以與普通的 class attribute 共存
 
 ```html
-<div class="static" v-bind:class="{ active: isActive, 'text-danger': hasError }"></div>
+<div
+  class="static"
+  v-bind:class="{ active: isActive, 'text-danger': hasError }"
+></div>
 ```
 
 data:
@@ -696,7 +691,9 @@ Bar
 
 ```html
 <ul id="example-2">
-  <li v-for="(item, index) in items">{{ parentMessage }} - {{ index }} - {{ item.message }}</li>
+  <li v-for="(item, index) in items">
+    {{ parentMessage }} - {{ index }} - {{ item.message }}
+  </li>
 </ul>
 ```
 
@@ -757,7 +754,9 @@ publishedAt: 2016-04-10
 還可以傳入第三個參數作為索引值
 
 ```html
-<div v-for="(value, name, index) in object">{{ index }}. {{ name }}: {{ value }}</div>
+<div v-for="(value, name, index) in object">
+  {{ index }}. {{ name }}: {{ value }}
+</div>
 ```
 
 ```txt
@@ -791,13 +790,13 @@ publishedAt: 2016-04-10
 </div>
 
 <script>
-  Vue.component("blog-post", {
-    props: ["PostTitle", "postContent"],
-    template: `<div>
+Vue.component("blog-post", {
+  props: ["PostTitle", "postContent"],
+  template: `<div>
     <h3>{{ PostTitle }}</h3>
     <div>{{ postContent }}</div>
   </div>`,
-  });
+});
 </script>
 ```
 
@@ -806,7 +805,13 @@ publishedAt: 2016-04-10
 #### 傳遞字串
 
 ```vue
-<blog-post post-title="Blog1" post-content="I\'m content1" post-complete="true" post-total-num="500" post="{title:'Blog1'}">
+<blog-post
+  post-title="Blog1"
+  post-content="I\'m content1"
+  post-complete="true"
+  post-total-num="500"
+  post="{title:'Blog1'}"
+>
 </blog-post>
 ```
 
@@ -838,16 +843,16 @@ publishedAt: 2016-04-10
 ></blog-post>
 
 <script>
-  const vm = new Vue({
-    el: "#vm",
-    data: {
-      postTitle: "動態傳遞",
-      postContent: "I'm content",
-      postComplete: true,
-      postTotalNum: 500,
-      post: { title: "動態傳遞" },
-    },
-  });
+const vm = new Vue({
+  el: "#vm",
+  data: {
+    postTitle: "動態傳遞",
+    postContent: "I'm content",
+    postComplete: true,
+    postTotalNum: 500,
+    post: { title: "動態傳遞" },
+  },
+});
 </script>
 ```
 
@@ -862,30 +867,30 @@ prop 是為了接收從富組件傳遞過來的資料，而這些資料是單向
 <button type="button" @click="changeOuterCounter">改變外面數字</button>
 
 <script>
-  Vue.component("prop-change", {
-    props: ["counter"],
-    template: `<div>
+Vue.component("prop-change", {
+  props: ["counter"],
+  template: `<div>
     <span>component內的  {{counter}}</span>
     <button type="button" @click="changeInnerCounter">改變component數字</button>
   </div>`,
-    methods: {
-      changeInnerCounter() {
-        this.counter += 2;
-      },
+  methods: {
+    changeInnerCounter() {
+      this.counter += 2;
     },
-  });
+  },
+});
 
-  const vm = new Vue({
-    el: "#vm",
-    data: {
-      counter: 1,
+const vm = new Vue({
+  el: "#vm",
+  data: {
+    counter: 1,
+  },
+  methods: {
+    changeOuterCounter() {
+      this.counter += 1;
     },
-    methods: {
-      changeOuterCounter() {
-        this.counter += 1;
-      },
-    },
-  });
+  },
+});
 </script>
 ```
 
@@ -962,9 +967,9 @@ props: ['channelNames', 'regionId', 'bxMac'],
 </template>
 
 <script>
-  export default {
-    props: ["parentData"],
-  };
+export default {
+  props: ["parentData"],
+};
 </script>
 ```
 
@@ -972,14 +977,14 @@ props: ['channelNames', 'regionId', 'bxMac'],
 
 ```vue
 <script>
-  export default {
-    props: ["parentData"],
-    data() {
-      return {
-        parent_data: this.parentData,
-      };
-    },
-  };
+export default {
+  props: ["parentData"],
+  data() {
+    return {
+      parent_data: this.parentData,
+    };
+  },
+};
 </script>
 ```
 
@@ -987,14 +992,14 @@ props: ['channelNames', 'regionId', 'bxMac'],
 
 ```vue
 <script>
-  export default {
-    props: ["parentData"],
-    methods: {
-      printParentData: function () {
-        console.log(this.$props.parentData);
-      },
+export default {
+  props: ["parentData"],
+  methods: {
+    printParentData: function () {
+      console.log(this.$props.parentData);
     },
-  };
+  },
+};
 </script>
 ```
 
@@ -1002,12 +1007,12 @@ props: ['channelNames', 'regionId', 'bxMac'],
 
 ```vue
 <script>
-  export default {
-    props: ["parentData"],
-    mounted() {
-      console.log(this.message);
-    },
-  };
+export default {
+  props: ["parentData"],
+  mounted() {
+    console.log(this.message);
+  },
+};
 </script>
 ```
 
@@ -1021,14 +1026,14 @@ props: ['channelNames', 'regionId', 'bxMac'],
 </template>
 
 <script>
-  export default {
-    props: ["parentData"],
-    computed: {
-      parentDataLength() {
-        return this.parentData.length;
-      },
+export default {
+  props: ["parentData"],
+  computed: {
+    parentDataLength() {
+      return this.parentData.length;
     },
-  };
+  },
+};
 </script>
 ```
 
@@ -1041,15 +1046,15 @@ props: ['channelNames', 'regionId', 'bxMac'],
 </template>
 
 <script>
-  export default {
-    methods: {
-      open() {
-        console.log("已呼叫");
-        // 呼叫父組件方法
-        this.$emit("refresh-data");
-      },
+export default {
+  methods: {
+    open() {
+      console.log("已呼叫");
+      // 呼叫父組件方法
+      this.$emit("refresh-data");
     },
-  };
+  },
+};
 </script>
 ```
 
@@ -1064,24 +1069,24 @@ props: ['channelNames', 'regionId', 'bxMac'],
 </template>
 
 <script>
-  import HelloWorld from "./components/HelloWorld.vue";
+import HelloWorld from "./components/HelloWorld.vue";
 
-  export default {
-    components: {
-      HelloWorld,
+export default {
+  components: {
+    HelloWorld,
+  },
+  data() {
+    return {};
+  },
+  methods: {
+    getHello() {
+      this.$refs.hello.open();
     },
-    data() {
-      return {};
+    getData() {
+      console.log("111111111");
     },
-    methods: {
-      getHello() {
-        this.$refs.hello.open();
-      },
-      getData() {
-        console.log("111111111");
-      },
-    },
-  };
+  },
+};
 </script>
 ```
 
@@ -1121,18 +1126,18 @@ this.$ref.children;
 </template>
 
 <script>
-  export default {
-    data() {
-      return {
-        msg: "我是子組件";
-      }
-    },
-    methods: {
-      changeMsg() {
-        this.mag = "變身";
-      }
+export default {
+  data() {
+    return {
+      msg: "我是子組件";
+    }
+  },
+  methods: {
+    changeMsg() {
+      this.mag = "變身";
     }
   }
+}
 </script>
 ```
 
@@ -1145,22 +1150,22 @@ this.$ref.children;
 </template>
 
 <script>
-  import children from "components/children.vue";
+import children from "components/children.vue";
 
-  export default {
-    components: {
-      children,
+export default {
+  components: {
+    children,
+  },
+  data() {
+    return {};
+  },
+  methods: {
+    parentMethod() {
+      this.$ref.children; // 返回一個物件
+      this.$ref.children.changMsg(); // 呼叫 children 的 changeMsg 方法
     },
-    data() {
-      return {};
-    },
-    methods: {
-      parentMethod() {
-        this.$ref.children; // 返回一個物件
-        this.$ref.children.changMsg(); // 呼叫 children 的 changeMsg 方法
-      },
-    },
-  };
+  },
+};
 </script>
 ```
 
@@ -1180,21 +1185,21 @@ this.$ref.children;
 </template>
 
 <script>
-  export default {
-    data: {
-      return {
-        people:['one', 'two', 'three', 'four', 'five']
-      }
-    },
-    created() {
-      this.$nextTick(() => {
-        console.log(this.$refs.refContent);
-      })
-    },
-    mounted() {
-      console.log(this.$refs.refContent);
+export default {
+  data: {
+    return {
+      people:['one', 'two', 'three', 'four', 'five']
     }
-  };
+  },
+  created() {
+    this.$nextTick(() => {
+      console.log(this.$refs.refContent);
+    })
+  },
+  mounted() {
+    console.log(this.$refs.refContent);
+  }
+};
 </script>
 ```
 
@@ -1215,7 +1220,6 @@ if (process.env.NODE_ENV !== "production") {
 }
 ```
 
-
 ### 取得 base_url
 
 - 在 html 加入 meta 標籤
@@ -1231,4 +1235,3 @@ if (process.env.NODE_ENV !== "production") {
   ```javascript
   window.base_url = document.head.querySelector('meta[name="base-url"]');
   ```
-

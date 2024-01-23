@@ -10,43 +10,31 @@
     - [分支介紹](#分支介紹)
       - [長期分支](#長期分支)
       - [Topic 任務分支](#topic-任務分支)
-        - [feature](#feature)
-        - [release](#release)
-        - [hotfix](#hotfix)
     - [Git Commit 規範](#git-commit-規範)
       - [Commit Message 格式](#commit-message-格式)
       - [標題](#標題)
       - [正文](#正文)
       - [Footer](#footer)
       - [commit 模板](#commit-模板)
-  - [Git 操作情境](#git-操作情境)
+  - [Git 本地操作情境](#git-本地操作情境)
     - [將 git 預設的編輯器改為 vim](#將-git-預設的編輯器改為-vim)
     - [取消 commit：git reset](#取消-commitgit-reset)
-      - [確認 git 紀錄](#確認-git-紀錄)
-      - [利用相對位置取消 commit](#利用相對位置取消-commit)
-      - [利用絕對位置取消 commit](#利用絕對位置取消-commit)
     - [git commit 打錯字](#git-commit-打錯字)
-    - [轉移資料庫：git mirror](#轉移資料庫git-mirror)
     - [將未完成的工作暫存：git stash](#將未完成的工作暫存git-stash)
-      - [將現階段工作暫存](#將現階段工作暫存)
-      - [取出暫存](#取出暫存)
-      - [主要指令](#主要指令)
     - [解決合併衝突](#解決合併衝突)
-    - [更改 git remote 位置](#更改-git-remote-位置)
     - [取消 merge 清除合併紀錄](#取消-merge-清除合併紀錄)
-    - [新增遠端儲存庫](#新增遠端儲存庫)
     - [Git 別名](#git-別名)
-    - [建立 git 遠端 repository](#建立-git-遠端-repository)
+  - [git 遠端操作](#git-遠端操作)
+    - [更改 git remote 位置](#更改-git-remote-位置)
+    - [在 git server 建立新儲存庫](#在-git-server-建立新儲存庫)
+    - [將本地專案新增至遠端儲存庫](#將本地專案新增至遠端儲存庫)
+    - [轉移資料庫：git mirror](#轉移資料庫git-mirror)
   - [Git 管理](#git-管理)
     - [使用 VSCode 管理 Git](#使用-vscode-管理-git)
   - [GitHub 操作](#github-操作)
     - [將本地專案上傳到 github](#將本地專案上傳到-github)
     - [Https 設定 Token](#https-設定-token)
-      - [設定 personal access token](#設定-personal-access-token)
     - [設定 SSH](#設定-ssh)
-      - [輸入指令產生 SHH](#輸入指令產生-shh)
-      - [產生 SSH 連線所需的公鑰內容](#產生-ssh-連線所需的公鑰內容)
-      - [上傳公鑰](#上傳公鑰)
     - [部署靜態頁面到 github](#部署靜態頁面到-github)
 
 <!-- /TOC -->
@@ -100,176 +88,176 @@
 
 #### 長期分支
 
-- **main**(原為 master, 於 2020/10 變更)  
-   主要為穩定，上線的版本。不該允許開發者直接 commit 到此分支。  
-   一般在專案初期，環境建置好就會拉 develop 分支出去，以維持 main 獨立性。
-- **develop**  
-   所有開發分支的基礎，當新增/修改功能時，會從此分支切出去，完成後再合併回來。
+- **main**(原為 master, 於 2020/10 變更)
+  主要為穩定，上線的版本。不該允許開發者直接 commit 到此分支。
+  一般在專案初期，環境建置好就會拉 develop 分支出去，以維持 main 獨立性。
+- **develop**
+  所有開發分支的基礎，當新增/修改功能時，會從此分支切出去，完成後再合併回來。
 
 #### Topic 任務分支
 
-##### feature
+- **feature**
 
-開發新功能時，會從 develop 切出 feature 分支，其命名方式採`feature/功能名稱`。只要新功能未完成，功能分支就會持續存在，直到開發完成並合併回開發分支，或直到放棄此新功能。
+  開發新功能時，會從 develop 切出 feature 分支，其命名方式採`feature/功能名稱`。只要新功能未完成，功 能分支就會持續存在，直到開發完成並合併回開發分支，或直到放棄此新功能。
 
-此分支通常只會存在於該功能的開發者的本機端 repository，不會出現在遠端的庫中。
+  此分支通常只會存在於該功能的開發者的本機端 repository，不會出現在遠端的庫中。
 
-- 原則：
-  - 從 develop 分支分離
-  - 合併回 develop 分支
-  - 分支命名原則：除了 master, develop, release-\*, hotfix 之外的功能名稱都可以
+  - 原則：
+    - 從 develop 分支分離
+    - 合併回 develop 分支
+    - 分支命名原則：除了 master, develop, release-\*, hotfix 之外的功能名稱都可以
 
-詳細步驟：
+  詳細步驟：
 
-1. 開新功能分支
+  1. 開新功能分支
 
-   ```bash
-   # 從 develop 分支開一個命為 new-feature 的分支
-   $ git checkout -b feature/new-feature develop
-   ```
+     ```bash
+     # 從 develop 分支開一個命為 new-feature 的分支
+     $ git checkout -b feature/new-feature develop
+     ```
 
-2. 將已開發完成之功能合併回 develop 分支
+  2. 將已開發完成之功能合併回 develop 分支
 
-   ```bash
-   # 切換至開發分支
-   $ git checkout develop
+     ```bash
+     # 切換至開發分支
+     $ git checkout develop
 
-   # 將 new-feature 分支合併到開發分支
-   $ git merge --no-ff feature/new-feature
+     # 將 new-feature 分支合併到開發分支
+     $ git merge --no-ff feature/new-feature
 
-   # 刪除 new-feature 分支
-   $ git branch -d feature/new-feature
+     # 刪除 new-feature 分支
+     $ git branch -d feature/new-feature
 
-   # 將開發分支push到遠端的origin
-   $ git push origin develop
-   ```
+     # 將開發分支push到遠端的origin
+     $ git push origin develop
+     ```
 
-`--no-ff` 可保存 feature 上面的歷史資訊，讓開發者可以更瞭解開發的來龍去脈(No Fast Forward)。
+  `--no-ff` 可保存 feature 上面的歷史資訊，讓開發者可以更瞭解開發的來龍去脈(No Fast Forward)。
 
-##### release
+- **release**
 
-由 develop 切出來，正式上線前的最終測試分支，通過後會將 release 合併到 main 以及 develop 確保在 release 時修正的一些問題能同步到 main 與 develop。
+  由 develop 切出來，正式上線前的最終測試分支，通過後會將 release 合併到 main 以及 develop 確保在 release 時修正的一些問題能同步到 main 與 develop。
 
-制訂版本號碼的最佳時機是在發布分支時。
+  制訂版本號碼的最佳時機是在發布分支時。
 
-- 原則
-  - 從 develop 分離
-  - 合併回 develop 與 main 分支
-  - 分支命名規則：release-\*(版本號)
+  - 原則
+    - 從 develop 分離
+    - 合併回 develop 與 main 分支
+    - 分支命名規則：release-\*(版本號)
 
-詳細步驟：
+  詳細步驟：
 
-1. 開發佈分支
+  1. 開發佈分支
 
-   ```bash
-   # 從開發分支開一支名為「release-1.2」的分支，開完後切換到release-1.2分支。
-   $ git checkout -b release-1.2 develop
-   ```
+     ```bash
+     # 從開發分支開一支名為「release-1.2」的分支，開完後切換到release-1.2分支。
+     $ git checkout -b release-1.2 develop
+     ```
 
-2. 制訂版本號
+  2. 制訂版本號
 
-   ```bash
-   # commit 一個版本，commmit 訊息為「版本跳躍至1.2]
-   $ git commit -a -m "Bump version number to 1.2"
-   ```
+     ```bash
+     # commit 一個版本，commmit 訊息為「版本跳躍至1.2]
+     $ git commit -a -m "Bump version number to 1.2"
+     ```
 
-3. 將已制訂好的 metadata 或已修復錯誤的發佈分支，合併到主分支
+  3. 將已制訂好的 metadata 或已修復錯誤的發佈分支，合併到主分支
 
-   ```bash
-   # 切換至主要分支
-   $ git checkout master
+     ```bash
+     # 切換至主要分支
+     $ git checkout master
 
-   # 將release-1.2分支合併到主要分支
-   $ git merge --no-ff release-1.2
+     # 將release-1.2分支合併到主要分支
+     $ git merge --no-ff release-1.2
 
-   # 上tag
-   $ git tag -a 1.2
-   ```
+     # 上tag
+     $ git tag -a 1.2
+     ```
 
-4. 將已制訂好 metadata 或已修復錯誤的發佈分支，合併回開發分支
+  4. 將已制訂好 metadata 或已修復錯誤的發佈分支，合併回開發分支
 
-   ```bash
-   # 切換至開發分支
-   $ git checkout develop
+     ```bash
+     # 切換至開發分支
+     $ git checkout develop
 
-   # 將release-1.2分支合併回開發分支
-   $ git merge --no-ff release-1.2
-   ```
+     # 將release-1.2分支合併回開發分支
+     $ git merge --no-ff release-1.2
+     ```
 
-5. 刪除 release-1.2 分支
+  5. 刪除 release-1.2 分支
 
-   ```bash
-   # 刪除分支
-   $ git branch -d release-1.2
-   ```
+     ```bash
+     # 刪除分支
+     $ git branch -d release-1.2
+     ```
 
-##### hotfix
+- **hotfix**
 
-上線版本需緊急修復時，由 main 直接切出的 hotfix 分支，修復完成也會合併至 main 分支。
+  上線版本需緊急修復時，由 main 直接切出的 hotfix 分支，修復完成也會合併至 main 分支。
 
-由於 develop 在開發中，若從 develop 切 hotfix 分支，再合併至 main 分支時可能會出現更嚴重的問題。
+  由於 develop 在開發中，若從 develop 切 hotfix 分支，再合併至 main 分支時可能會出現更嚴重的問題。
 
-當 bug 修復後，可合併到開發分支，或是合併回主分支，並標上另一版本號的 tag。
+  當 bug 修復後，可合併到開發分支，或是合併回主分支，並標上另一版本號的 tag。
 
-- 原則：
-  - 從主分支分離
-  - 合併回開發分支或主分支
-  - 分支命名規則為：hotfix-\*
+  - 原則：
+    - 從主分支分離
+    - 合併回開發分支或主分支
+    - 分支命名規則為：hotfix-\*
 
-詳細步驟：
+  詳細步驟：
 
-1. 開修復分支
+  1. 開修復分支
 
-   ```bash
-   # 從主要分支開一支名為「hotfix-1.2.1」的分支，開完後切換到hotfix-1.2.1分支。
-   $ git checkout -b hotfix-1.2.1 master
-   ```
+     ```bash
+     # 從主要分支開一支名為「hotfix-1.2.1」的分支，開完後切換到hotfix-1.2.1分支。
+     $ git checkout -b hotfix-1.2.1 master
+     ```
 
-2. 制訂版本號
+  2. 制訂版本號
 
-   ```bash
-   # commit 一個版本，commit 訊息為「版本號跳躍至1.2.1」
-   $ git commit -a -m "Bumped version number to 1.2.1"
-   ```
+     ```bash
+     # commit 一個版本，commit 訊息為「版本號跳躍至1.2.1」
+     $ git commit -a -m "Bumped version number to 1.2.1"
+     ```
 
-3. 修正 bug 並 commit 一版
+  3. 修正 bug 並 commit 一版
 
-   ```bash
-   # commit 修正版
-   $ git commit -m "Fixed severe production problem"
-   ```
+     ```bash
+     # commit 修正版
+     $ git commit -m "Fixed severe production problem"
+     ```
 
-4. 將修好的分支合併回主分支
+  4. 將修好的分支合併回主分支
 
-   ```bash
-   # 切換至主要分支
-   $ git checkout master
+     ```bash
+     # 切換至主要分支
+     $ git checkout master
 
-   # 將hotfix-1.2.1分支合併到主要分支
-   $ git merge --no-ff hotfix-1.2.1
+     # 將hotfix-1.2.1分支合併到主要分支
+     $ git merge --no-ff hotfix-1.2.1
 
-   # 上tag
-   $ git tag -a 1.2.1
-   ```
+     # 上tag
+     $ git tag -a 1.2.1
+     ```
 
-5. 將修好的分支合併回 develop 分支
+  5. 將修好的分支合併回 develop 分支
 
-   ```bash
-   # 切換至開發分支
-   $ git checkout develop
+     ```bash
+     # 切換至開發分支
+     $ git checkout develop
 
-   # 將hotfix-1.2.1分支合併回開發分支
-   $ git merge --no-ff hotfix-1.2.1
-   ```
+     # 將hotfix-1.2.1分支合併回開發分支
+     $ git merge --no-ff hotfix-1.2.1
+     ```
 
-   **特別注意** 若修復分支與發佈分支同時存在，則當 bug 修正後，就不是合併回開發分支而是發佈分支。修補程式就會在從未來發布分支合併回開發分支時，一併將 bug 修補完。
+     **特別注意** 若修復分支與發佈分支同時存在，則當 bug 修正後，就不是合併回開發分支而是發佈分支。修 補程式就會在從未來發布分支合併回開發分支時，一併將 bug 修補完。
 
-6. 刪除 hotfix 分支
+  6. 刪除 hotfix 分支
 
-   ```bash
-   # 刪除分支
-   $ git branch -d hotfix-1.2.1
-   ```
+     ```bash
+     # 刪除分支
+     $ git branch -d hotfix-1.2.1
+     ```
 
 ### Git Commit 規範
 
@@ -387,7 +375,7 @@ template = ~/.gitmessage
 #
 ```
 
-## Git 操作情境
+## Git 本地操作情境
 
 ### 將 git 預設的編輯器改為 vim
 
@@ -401,42 +389,42 @@ Git 的 `reset`指令，比較像是「前往」或是「變成」，並不會�
 
 `reset`後的東西都還可以撿的回來。
 
-#### 確認 git 紀錄
+- 確認 git 紀錄
 
-```bash
-git log --oneline
-af75a42 (HEAD -> develop) 0327
-1baa403 (origin/develop) no message
-13fd2dc 0223
-a640c49 0222新增
-e09ecae init commit
-```
+  ```bash
+  git log --oneline
+  af75a42 (HEAD -> develop) 0327
+  1baa403 (origin/develop) no message
+  13fd2dc 0223
+  a640c49 0222新增
+  e09ecae init commit
+  ```
 
-#### 利用相對位置取消 commit
+- 利用相對位置取消 commit
 
-```bash
-git reset af75a42^
-```
+  ```bash
+  git reset af75a42^
+  ```
 
-`^`符號表示「前一次」的意思，`af75a42^`是指`af75a42`這個 commit 的「前一次」，`af75a42^^`則是往前兩次，以此類推。
+  `^`符號表示「前一次」的意思，`af75a42^`是指`af75a42`這個 commit 的「前一次」，`af75a42^^`則是往前 兩次，以此類推。
 
-如果要倒退五次可以寫成`af75a42~5`。
+  如果要倒退五次可以寫成`af75a42~5`。
 
-另外`HEAD`和`develop`也都指向`af75a42`這個 commit，所以也可以寫成
+  另外`HEAD`和`develop`也都指向`af75a42`這個 commit，所以也可以寫成
 
-```bash
-git reset develop^
-&
-git reset HEAD^
-```
+  ```bash
+  git reset develop^
+  &
+  git reset HEAD^
+  ```
 
-#### 利用絕對位置取消 commit
+- 利用絕對位置取消 commit
 
-```bash
-git reset 1baa403
-```
+  ```bash
+  git reset 1baa403
+  ```
 
-他會切會到`1baa403`這個 commit，剛好是`af75a42`的前一個 commit，和取消最後一次 commit 的效果一樣。
+  他會切會到`1baa403`這個 commit，剛好是`af75a42`的前一個 commit，和取消最後一次 commit 的效果一 樣。
 
 ### git commit 打錯字
 
@@ -444,38 +432,7 @@ git reset 1baa403
 git commit --amend
 ```
 
-編輯最後一個題交的 commit
-
-### 轉移資料庫：git mirror
-
-可以轉移整個 repository 的資訊，包括 branch, tags
-
-將 repo clone --mirror 到本地
-
-```bash
-git clone --mirror gitolite@git.lab317.org:dinos80152/Authentication
-```
-
-接著在 github 建立新的 repository
-
-進到專案資料夾，設定新的遠端 git repo 位置
-
-```bash
-cd your_project.git/
-git remote set-url --push origin https://github.com/your_name/your_project.git
-```
-
-local 更新 remote branch ,最後將整包 push 上去
-
-```bash
-git push --mirror
-```
-
-或者一個指令直接指向遠端 repo
-
-```bash
-git push --mirror https://github.com/your_name/your_project.git
-```
+編輯最後一個提交的 commit
 
 ### 將未完成的工作暫存：git stash
 
@@ -495,87 +452,87 @@ Changes not staged for commit:
 no changes added to commit (use "git add" and/or "git commit -a")
 ```
 
-#### 將現階段工作暫存
+- 將現階段工作暫存
 
-目前正在修改 `app/Http/Controllers/RegionController.php` `app/Models/Room.php` `app/Models/User.php`，使用 `git stash` 把他們存起來。
+  目前正在修改 `app/Http/Controllers/RegionController.php` `app/Models/Room.php` `app/Models/   User.php`，使用 `git stash` 把他們存起來。
 
-```bash
-git stash
-Saved working directory and index state WIP on feature/admin_controller: c745ccb style(MemberController): 修改response的資料與取消註解
-```
+  ```bash
+  git stash
+  Saved working directory and index state WIP on feature/admin_controller: c745ccb style    (MemberController): 修改response的資料與取消註解
+  ```
 
-> **注意**
->
-> Untracked 狀態的檔案無法被 stash，需要額外使用 `-u` 參數
+  > **注意**
+  >
+  > Untracked 狀態的檔案無法被 stash，需要額外使用 `-u` 參數
 
-看一下目前的狀態
+  看一下目前的狀態
 
-```bash
-git status
-On branch cat
-nothing to commit, working tree clean
-```
+  ```bash
+  git status
+  On branch cat
+  nothing to commit, working tree clean
+  ```
 
-`git stash list` 可以查看暫存檔案
+  `git stash list` 可以查看暫存檔案
 
-```bash
-git stash list
-stash@{0}: WIP on cat: b174a5a add cat 2
-```
+  ```bash
+  git stash list
+  stash@{0}: WIP on cat: b174a5a add cat 2
+  ```
 
-#### 取出暫存
+- 取出暫存
 
-當任務完成，要把剛剛暫存的東西拿回來
+  當任務完成，要把剛剛暫存的東西拿回來
 
-```bash
-git stash pop stash@{0}
-On branch feature/add_new_api_route
-Changes not staged for commit:
-  (use "git add <file>..." to update what will be committed)
-  (use "git restore <file>..." to discard changes in working directory)
-        modified:   app/Http/Controllers/RegionController.php
-        modified:   app/Models/Room.php
-        modified:   app/Models/User.php
+  ```bash
+  git stash pop stash@{0}
+  On branch feature/add_new_api_route
+  Changes not staged for commit:
+    (use "git add <file>..." to update what will be committed)
+    (use "git restore <file>..." to discard changes in working directory)
+          modified:   app/Http/Controllers/RegionController.php
+          modified:   app/Models/Room.php
+          modified:   app/Models/User.php
 
-no changes added to commit (use "git add" and/or "git commit -a")
-Dropped stash@{0} (8810ecbe89e1c1412c0c47d7fb7ded9f3e29aa53)
-```
+  no changes added to commit (use "git add" and/or "git commit -a")
+  Dropped stash@{0} (8810ecbe89e1c1412c0c47d7fb7ded9f3e29aa53)
+  ```
 
-使用 `pop` 指令，可以將某個 `stash` 拿出來並套到目前的分支上。套用成功之後，套用過的 `stash` 就會被刪除。  
-如果沒有指定 `pop` 哪一個 `stash`，將會從編號小的也就是 `stash@{0}` 開始使用，也就是最後存進來的。
+  使用 `pop` 指令，可以將某個 `stash` 拿出來並套到目前的分支上。套用成功之後，套用過的 `stash` 就會 被刪除。
+  如果沒有指定 `pop` 哪一個 `stash`，將會從編號小的也就是 `stash@{0}` 開始使用，也就是最後存進來的。
 
-要刪除 `stash` 可以用 `drop` 指令
+  要刪除 `stash` 可以用 `drop` 指令
 
-```bash
-git stash drop stash@{0}
-Dropped stash@{0} (87390c02bbfc8cf7a38fb42f6f3a357e51ce6cd1)
-```
+  ```bash
+  git stash drop stash@{0}
+  Dropped stash@{0} (87390c02bbfc8cf7a38fb42f6f3a357e51ce6cd1)
+  ```
 
-如果要把 `stash` 撿回來，但不想刪除，可以使用 `apply`
+  如果要把 `stash` 撿回來，但不想刪除，可以使用 `apply`
 
-```bash
-git stash apply stash@{0}
-```
+  ```bash
+  git stash apply stash@{0}
+  ```
 
-#### 主要指令
+- 主要指令
 
-- git stash 將當前分支的修改內容加入暫存
-- git stash -u 將 untracked 檔案加入暫存
-- git stash save -u "" 將 untracked 檔案加入暫存並撰寫註解
-- git stash push 將修改內容加入暫存(完整指令)
-- git stash push -m 將修改內容加入暫存，並加入註解
-- git stash list 瀏覽所有暫存項目
-- git stash pop 將最新暫存套用至當前分支，成功後刪除暫存
-- git stash pop stash@{1} 將指定暫存套用至當前分支，成功後刪除暫存
-- git stash apply 套用最新暫存，成功後保留暫存
-- git stash apply stash@{1} 套用指定暫存，成功後保留暫存
-- git stash drop 清除最新暫存
-- git stash drop stash@{1} 清除指定暫存
-- git stash clear 清除全部暫存
+  - git stash 將當前分支的修改內容加入暫存
+  - git stash -u 將 untracked 檔案加入暫存
+  - git stash save -u "" 將 untracked 檔案加入暫存並撰寫註解
+  - git stash push 將修改內容加入暫存(完整指令)
+  - git stash push -m 將修改內容加入暫存，並加入註解
+  - git stash list 瀏覽所有暫存項目
+  - git stash pop 將最新暫存套用至當前分支，成功後刪除暫存
+  - git stash pop stash@{1} 將指定暫存套用至當前分支，成功後刪除暫存
+  - git stash apply 套用最新暫存，成功後保留暫存
+  - git stash apply stash@{1} 套用指定暫存，成功後保留暫存
+  - git stash drop 清除最新暫存
+  - git stash drop stash@{1} 清除指定暫存
+  - git stash clear 清除全部暫存
 
 ### 解決合併衝突
 
-當在不同分支中，修改同一檔案的不同行，此時合併不會發生問題。  
+當在不同分支中，修改同一檔案的不同行，此時合併不會發生問題。
 倘若修改的是同一行，就會發生合併衝突。
 
 ```bash
@@ -588,7 +545,7 @@ CONFLICT (content): Merge conflict in app-src/app/Models/User.php
 Automatic merge failed; fix conflicts and then commit the result.
 ```
 
-有出現 CONFLICT (content)提示的檔案，為發生合併衝突的檔案。  
+有出現 CONFLICT (content)提示的檔案，為發生合併衝突的檔案。
 此時在檔案中，Git 會將衝突位置標示出來。
 
 ```php
@@ -605,22 +562,6 @@ Automatic merge failed; fix conflicts and then commit the result.
 git add --all
 git commit
 ```
-
-### 更改 git remote 位置
-
-當修改 git repo 的名稱或是路徑時，若要在本機進行 push 或是 pull 的指令時，會出現：remote: This repository moved. Please use the new location [new location]
-
-- 解決辦法：重新設定 remote url
-
-  ```bash
-  git remote set-url origin https://XXX.git
-  ```
-
-  檢查 remote url 是否修改成功
-
-  ```bash
-  git remote -v
-  ```
 
 ### 取消 merge 清除合併紀錄
 
@@ -676,7 +617,58 @@ b65d2d2 (HEAD -> dev, tag: release_v2.0.0, origin/dev) no message
 1a4515a fix(firmwareController): 修復firmware下載問題
 ```
 
-### 新增遠端儲存庫
+### Git 別名
+
+修改 `~/.gitconfig`
+
+```vim
+[alias]
+st = status
+ptlg = log --color --graph --pretty=format:'%C(yellow)%h%Creset %C(bold brightred)%d%Creset %C()%s%Creset \n %C(blue italic dim)-- %an%Creset %C(green italic dim)(%cr)%Creset'
+adal = add --all
+```
+
+## git 遠端操作
+
+### 更改 git remote 位置
+
+當修改 git repo 的名稱或是路徑時，若要在本機進行 push 或是 pull 的指令時，會出現：remote: This repository moved. Please use the new location [new location]
+
+- 解決辦法：重新設定 remote url
+
+  ```bash
+  git remote set-url origin https://XXX.git
+  ```
+
+  檢查 remote url 是否修改成功
+
+  ```bash
+  git remote -v
+  ```
+
+### 在 git server 建立新儲存庫
+
+> 主機架設 ssh server
+>
+> 主機安裝好 git
+
+1. 在要建立遠端 repository 的資料夾底下，新增專案資料夾 `<project-name>.git`
+2. 切換到新建的資要夾底下，初始化遠端倉庫
+
+   ```shell
+    $ git init --bare
+   ```
+
+3. 確認資料夾中以建立的檔案
+
+   ```shell
+    $ ls
+    branches  config  description  HEAD  hooks  info  objects  refs
+   ```
+
+4. 提交本地專案或將本地專案的遠端指向此 repository
+
+### 將本地專案新增至遠端儲存庫
 
 ```bash
 git init
@@ -706,38 +698,36 @@ git init --bare //fishbone/研發部/韌體區/GitServer/V5/*.git
 git push --set-upstream origin main
 ```
 
-### Git 別名
+### 轉移資料庫：git mirror
 
-修改 `~/.gitconfig`
+可以轉移整個 repository 的資訊，包括 branch, tags
 
-```vim
-[alias]
-st = status
-ptlg = log --color --graph --pretty=format:'%C(yellow)%h%Creset %C(bold brightred)%d%Creset %C()%s%Creset \n %C(blue italic dim)-- %an%Creset %C(green italic dim)(%cr)%Creset'
-adal = add --all
+將 repo clone --mirror 到本地
+
+```bash
+git clone --mirror gitolite@git.lab317.org:dinos80152/Authentication
 ```
 
-### 建立 git 遠端 repository
+接著在 github 建立新的 repository
 
-> 主機架設 ssh server
->
-> 主機安裝好 git
+進到專案資料夾，設定新的遠端 git repo 位置
 
-1. 在要建立遠端 repository 的資料夾底下，新增專案資料夾 `<project-name>.git`
-2. 切換到新建的資要夾底下，初始化遠端倉庫
+```bash
+cd your_project.git/
+git remote set-url --push origin https://github.com/your_name/your_project.git
+```
 
-   ```shell
-    $ git init --bare
-   ```
+local 更新 remote branch ,最後將整包 push 上去
 
-3. 確認資料夾中以建立的檔案
+```bash
+git push --mirror
+```
 
-   ```shell
-    $ ls
-    branches  config  description  HEAD  hooks  info  objects  refs
-   ```
+或者一個指令直接指向遠端 repo
 
-4. 提交本地專案或將本地專案的遠端指向此 repository
+```bash
+git push --mirror https://github.com/your_name/your_project.git
+```
 
 ## Git 管理
 
@@ -757,38 +747,40 @@ adal = add --all
 
 ### Https 設定 Token
 
-當使用推送，輸入 github 密碼會出現錯誤。
+- 問題：
 
-```bash
-changgenglu@masenyuandeMacBook-Air ~ % git push -u origin master
-remote: Support for password authentication was removed on August 13, 2021. Please use a personal access token instead.
-remote: Please see https://github.blog/2020-12-15-token-authentication-requirements-for-git-operations/ for more information.
-fatal: unable to access 'https://github.com/changgenglu/your_project.git/': The requested URL returned error: 403
-```
+  當使用推送，輸入 github 密碼會出現錯誤。
 
-大致意思是，密碼驗證於 2021 年 8 月 13 日不再支援，也就是今天不能再用密碼方式去提交程式碼。請用使用 **personal access token** 替代。
+  ```bash
+  changgenglu@masenyuandeMacBook-Air ~ % git push -u origin master
+  remote: Support for password authentication was removed on August 13, 2021. Please use a  personal access token instead.
+  remote: Please see https://github.blog/ 2020-12-15-token-authentication-requirements-for-git-operations/ for more information.
+  fatal: unable to access 'https://github.com/changgenglu/your_project.git/': The requested   URL returned error: 403
+  ```
 
-#### 設定 personal access token
+  大致意思是，密碼驗證於 2021 年 8 月 13 日不再支援，也就是今天不能再用密碼方式去提交程式碼。請用使 用 **personal access token** 替代。
 
-- 開啟 GitHub.com -> Setting -> Developer settings -> Personal access tokens
-- 按下`Generate new token`
-- Note 欄位填入 token 的備註
-- Expiration 設定 token 的時效
-- Select scopes 設定權限（基本全部開啟）
-- 按下`Generate token`
-- 複製 token 代碼
+- 解決方法：設定 personal access token
 
-再次使用終端機推送
+  - 開啟 GitHub.com -> Setting -> Developer settings -> Personal access tokens
+  - 按下`Generate new token`
+  - Note 欄位填入 token 的備註
+  - Expiration 設定 token 的時效
+  - Select scopes 設定權限（基本全部開啟）
+  - 按下`Generate token`
+  - 複製 token 代碼
 
-```bash
-git push -u origin master
-```
+  再次使用終端機推送
 
-輸入 github 密碼的地方，貼上 token 代碼
+  ```bash
+  git push -u origin master
+  ```
+
+  輸入 github 密碼的地方，貼上 token 代碼
 
 ### 設定 SSH
 
-#### 輸入指令產生 SHH
+1. 輸入指令產生 SHH
 
 ```bash
 ssh-keygen
@@ -808,7 +800,7 @@ $ Enter same passphrase again:
 
 此處的輸入密碼為使用至個金鑰的密碼，可以選擇不輸入。
 
-#### 產生 SSH 連線所需的公鑰內容
+2. 產生 SSH 連線所需的公鑰內容
 
 ```bash
 cat ~/.ssh/id_rsa.pub
@@ -817,10 +809,10 @@ cat ~/.ssh/id_rsa.pub
 輸出實例
 
 ```bash
-ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABgQDFp+A3qe4qm1Dkw66LN/vNGlufX5iC9VERfuUiXHNM5L3hQuz6wO8WuzFv+zDIHRPGUl616oLXTHTqommuO0GZavDo+lbUIRkSBM9j/9tr+hlF4LPTT4ggjOgzLCHTrSyzcmcdykgBfnDgX3aYfZbhCEcWdERUxWFNnDf+YYlNd8L6LMKSIce61nhqiSLNbugDCrE0IH+/1hoS3LNoag9V05Qwo5yZ6srLNJT8uISoqvJv5BwSpBL9ImnePx+LzDiVXlJMisKf1GSXdVuWmVWlKrZOsadk4ZkSNH2cL1wgkNvAUbydWKG9Ag4TfI/khKwUXyhT+7V4jWsJusDXZxafylZma4qeOsaLAN4ScSStnOoSm1CxeNqmPsQpAGbtvx49yB2+c4HFsa68VzcwV1oejhh2E67iqqKK53IFN/qQmYYfhUukY6rgLLHlLkmjLqdVpVcULCP0mMzn4xacFWLwDgOtZK1i97vWaLPyG6hYQQ108zK9i/Cg13p0Z+CUTCs= changgenglu@masenyuandeMacBook-Air.local
+ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABgQDFp+A3qe4qm1Dkw66LN/  vNGlufX5iC9VERfuUiXHNM5L3hQuz6wO8WuzFv+zDIHRPGUl616oLXTHTqommuO0GZavDo+lbUIRkSBM9j/9tr  +hlF4LPTT4ggjOgzLCHTrSyzcmcdykgBfnDgX3aYfZbhCEcWdERUxWFNnDf +YYlNd8L6LMKSIce61nhqiSLNbugDCrE0IH+/1hoS3LNoag9V05Qwo5yZ6srLNJT8uISoqvJv5BwSpBL9ImnePx  +LzDiVXlJMisKf1GSXdVuWmVWlKrZOsadk4ZkSNH2cL1wgkNvAUbydWKG9Ag4TfI/khKwUXyhT  +7V4jWsJusDXZxafylZma4qeOsaLAN4ScSStnOoSm1CxeNqmPsQpAGbtvx49yB2 +c4HFsa68VzcwV1oejhh2E67iqqKK53IFN/  qQmYYfhUukY6rgLLHlLkmjLqdVpVcULCP0mMzn4xacFWLwDgOtZK1i97vWaLPyG6hYQQ108zK9i/Cg13p0Z+CUTCs=  changgenglu@masenyuandeMacBook-Air.local
 ```
 
-#### 上傳公鑰
+3. 上傳公鑰
 
 到 Github > Settings > SSH and GPG keys 的設定頁面，選擇 New SSH Key。
 
