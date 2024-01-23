@@ -9,7 +9,8 @@
       <div v-show="showMenu" :class="{ 'col-3': !isMobile, 'col-12': isMobile }">
         <Markdown class="sticky-sm-top" id="menu" :source="markdownMenu" v-show="showMenu" />
       </div>
-      <div class='markdown-content px-3  position-sticky-end' :class="{ 'col-9': !isMobile }">
+      <!-- <div class='markdown-content px-3  position-sticky-end' :class="{ 'col-9': showMenu || !isMobile }"> -->
+      <div class='markdown-content px-3  position-sticky-end' :class="{ 'col-9': true }">
         <Markdown :source="markdownContent" />
       </div>
     </div>
@@ -30,7 +31,7 @@ export default {
       markdownContent: '',
       markdownMenu: '',
       fileName: this.$route.params.title,
-      showMenu: true,
+      showMenu: false,
       isMobile: false
     }
   },
@@ -38,7 +39,10 @@ export default {
     loadMarkdown: function () {
       AllMyArticle.map(item => {
         if (item.name === this.fileName) {
-          this.markdownMenu = item.tocContent
+          if (item.tocContent) {
+            this.markdownMenu = item.tocContent
+            this.showMenu = true;
+          }
           this.markdownContent = item.content
         }
       })
@@ -77,6 +81,11 @@ export default {
 
 #menu a {
   color: #888888;
+}
+
+#menu ul {
+  padding-left: 1rem;
+  font-size: 0.9rem;
 }
 
 .markdown-content {
