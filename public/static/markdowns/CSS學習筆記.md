@@ -10,6 +10,16 @@
   - [表格](#表格)
   - [偽元素](#偽元素)
   - [`display:none`和`visibility:hidden`的差別](#displaynone和visibilityhidden的差別)
+  - [Background](#background)
+    - [attachment 固定樣式](#attachment-固定樣式)
+    - [blend-mode 圖層混合模式](#blend-mode-圖層混合模式)
+    - [clip 定義背景延伸的範圍](#clip-定義背景延伸的範圍)
+    - [color 背景顏色](#color-背景顏色)
+    - [image 背景圖片](#image-背景圖片)
+    - [origin 設定背景起使位置](#origin-設定背景起使位置)
+    - [position 設定背景圖片的位置](#position-設定背景圖片的位置)
+    - [repeat 重複](#repeat-重複)
+    - [size 背景圖片尺寸](#size-背景圖片尺寸)
   - [Display](#display)
     - [Display Outside](#display-outside)
       - [Block 區塊元素](#block-區塊元素)
@@ -173,6 +183,75 @@
 例如：當表格內的標籤加上 `visibility:hidden` 時，其儲存格中的值會被隱藏，但儲存格不會消失
 
 當使用 `display:none` 時，物件及其原本的位置都會被隱藏
+
+## Background
+
+### attachment 固定樣式
+
+- scroll 預設：當設定背景圖的區域有捲軸時，當捲動該區域，背景圖會固定位置不變，但當捲動整個網頁時，該區域的背景圖會跟著網頁捲軸滾動。
+- fixed：無論在捲動設定背景圖區快內的捲軸，或是整個網頁的捲軸，背景都會固定位置不變。
+- local：和 fixed 相反，捲動任意捲軸，背景圖都會跟著捲軸移動。
+
+### blend-mode 圖層混合模式
+
+類似套濾鏡的效果
+
+### clip 定義背景延伸的範圍
+
+- border-box 背景範圍為 content + padding + border
+- padding-box 背景範圍為 content + padding
+- content-box 背景範圍為 content
+
+### color 背景顏色
+
+預設為透明，當未設定背景圖片時顯示。
+
+### image 背景圖片
+
+```css
+div {
+  background-image: url('./images/background/001.png');
+}
+```
+
+### origin 設定背景起使位置
+
+- border-box 起始位置為左上角，包含 border + padding + content
+- padding-box 起始位置為左上角，包含 padding + content
+- content-box 起始位置為左上角，包含 content
+
+### position 設定背景圖片的位置
+
+- left top
+- left center
+- left bottom
+- right top
+- right center
+- right bottom
+- center top
+- center center
+- center bottom
+- x% y%
+- xops yops
+
+### repeat 重複
+
+- repeat 預設：於 x 軸與 y 軸重複背景
+- repeat-x：只於 x 軸重複背景
+- repeat-y：只於 y 軸重複背景
+- no-repeat：不重複
+- space：背景尺寸不變，自動調整圖片間距填滿畫面
+- round：調整背景尺寸填滿畫面
+
+### size 背景圖片尺寸
+
+- auto 預設：顯示原圖尺寸
+- length：設定圖片 width & height，若只輸入一個值，則 width & height 相同。
+- percentage：設定背景圖片在區域中要顯示的比例，若 width & height 其中一值未設定則為 auto
+- cover：不改變圖片比例的情況下，用背景圖片將區塊塞滿後裁切
+- contain：不改變圖片比例，完整呈現圖片。若為 no-repeat，圖片尺寸若小於區域尺寸，則會出現空白區域
+
+
 
 ## Display
 
