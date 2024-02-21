@@ -656,14 +656,14 @@ adal = add --all
 2. 切換到新建的資要夾底下，初始化遠端倉庫
 
    ```shell
-    $ git init --bare
+    git init --bare
    ```
 
 3. 確認資料夾中以建立的檔案
 
    ```shell
-    $ ls
-    branches  config  description  HEAD  hooks  info  objects  refs
+   $ ls
+   HEAD  config  description  hooks/  info/  objects/  refs/
    ```
 
 4. 提交本地專案或將本地專案的遠端指向此 repository

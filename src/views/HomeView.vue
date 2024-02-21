@@ -93,7 +93,7 @@ export default {
     },
     pageEnd() {
       return this.currentPage * this.dataInPage
-      //取得該頁最後一個值的index
+      //取得該頁最後一個值的 index
     },
     searchResult() {
       const { searchResults, files, pageStart, pageEnd } = this;
