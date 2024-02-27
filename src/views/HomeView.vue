@@ -6,7 +6,7 @@
           <span>搜尋筆記：</span>
         </div>
         <div class="col-7">
-          <input type="text" v-model="searchText" placeholder="筆記標題" class="form-control form-control-sm">
+          <input type="text" v-model="searchText" placeholder="輸入關鍵字" class="form-control form-control-sm">
         </div>
       </div>
     </div>

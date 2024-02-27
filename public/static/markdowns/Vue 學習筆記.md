@@ -10,7 +10,7 @@
       - [watch](#watch-1)
     - [computed 計算](#computed-計算)
       - [computed 和 watch 的差別](#computed-和-watch-的差別)
-  - [eventHub 事件中心: vue 2](#eventhub-事件中心-vue-2)
+  - [eventHub 事件中心(vue 2)](#eventhub-事件中心vue-2)
   - [directive 指令](#directive-指令)
     - [屬性綁定](#屬性綁定)
     - [表單綁定 `v-model`](#表單綁定-v-model)
@@ -236,7 +236,7 @@ watch 會偵測單一個值，當她有變化時就執行。methods 只要呼叫
     當元件剛建立時(created)時，會打印一次，然後第一次按下按鈕時，會在打印一次，並且 num 會變成 1。
     但第二次之後按下按鈕，就不會再觸發 add() 方法，因為每次按下按鈕，都會將 num 賦值為 1，和之前快取儲存的值相同。
 
-## eventHub 事件中心: vue 2
+## eventHub 事件中心(vue 2)
 
 在無關聯的組件之間，互相傳遞 data
 
