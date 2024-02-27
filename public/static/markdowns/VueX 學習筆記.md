@@ -3,7 +3,7 @@
 <!-- TOC -->
 
 - [Vuex 學習筆記](#vuex-學習筆記)
-  - [什麼是 VueX](#什麼是-vuex)
+  - [什麼是 Vuex](#什麼是-vuex)
   - [帶入參數及呼叫方法](#帶入參數及呼叫方法)
     - [State](#state)
     - [mapState](#mapstate)
@@ -26,17 +26,17 @@
 >
 > [github-pages](https://changgenglu.github.io/vuex-note/)
 
-## 什麼是 VueX
+## 什麼是 Vuex
 
 一個專門為 vue 專案開發的資料管理套件，可以為網站做全域的資料管理。
 
-在專案結構下面可能會有多個組件，組件中又會有組件，組件的溝通，通常會會透過 emit 和 prop，而為了處理大型專案的兄弟組件間的溝通，VueX 就這樣誕生了。
+在專案結構下面可能會有多個組件，組件中又會有組件，組件的溝通，通常會會透過 emit 和 prop，而為了處理大型專案的兄弟組件間的溝通，Vuex 就這樣誕生了。
 
-VueX 有一點像是全域的 components，大家可以拿他資料，呼叫他出來用。
+Vuex 有一點像是全域的 components，大家可以拿他資料，呼叫他出來用。
 
 state 就像是 data，action + Mutation 就像是 methods，getters 就像 computed
 
-在 VueX 中，儲存的狀態為 State，Component 使用 Dispatch 呼叫 Actions，讓 Actions 發出 commit 觸發 Mutations 去修改 State 的資料。整個 VueX 的方法也稱為 store。
+在 Vuex 中，儲存的狀態為 State，Component 使用 Dispatch 呼叫 Actions，讓 Actions 發出 commit 觸發 Mutations 去修改 State 的資料。整個 Vuex 的方法也稱為 store。
 
 ## 帶入參數及呼叫方法
 
