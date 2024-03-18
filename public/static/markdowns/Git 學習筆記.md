@@ -5,7 +5,6 @@
 - [Git 學習筆記](#git-學習筆記)
   - [常用指令](#常用指令)
     - [Git 常用指令](#git-常用指令)
-    - [Git Bash 常用指令](#git-bash-常用指令)
   - [Git Flow 開發流程觀念](#git-flow-開發流程觀念)
     - [分支介紹](#分支介紹)
       - [長期分支](#長期分支)
@@ -59,24 +58,6 @@
 - `git clone` 從遠端儲存庫 (GitHub 或 Bitbucket) 複製副本至本地儲存庫
 - `git push` 將本地儲存庫內容推送到遠端儲存庫
 - `git pull` 將遠端儲存庫拉回合併更新到本地儲存庫
-
-### Git Bash 常用指令
-
-| Linux            | Windows               | 說明                             |
-| ---------------- | --------------------- | -------------------------------- |
-| `pwd`            | `cd`                  | 顯示幕前目錄                     |
-| `ls -al`         | `dir`                 | 顯示目前目錄下的檔案與子目錄列表 |
-| `mkdir tmp`      | `md tmp`              | 建立子目錄 tmp                   |
-| `rm -r tmp`      | `rd tmp`              | 刪除子目錄 tmp                   |
-| `cd tmp`         | `cd tmp`              | 切換至子目錄 tmp                 |
-| `cd ..`          | `cd ..`               | 切換至上一層目錄                 |
-| `touch test.txt` | `copy nul > test.txt` | 建立空白文字檔案                 |
-| `cat file/more`  | `type file`           | 顯示檔案內容                     |
-| `rm file`        | `del file`            | 刪除檔案 file                    |
-| `mv file1 file2` | `ren file1 file2`     | 將檔案 file1 更名為 file2        |
-| `cp file1 file2` | `copy file1 file2`    | 複製檔案 file1 為 file2          |
-| `date`           | `date`                | 顯示日期 (Linux 含時間)          |
-| `clear`          | `cls`                 | 清除螢幕                         |
 
 ## Git Flow 開發流程觀念
 

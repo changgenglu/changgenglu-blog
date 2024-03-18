@@ -9,7 +9,6 @@
       <div v-show="showMenu" :class="{ 'col-3': !isMobile, 'col-12': isMobile }">
         <Markdown class="sticky-sm-top" id="menu" :source="markdownMenu" v-show="showMenu" />
       </div>
-      <!-- <div class='markdown-content px-3  position-sticky-end' :class="{ 'col-9': showMenu || !isMobile }"> -->
       <div class='markdown-content px-3  position-sticky-end' :class="{ 'col-9': true }">
         <Markdown :source="markdownContent" />
       </div>
@@ -21,7 +20,6 @@
 <script>
 import ScrollToTopButton from '@/components/ScrollToTopButton.vue';
 import Markdown from 'vue3-markdown-it';
-import AllMyArticle from '../assets/fileNames.json'
 
 export default {
   components: { Markdown, ScrollToTopButton },
@@ -32,20 +30,21 @@ export default {
       markdownMenu: '',
       fileName: this.$route.params.title,
       showMenu: false,
-      isMobile: false
+      isMobile: false,
+      htmlContent: '',
     }
   },
   methods: {
-    loadMarkdown: function () {
-      AllMyArticle.map(item => {
-        if (item.name === this.fileName) {
-          if (item.tocContent) {
-            this.markdownMenu = item.tocContent
-            this.showMenu = true;
-          }
-          this.markdownContent = item.content
-        }
-      })
+    async loadMarkdown() {
+      // 使用絕對路徑來引入 JSON 檔案
+      const file = require(`@/assets/jsonFiles/${this.fileName.split('.')[0]}.json`);
+
+      const markdown_file = await file;
+      if (markdown_file.tocContent) {
+        this.markdownMenu = markdown_file.tocContent
+        this.showMenu = true;
+      }
+      this.markdownContent = markdown_file.content;
     },
     scrollToFooter() {
       window.scrollTo(0, 0);

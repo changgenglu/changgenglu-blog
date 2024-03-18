@@ -25,23 +25,9 @@ fs.readdir(directoryPath, (err, files) => {
     const matchingLines = lines.filter((line) => line.startsWith("## "));
     const fileInfo = {
       name: file,
-      content: fileContent,
       date: fileDate,
       matchingLines: matchingLines,
-      tocContent: "",
     };
-
-    const tocStartIndex = fileContent.indexOf("<!-- TOC -->");
-    const tocEndIndex = fileContent.indexOf("<!-- /TOC -->");
-
-    if (tocStartIndex !== -1 && tocEndIndex !== -1) {
-      fileInfo.tocContent = fileContent
-        .substring(tocStartIndex + 13, tocEndIndex)
-        .trim();
-      fileInfo.content =
-        fileContent.substring(0, tocStartIndex) +
-        fileContent.substring(tocEndIndex + 12);
-    }
 
     fileData.push(fileInfo);
   });
