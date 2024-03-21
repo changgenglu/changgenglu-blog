@@ -61,6 +61,8 @@
       - [使用 CSS 隱藏元素](#使用-css-隱藏元素)
       - [`removeChild()` 從 DOM 中完全移除元素](#removechild-從-dom-中完全移除元素)
     - [`remove()` ES6 新方法](#remove-es6-新方法)
+    - [`addEventListener()` 事件監聽](#addeventlistener-事件監聽)
+    - [`removeEventListener()` 取消事件監聽](#removeeventlistener-取消事件監聽)
   - [Math](#math)
     - [`Math.round` 四捨五入](#mathround-四捨五入)
   - [物件取值、新增與刪除](#物件取值新增與刪除)
@@ -1637,6 +1639,53 @@ elem.parentNode.removeChild(elem);
 ```javascript
 var elem = document.querySelector("#some-element");
 elem.remove();
+```
+
+### `addEventListener()` 事件監聽
+
+- `element.addEventListener(event, function, useCapture)`
+  - `event` 必須，指定事件名稱
+  - `function` 必須，指定事件觸發時執行的事件處理器(handler)
+  - `useCapture` 可選，指定事件是否在事件冒泡(bubble phase)或事件捕獲(capture phase)流程階段執行。
+    - `true` 捕獲階段執行
+    - `false` 預設，冒泡階段執行
+
+可以針對某事件，綁定多個處理器
+
+```js
+var btn = document.getElementById('btn');
+
+btn.addEventListener('click', function(){
+  console.log('HI');
+}, false);
+
+btn.addEventListener('click', function(){
+  console.log('HELLO');
+}, false);
+```
+
+### `removeEventListener()` 取消事件監聽
+
+- `element.removeEventListener(event, function, useCapture)`
+  - `event` 必須，指定事件名稱
+  - `function` 必須，指定事件觸發時執行的事件處理器(handler)
+  - `useCapture` 可選，指定事件是否在事件冒泡(bubble phase)或事件捕獲(capture phase)流程階段執行。
+    - `true` 捕獲階段執行
+    - `false` 預設，冒泡階段執行
+
+需注意，由於 `addEventListener()` 可以同時針對某事件綁定多個 `handler`，所以透過 `removeEventListener()`解除事件時，第二個參數的 `handler` 必須和先前在 `addEventListener()` 綁定的 `handler` 為同一個實體。
+
+```js
+var btn = document.getElementById('btn');
+
+btn.addEventListener('click', function(){
+  console.log('HI');
+}, false);
+
+// 移除事件，但是沒用
+btn.removeEventListener('click', function(){
+  console.log('HI');
+}, false);
 ```
 
 ## Math
