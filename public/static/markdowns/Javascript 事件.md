@@ -291,35 +291,37 @@ btn.addEventListener('click', function(){
 
 若是要解除事件的註冊，則是透過 `removeEventListener()`來取消。
 
-
-
 ## HTML DOM 事件
+
+> 參考資料：
+>
+> [HTML DOM 事件](https://www.runoob.com/jsref/dom-obj-event.html)
 
 HTML DOM 事件允許 javascript 在 html 檔案中註冊不同事件處理程序。
 
 事件通常和函式結合使用，函式不會在事件發生前被執行(如使用者點擊按鈕)。
 
-DOM Event事件名稱整理 
-| 屬性 | 描述 |
-| :----------: | ------------------------------ |
-| blur | 物件失去焦點時 |
-| change | 物件內容改變時 |
-| click | 滑鼠點擊物件時 |
-| dblclick | 滑鼠連點二下物件時 |
-| error | 當圖片或文件下載產生錯誤時 |
-| focus | 當物件被點擊或取得焦點時 |
-| keydown | 按下鍵盤按鍵時 |
-| keypress | 按下並放開鍵盤按鍵後 |
-| keyup | 按下並放開鍵盤按鍵時 |
-| load | 網頁或圖片完成下載時 |
-| mousedown | 按下滑鼠按鍵時 |
-| mousemove | 介於over跟out間的滑鼠移動行為 |
-| mouseout | 滑鼠離開某物件四周時 |
-| mouseover | 鼠離開某物件四周時 |
-| mouseup | 放開滑鼠按鍵時 |
-| resize | 當視窗或框架大小被改變時 |
-| scroll | 當捲軸被拉動時 |
-| select | 當文字被選取時 |
-| submit | 當按下送出按紐時 |
-| beforeunload | 當使用者關閉(或離開)網頁之前 |
-| unload | 當使用者關閉(或離開)網頁之後 |
+DOM Event事件名稱整理
+|     屬性     | 描述                          |
+| :----------: | ----------------------------- |
+|     blur     | 物件失去焦點時                |
+|    change    | 物件內容改變時                |
+|    click     | 滑鼠點擊物件時                |
+|   dblclick   | 滑鼠連點二下物件時            |
+|    error     | 當圖片或文件下載產生錯誤時    |
+|    focus     | 當物件被點擊或取得焦點時      |
+|   keydown    | 按下鍵盤按鍵時                |
+|   keypress   | 按下並放開鍵盤按鍵後          |
+|    keyup     | 按下並放開鍵盤按鍵時          |
+|     load     | 網頁或圖片完成下載時          |
+|  mousedown   | 按下滑鼠按鍵時                |
+|  mousemove   | 介於over跟out間的滑鼠移動行為 |
+|   mouseout   | 滑鼠離開某物件四周時          |
+|  mouseover   | 鼠離開某物件四周時            |
+|   mouseup    | 放開滑鼠按鍵時                |
+|    resize    | 當視窗或框架大小被改變時      |
+|    scroll    | 當捲軸被拉動時                |
+|    select    | 當文字被選取時                |
+|    submit    | 當按下送出按紐時              |
+| beforeunload | 當使用者關閉(或離開)網頁之前  |
+|    unload    | 當使用者關閉(或離開)網頁之後  |
