@@ -3,7 +3,6 @@
 <!-- TOC -->
 
 - [CSS 學習筆記](#css-學習筆記)
-  - [](#)
   - [後裔選擇器](#後裔選擇器)
     - [基本類型](#基本類型)
     - [複合型](#複合型)
@@ -11,6 +10,19 @@
   - [表格](#表格)
   - [偽元素](#偽元素)
   - [`display:none`和`visibility:hidden`的差別](#displaynone和visibilityhidden的差別)
+  - [css 命名](#css-命名)
+    - [OOCSS 物件導向](#oocss-物件導向)
+      - [結構與樣式分離](#結構與樣式分離)
+      - [容器與內容分離](#容器與內容分離)
+    - [SMACSS 擴展性與模組化原則](#smacss-擴展性與模組化原則)
+    - [BEN 區塊元素](#ben-區塊元素)
+    - [RECSS 獨立元件原則](#recss-獨立元件原則)
+      - [元件 components](#元件-components)
+      - [元素 elements](#元素-elements)
+      - [變形 variants](#變形-variants)
+      - [巢狀元件 nested components](#巢狀元件-nested-components)
+      - [佈局 layouts](#佈局-layouts)
+      - [輔助類 helpers](#輔助類-helpers)
   - [Background](#background)
     - [attachment 固定樣式](#attachment-固定樣式)
     - [blend-mode 圖層混合模式](#blend-mode-圖層混合模式)
@@ -58,6 +70,10 @@
 
 <!-- /TOC -->
 
+> 參考資料：
+>
+> [Super Easy CSS，極度簡單：寫出好的 CSS，從零開始前端生涯](https://ithelp.ithome.com.tw/users/20103650/ironman/6126)
+>
 > 將所有物件加上外框
 >
 > ```css
@@ -65,8 +81,6 @@
 >   outline: 1px solid #000;
 > }
 > ```
-
-##
 
 ## 後裔選擇器
 
@@ -187,6 +201,163 @@
 
 當使用 `display:none` 時，物件及其原本的位置都會被隱藏
 
+## css 命名
+
+> 盡量使用 class，將 id 留給 javascript 使用
+>
+> 參考資料：
+>
+> [談 CSS 命名](https://editor.leonh.space/2020/css-naming/)
+
+### OOCSS 物件導向
+
+代表框架：`Bootstrap`
+
+#### 結構與樣式分離
+
+```html
+<!-- 舊有寫法 -->
+<button type="button" class="btn-login">登入</button>
+<!-- 新寫法 -->
+<button type="button" class="btn btn-primary">登入</button>
+```
+
+```css
+/* 舊有寫法 */
+.btn-login {
+  padding: 0.5rem 1rem;
+  border-radius: 0.5rem;
+  background-color: blue;
+}
+/* 新寫法 */
+/* 獨立出結構 */
+.btn {
+  padding: 0.5rem 1rem;
+  border-radius: 0.5rem;
+}
+/* 獨立出樣式 */
+.btn-primary {
+  background-color: blue;
+}
+```
+
+將結構與樣式獨立後，即可重複使用於其他地方。
+
+```css
+.w-100 {
+  width: 100%;
+}
+.w-50 {
+  width: 50%;
+}
+.p-0 {
+  padding: 0;
+}
+.pt-1 {
+  padding-top: 1rem;
+}
+```
+
+#### 容器與內容分離
+
+抽出重複樣式
+
+```css
+/* 舊有寫法： */
+header {
+  max-width: 1000px;
+  margin: auto;
+  background-color: #ccc;
+  ...;
+}
+footer {
+  max-width: 1000px;
+  margin: auto;
+  background-color: #aaa;
+  ...;
+}
+
+/* 「容器」：獨立出共用的部分 */
+.container {
+  max-width: 1000px;
+  margin: auto;
+}
+/* 「內容」：額外撰寫各自的樣式 */
+header {
+  background-color: #ccc;
+  ...;
+}
+footer {
+  background-color: #aaa;
+  ...;
+}
+```
+
+### SMACSS 擴展性與模組化原則
+
+將 CSS 分成五個層級
+
+- Base
+  - 全域設定，用來定義 HTML 元素的基本樣式，例如`h1`, `h2`...，通常會透過 CSS Reset 來統一個瀏覽器的差異。
+- Layout
+  - 定義網頁的版面架構，如：`.container`, 格線系統等等。
+- Module
+  - 用來定義獨立、可重複使用的文件，如：`.btn`, `.nav`
+- State
+  - 用來定義元素狀態，如：`.active`, `.disabled`
+- Theme
+  - 用來定義元素的顏色、字體等主題，如：`.theme-dark`, `.theme-light`
+
+### BEN 區塊元素
+
+將命名方法分為塊(Block)、元素(Element)、修飾符(Modifier)。其好處為依用途進行命名，缺點為名稱可能會變的很長。
+
+- Block 一個獨立的元件，應以小寫字母命名。如：`.header`, `.menu`
+- Element 元素為塊的一部分，使用兩個下底線連接，如：`.header__text`, `.menu__item`
+- Modifier 用於修改塊或元素的外觀或狀態，使用兩個破折號連接。如：`.header--dark`, `.menu__item--active`
+
+### RECSS 獨立元件原則
+
+> 參考文件：
+>
+> [官方網站](https://ricostacruz.com/rscss/) / [中文翻譯](https://eddiewen.gitbooks.io/rscss/content/)
+
+將網頁各部為拆解成一塊一塊的元件(component)，例如 `header` 元件，而元件可以再容納子元件，例如：`header` 元件中有 `brand`, `navigation`, `search` 三個子元件，而他們可能也會有各自的子元件。一直到最後的最小單位稱為元素(element)，如導覽區(nav)內的單一連結或是搜尋框(search)的文字框。
+
+主要分為：
+
+- 元件(components)
+- 元素(elements)
+- 變形(variants)
+- 巢狀元件(nested components)
+- 佈局(layouts)
+- 輔助類別(helpers)
+
+#### 元件 components
+
+由多個元素(elements)構成元件。名稱至少為兩個單字，並以破折號相連。如：`.search-form`, `.article-card`
+
+若元件只需要一個詞既可以表達他的意思，如`.alert`，依然建議加上簡單後綴，如：`.alert-box`, `.alert-card`
+
+#### 元素 elements
+
+名稱只能為一個字，由多個元素組成元件(component)。
+
+建議使用 `>` 選擇元素中的樣式，避免使用巢狀時污染子層元件。
+
+```css
+.search-form > .filed {
+}
+```
+
+#### 變形 variants
+
+#### 巢狀元件 nested components
+
+#### 佈局 layouts
+
+#### 輔助類 helpers
+
 ## Background
 
 ### attachment 固定樣式
@@ -213,7 +384,7 @@
 
 ```css
 div {
-  background-image: url('./images/background/001.png');
+  background-image: url("./images/background/001.png");
 }
 ```
 
@@ -253,8 +424,6 @@ div {
 - percentage：設定背景圖片在區域中要顯示的比例，若 width & height 其中一值未設定則為 auto
 - cover：不改變圖片比例的情況下，用背景圖片將區塊塞滿後裁切
 - contain：不改變圖片比例，完整呈現圖片。若為 no-repeat，圖片尺寸若小於區域尺寸，則會出現空白區域
-
-
 
 ## Display
 
