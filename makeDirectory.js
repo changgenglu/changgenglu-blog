@@ -41,9 +41,9 @@ fs.readdir(directoryPath, (err, files) => {
   // 生成JSON文件
   fs.writeFile(outputPath, jsonContent, "utf8", (err) => {
     if (err) {
-      console.log("無法建立JSON文件：", err);
+      console.log("無法建立目錄：", err);
       return;
     }
-    console.log("JSON文件已建立！");
+    console.log("目錄已建立！");
   });
 });

@@ -3,14 +3,16 @@
 > 參考資料：
 >
 > [重新認識 JavaScript: Day 14 事件機制的原理](https://ithelp.ithome.com.tw/articles/10191970)
+>
+> [瀏覽器中的事件循環 (Event Loop)](https://www.explainthis.io/zh-hant/swe/what-is-event-loop)
 
 ## 事件流程
 
 假設有兩個元素：outer, inner
 
 ```html
-<div id='outer'>
-  <div id='inner'></div>
+<div id="outer">
+  <div id="inner"></div>
 </div>
 ```
 
@@ -22,7 +24,6 @@
   - 事件冒泡(Event Bubbling)
   - 事件捕獲(Event Capturing)
 
-
 ### 事件冒泡
 
 事件冒泡的意思是：從啟動事件的元素節點開始，逐層向上傳遞，直到整個網頁的根節點，也就是 `document`。
@@ -30,14 +31,12 @@
 ```html
 <!DOCTYPE html>
 <html>
-<head>
-  <title>TITLE</title>
-</head>
-<body>
-
-  <div>CLICK</div>
-
-</body>
+  <head>
+    <title>TITLE</title>
+  </head>
+  <body>
+    <div>CLICK</div>
+  </body>
 </html>
 ```
 
@@ -57,16 +56,13 @@
 ```html
 <!DOCTYPE html>
 <html>
-<head>
-  <title>TITLE</title>
-</head>
-<body>
-
-  <div>CLICK</div>
-
-</body>
+  <head>
+    <title>TITLE</title>
+  </head>
+  <body>
+    <div>CLICK</div>
+  </body>
 </html>
-
 ```
 
 今點擊 click 後，事件捕獲的機制會是：
@@ -83,23 +79,23 @@
 ```html
 <!DOCTYPE html>
 <html lang="en">
-<head>
+  <head>
     <title>title</title>
-</head>
-<body>
+  </head>
+  <body>
     <table>
-        <tbody>
-            <tr>
-                <td>a</td>
-                <td>b</td>
-            </tr>
-            <tr>
-                <td>c</td>
-                <td>d</td>
-            </tr>
-        </tbody>
+      <tbody>
+        <tr>
+          <td>a</td>
+          <td>b</td>
+        </tr>
+        <tr>
+          <td>c</td>
+          <td>d</td>
+        </tr>
+      </tbody>
     </table>
-</body>
+  </body>
 </html>
 ```
 
@@ -130,30 +126,44 @@
 
 ```js
 // 父元素
-var parent = document.getElementById('parent');
+var parent = document.getElementById("parent");
 // 子元素
-var child = document.getElementById('child');
+var child = document.getElementById("child");
 
 // 透過 addEventListener 指定事件的綁定
 // 第三個參數 true / false 分別代表捕獲/ 冒泡 機制
 
-parent.addEventListener('click', function () {
-  console.log('Parent Capturing');
-}, true);
+parent.addEventListener(
+  "click",
+  function () {
+    console.log("Parent Capturing");
+  },
+  true
+);
 
-parent.addEventListener('click', function () {
-  console.log('Parent Bubbling');
-}, false);
+parent.addEventListener(
+  "click",
+  function () {
+    console.log("Parent Bubbling");
+  },
+  false
+);
 
+child.addEventListener(
+  "click",
+  function () {
+    console.log("Child Capturing");
+  },
+  true
+);
 
-child.addEventListener('click', function () {
-  console.log('Child Capturing');
-}, true);
-
-child.addEventListener('click', function () {
-  console.log('Child Bubbling');
-}, false);
-
+child.addEventListener(
+  "click",
+  function () {
+    console.log("Child Bubbling");
+  },
+  false
+);
 ```
 
 當點擊 `子元素`時，透過`console.log()`可以觀察到事件觸發的順序。
@@ -179,13 +189,21 @@ child.addEventListener('click', function () {
 若是`捕獲`在`冒泡`前面：
 
 ```js
-child.addEventListener('click', function () {
-  console.log('Child Capturing');
-}, true);
+child.addEventListener(
+  "click",
+  function () {
+    console.log("Child Capturing");
+  },
+  true
+);
 
-child.addEventListener('click', function () {
-  console.log('Child Bubbling');
-}, false);
+child.addEventListener(
+  "click",
+  function () {
+    console.log("Child Bubbling");
+  },
+  false
+);
 ```
 
 則會得到
@@ -198,13 +216,21 @@ child.addEventListener('click', function () {
 若是將兩段程式碼順序相反，結果如下：
 
 ```js
-child.addEventListener('click', function () {
-  console.log('Child Bubbling');
-}, false);
+child.addEventListener(
+  "click",
+  function () {
+    console.log("Child Bubbling");
+  },
+  false
+);
 
-child.addEventListener('click', function () {
-  console.log('Child Capturing');
-}, true);
+child.addEventListener(
+  "click",
+  function () {
+    console.log("Child Capturing");
+  },
+  true
+);
 ```
 
 ```text
@@ -233,7 +259,7 @@ child.addEventListener('click', function () {
 像是 `window`或`document`此類沒有實體元素的情況，一樣可以用 DOM API 提供的`on-event 處理器(on-event handler)`來處理事件
 
 ```js
-window.onload = function(){
+window.onload = function () {
   document.write("Hello world!");
 };
 ```
@@ -243,18 +269,16 @@ window.onload = function(){
 另外，若是實體元素也可透過 DOM API 取得 DOM 物件後，在透過 on-event 處理器來處理事件。
 
 ```html
-<button id='btn'>
-  Click
-</button>
+<button id="btn">Click</button>
 ```
 
 ㄊ
 
 ```js
-const btn = document.getElementById('btn');
+const btn = document.getElementById("btn");
 
-btn.onclick = function(){
-  console.log('HI')
+btn.onclick = function () {
+  console.log("HI");
 };
 ```
 
@@ -262,7 +286,7 @@ btn.onclick = function(){
 
 ### 事件監聽`EventTarget.addEventListener()`
 
- `.addEventListener()`有三個參數，分別為`事件名稱`、`事件處理器`、`執行機制`。
+`.addEventListener()`有三個參數，分別為`事件名稱`、`事件處理器`、`執行機制`。
 
 - 事件名稱：HTML DOM 事件，為字串
 - 事件處理器：事件觸發時執行的 function
@@ -271,15 +295,23 @@ btn.onclick = function(){
 用此方法來註冊事件的好處是可以重複指定多個`處理器(handler)`給同一個標籤的同一個事件。
 
 ```js
-var btn = document.getElementById('btn');
+var btn = document.getElementById("btn");
 
-btn.addEventListener('click', function(){
-  console.log('HI');
-}, false);
+btn.addEventListener(
+  "click",
+  function () {
+    console.log("HI");
+  },
+  false
+);
 
-btn.addEventListener('click', function(){
-  console.log('HELLO');
-}, false);
+btn.addEventListener(
+  "click",
+  function () {
+    console.log("HELLO");
+  },
+  false
+);
 ```
 
 點擊觸發事件：
@@ -301,28 +333,28 @@ HTML DOM 事件允許 javascript 在 html 檔案中註冊不同事件處理程�
 
 事件通常和函式結合使用，函式不會在事件發生前被執行(如使用者點擊按鈕)。
 
-### DOM Event事件名稱整理
+### DOM Event 事件名稱整理
 
-|     屬性     | 描述                          |
-| :----------: | ----------------------------- |
-|     blur     | 物件失去焦點時                |
-|    change    | 物件內容改變時                |
-|    click     | 滑鼠點擊物件時                |
-|   dblclick   | 滑鼠連點二下物件時            |
-|    error     | 當圖片或文件下載產生錯誤時    |
-|    focus     | 當物件被點擊或取得焦點時      |
-|   keydown    | 按下鍵盤按鍵時                |
-|   keypress   | 按下並放開鍵盤按鍵後          |
-|    keyup     | 按下並放開鍵盤按鍵時          |
-|     load     | 網頁或圖片完成下載時          |
-|  mousedown   | 按下滑鼠按鍵時                |
-|  mousemove   | 介於over跟out間的滑鼠移動行為 |
-|   mouseout   | 滑鼠離開某物件四周時          |
-|  mouseover   | 鼠離開某物件四周時            |
-|   mouseup    | 放開滑鼠按鍵時                |
-|    resize    | 當視窗或框架大小被改變時      |
-|    scroll    | 當捲軸被拉動時                |
-|    select    | 當文字被選取時                |
-|    submit    | 當按下送出按紐時              |
-| beforeunload | 當使用者關閉(或離開)網頁之前  |
-|    unload    | 當使用者關閉(或離開)網頁之後  |
+|     屬性     | 描述                              |
+| :----------: | --------------------------------- |
+|     blur     | 物件失去焦點時                    |
+|    change    | 物件內容改變時                    |
+|    click     | 滑鼠點擊物件時                    |
+|   dblclick   | 滑鼠連點二下物件時                |
+|    error     | 當圖片或文件下載產生錯誤時        |
+|    focus     | 當物件被點擊或取得焦點時          |
+|   keydown    | 按下鍵盤按鍵時                    |
+|   keypress   | 按下並放開鍵盤按鍵後              |
+|    keyup     | 按下並放開鍵盤按鍵時              |
+|     load     | 網頁或圖片完成下載時              |
+|  mousedown   | 按下滑鼠按鍵時                    |
+|  mousemove   | 介於 over 跟 out 間的滑鼠移動行為 |
+|   mouseout   | 滑鼠離開某物件四周時              |
+|  mouseover   | 鼠離開某物件四周時                |
+|   mouseup    | 放開滑鼠按鍵時                    |
+|    resize    | 當視窗或框架大小被改變時          |
+|    scroll    | 當捲軸被拉動時                    |
+|    select    | 當文字被選取時                    |
+|    submit    | 當按下送出按紐時                  |
+| beforeunload | 當使用者關閉(或離開)網頁之前      |
+|    unload    | 當使用者關閉(或離開)網頁之後      |
