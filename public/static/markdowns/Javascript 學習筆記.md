@@ -45,7 +45,7 @@
       - [最佳實踐](#最佳實踐)
     - [全域變數](#全域變數)
   - [Promise](#promise)
-    - [如何使用](#如何使用)
+    - [如何使用 Promise](#如何使用-promise)
     - [狀態](#狀態)
     - [then 的使用](#then-的使用)
     - [錯誤處理](#錯誤處理)
@@ -1183,7 +1183,7 @@ var 物件3 = [10, 20, 30];
   透過匿名函式將變數賦值
 
   ```javascript
-  var squsre = function (params) {
+  var square = function (params) {
     return params;
   };
   ```
@@ -1372,29 +1372,27 @@ var square = function (number) {
 
 非同步操作如：文件操作、資料庫操作、AJAX 及定時器等等。
 
-javascript 有兩種實現非同步的方式：
+javascript 基本實現非同步的方式：
 
-1. 回調函示 callback function
-   當需要執行多個非同步操作時，程式碼會不斷的往內嵌套，又被稱做 callback 地獄(callback hell)
+- 回調函示 callback function
+  當需要執行多個非同步操作時，程式碼會不斷的往內嵌套，又被稱做 callback 地獄(callback hell)
 
-   ```js
-   callback(() => {
-     console.log("Hello!");
-     callback(() => {
-       console.log("Hello!");
-       callback(() => {
-         console.log("Hello!");
-         callback(() => {
-           console.log("Hello!");
-         }, 200);
-       }, 200);
-     }, 200);
-   }, 200);
-   ```
+  ```js
+  callback(() => {
+    console.log("Hello!");
+    callback(() => {
+      console.log("Hello!");
+      callback(() => {
+        console.log("Hello!");
+        callback(() => {
+          console.log("Hello!");
+        }, 200);
+      }, 200);
+    }, 200);
+  }, 200);
+  ```
 
-2. Promise
-
-### 如何使用
+### 如何使用 Promise
 
 > 用來表示一個非同步操作的最終完成(或失敗)及其結果值
 
@@ -1415,22 +1413,22 @@ new Promise((resolve, reject) => {
 function requestData(url) {
   return new Promise((resolve, reject) => {
     setTimeout(() => {
-      if (url === "explainthis.io") {
-        resolve("hello welcome to explainthis");
+      if (url === "example.com") {
+        resolve("hello welcome to example.com");
       } else {
-        reject("it is not explainthis");
+        reject("it is not example.com");
       }
     }, 3000);
   });
 }
 
 // 1. 請求成功
-requestData("explainthis.io").then((res) => {
-  console.log(res); //hello welcome to explainthis
+requestData("example.com").then((res) => {
+  console.log(res); //hello welcome to example.com
 });
 
 // 2. 請求失敗
-requestData("explainthis.com").catch((e) => console.log(e)); //it is not explainthis
+requestData("example.com.com").catch((e) => console.log(e)); //it is not example.com
 ```
 
 ### 狀態
@@ -1450,19 +1448,19 @@ Promise 狀態有三種
    function requestData(url) {
      return new Promise((resolve, reject) => {
        setTimeout(() => {
-         if (url === "explainthis.io") {
-           resolve("hello welcome to explainthis");
+         if (url === "example.com") {
+           resolve("hello welcome to example.com");
          } else {
-           reject("it is not explainthis");
+           reject("it is not example.com");
          }
        }, 3000);
      });
    }
 
-   requestData("explainthis.io")
+   requestData("example.com")
      .then((res) => {
        console.log(res);
-       // 印出 executor 執行的結果 => hello welcome to explainthis
+       // 印出 executor 執行的結果 => hello welcome to example.com
        return 1;
      })
      .then((res) => {
@@ -1480,21 +1478,21 @@ Promise 狀態有三種
    function requestData(url) {
      return new Promise((resolve, reject) => {
        setTimeout(() => {
-         if (url === "explainthis.io") {
-           resolve("hello welcome to explainthis");
+         if (url === "example.com") {
+           resolve("hello welcome to example");
          } else {
-           reject("it is not explainthis");
+           reject("it is not example");
          }
        }, 0);
      });
    }
 
-   requestData("explainthis.com").then(
+   requestData("example.com").then(
      (res) => {
        console.log(res);
      },
      (reason) => {
-       console.log(reason); // 錯誤，回傳 => it is not explainthis
+       console.log(reason); // 錯誤，回傳 => it is not example
      }
    );
    ```
@@ -1653,15 +1651,23 @@ elem.remove();
 可以針對某事件，綁定多個處理器
 
 ```js
-var btn = document.getElementById('btn');
+var btn = document.getElementById("btn");
 
-btn.addEventListener('click', function(){
-  console.log('HI');
-}, false);
+btn.addEventListener(
+  "click",
+  function () {
+    console.log("HI");
+  },
+  false
+);
 
-btn.addEventListener('click', function(){
-  console.log('HELLO');
-}, false);
+btn.addEventListener(
+  "click",
+  function () {
+    console.log("HELLO");
+  },
+  false
+);
 ```
 
 ### `removeEventListener()` 取消事件監聽
@@ -1676,16 +1682,24 @@ btn.addEventListener('click', function(){
 需注意，由於 `addEventListener()` 可以同時針對某事件綁定多個 `handler`，所以透過 `removeEventListener()`解除事件時，第二個參數的 `handler` 必須和先前在 `addEventListener()` 綁定的 `handler` 為同一個實體。
 
 ```js
-var btn = document.getElementById('btn');
+var btn = document.getElementById("btn");
 
-btn.addEventListener('click', function(){
-  console.log('HI');
-}, false);
+btn.addEventListener(
+  "click",
+  function () {
+    console.log("HI");
+  },
+  false
+);
 
 // 移除事件，但是沒用
-btn.removeEventListener('click', function(){
-  console.log('HI');
-}, false);
+btn.removeEventListener(
+  "click",
+  function () {
+    console.log("HI");
+  },
+  false
+);
 ```
 
 ## Math
@@ -1960,6 +1974,7 @@ Map() 為一種資料結構，和方法 array.map() 不同。
 用法和 Set 大同小異，但 Map() 重視 key/value 兩者間操作的關係。
 
 - 建立 Map
+
   ```js
   let fruitMap = new Map();
   // 在建立時給予初始值
@@ -1969,20 +1984,26 @@ Map() 為一種資料結構，和方法 array.map() 不同。
     ["c", "cherry"],
   ]);
   ```
+
 - set() 新增 key/value 到 Map 中
+
   ```js
   let fruitMap = new Map();
   fruitMap.set("a", "apple");
   fruitMap.set("b", "banana");
   fruitMap.set("c", "cherry");
   ```
+
 - get() 取得 key 相對的 value
+
   ```js
   let fruitMap = new Map();
   fruitMap.set("a", "apple");
   fruitMap.get("a"); // apple
   ```
+
 - delete() 從 Map 中刪除指定 key/value
+
   ```js
   let fruitMap = new Map();
   fruitMap.set("a", "apple");
@@ -1990,7 +2011,9 @@ Map() 為一種資料結構，和方法 array.map() 不同。
   fruitMap.set("c", "cherry");
   fruitMap.delete("c"); // 刪除 key 為 c 的位置
   ```
+
 - size() 取得 Map 中的數量
+
   ```js
   let fruitMap = new Map();
   fruitMap.set("a", "apple");
@@ -1998,7 +2021,9 @@ Map() 為一種資料結構，和方法 array.map() 不同。
   fruitMap.set("c", "cherry");
   fruitMap.size; // 3
   ```
+
 - has() 檢查指定 key 是否存在。返回 boolean
+
   ```js
   let fruitMap = new Map();
   fruitMap.set("a", "apple");
@@ -2007,7 +2032,9 @@ Map() 為一種資料結構，和方法 array.map() 不同。
   fruitMap.has("a"); // true
   fruitMap.has("f"); // false
   ```
+
 - clear() 清空 Map 所有東西
+
   ```js
   let fruitMap = new Map();
   fruitMap.set("a", "apple");
@@ -2603,10 +2630,10 @@ console.log(obj.prop1); // 'This is prop1'
 ```javascript
 var obj = {
   set prop1(val) {
-    console.log("prop1 setted: ", val);
+    console.log("prop1 set: ", val);
   },
 };
-obj.prop1 = "This is prop1"; // "prop1 setted:  This is prop1"
+obj.prop1 = "This is prop1"; // "prop1 set:  This is prop1"
 
 console.log(obj.prop1); // undefined
 ```
@@ -2662,7 +2689,7 @@ console.log(obj.prop1); // 200
 
 > 參考資料：
 >
-> https://eyesofkids.gitbooks.io/javascript-start-from-es6/content/part4/destructuring.html
+> [解構賦值 · 從 ES6 開始的 JavaScript 學習生活](https://eyesofkids.gitbooks.io/javascript-start-from-es6/content/part4/destructuring.html)
 
 用於提取(extract)陣列或物件中的資料，
 
@@ -2730,9 +2757,9 @@ const { a, b, ...rest } = { a: 1, b: 2, c: 3, d: 4 }; //a=1, b=2, rest={c:3, d:4
 
 > 參考資料：
 >
-> https://chupai.github.io/posts/200427_ds_linkedlist/
+> [JavaScript 學演算法（五）- 鏈結串列 Linked list](https://chupai.github.io/posts/200427_ds_linkedlist/)
 >
-> https://medium.com/@nchuuu/linked-list-es6-javascript%E5%AF%A6%E4%BD%9C%E5%8F%8Aleet-code%E9%A1%8C%E7%9B%AE%E8%A7%A3%E6%9E%90-4afcd9a67b3d
+> [Linked list Javascript 實作及 Leet code 題目解析](https://medium.com/@nchuuu/linked-list-es6-javascript%E5%AF%A6%E4%BD%9C%E5%8F%8Aleet-code%E9%A1%8C%E7%9B%AE%E8%A7%A3%E6%9E%90-4afcd9a67b3d)
 
 中國稱鏈表。和陣列一樣都是線性資料結構，但和陣列不同為，他為鏈式儲存結構，也就是記憶體位置儲存為不連續性。
 
@@ -2765,7 +2792,6 @@ const { a, b, ...rest } = { a: 1, b: 2, c: 3, d: 4 }; //a=1, b=2, rest={c:3, d:4
 ### 優缺點比較
 
 - 陣列
-
   - 優點
     - 可利用 index 隨機存取只需要 O(1) 的時間
     - 可靠度高，不會因為鏈結斷裂而遺失資料。
@@ -2773,7 +2799,6 @@ const { a, b, ...rest } = { a: 1, b: 2, c: 3, d: 4 }; //a=1, b=2, rest={c:3, d:4
     - 在開頭或在中間插入、刪除元素，需花費 O(n) 的時間移動元素。
     - 連續的記憶體空間，可能有用不到的空間，進而造成浪費。
     - 若陣列已滿，會需要花費 O(n) 的時間搬動資料到新的陣列中。
-
 - 鏈結串列
   - 優點
     - 資料在記憶體中非連續。
