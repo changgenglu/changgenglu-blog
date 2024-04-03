@@ -171,7 +171,7 @@ export default {
   mounted() {
     this.getFilesInFolder();
     this.searchResults = this.files;
-    this.checkDevice();
+    addEventListener('resize', this.checkDevice);
   },
 }
 </script>

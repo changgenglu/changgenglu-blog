@@ -43,21 +43,4 @@ body {
   bottom: -70px;
   z-index: 999;
 }
-
-/* @media (prefers-color-scheme: dark) {
-  html {
-    filter: invert(90%) hue-rotate(180deg);
-  }
-
-  img,
-  video,
-  svg,
-  code[class*="language-"] {
-    filter: invert(110%) hue-rotate(180deg);
-  }
-
-  img {
-    background: #fff;
-  }
-} */
 </style>

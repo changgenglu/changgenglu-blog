@@ -9,7 +9,7 @@
       <div v-show="showMenu" :class="{ 'col-3': !isMobile, 'col-12': isMobile }">
         <Markdown class="sticky-sm-top" id="menu" :source="markdownMenu" v-show="showMenu" />
       </div>
-      <div class='markdown-content px-3  position-sticky-end' :class="{ 'col-9': true }">
+      <div class='markdown-content px-3  position-sticky-end' :class="{ 'col-9': !isMobile, 'col-12': isMobile }">
         <Markdown :source="markdownContent" />
       </div>
     </div>
@@ -57,17 +57,19 @@ export default {
       }
     },
     checkDevice() {
-      if (window.innerWidth < 768) {
+      console.log(window.innerWidth);
+      if (window.innerWidth <= 768) {
         this.isMobile = true;
         this.showMenu = false
       } else {
         this.isMobile = false;
+        this.showMenu = true;
       }
     },
   },
   mounted() {
     this.loadMarkdown();
-    this.checkDevice();
+    addEventListener('resize', this.checkDevice);
   },
 }
 </script>
@@ -209,5 +211,13 @@ h6 {
   right: 0%;
   top: 88%;
   width: 3.5em;
+}
+
+@media (max-width: 768px) {
+  .markdown-content pre code {
+    padding: 20px;
+    padding-top: 40px;
+    margin: 0;
+  }
 }
 </style>
