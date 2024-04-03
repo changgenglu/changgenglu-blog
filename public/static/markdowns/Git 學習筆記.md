@@ -23,6 +23,7 @@
     - [解決合併衝突](#解決合併衝突)
     - [取消 merge 清除合併紀錄](#取消-merge-清除合併紀錄)
     - [Git 別名](#git-別名)
+    - [Git rebase 修改歷史訊息](#git-rebase-修改歷史訊息)
   - [git 遠端操作](#git-遠端操作)
     - [更改 git remote 位置](#更改-git-remote-位置)
     - [在 git server 建立新儲存庫](#在-git-server-建立新儲存庫)
@@ -608,6 +609,69 @@ st = status
 ptlg = log --color --graph --pretty=format:'%C(yellow)%h%Creset %C(bold brightred)%d%Creset %C()%s%Creset \n %C(blue italic dim)-- %an%Creset %C(green italic dim)(%cr)%Creset'
 adal = add --all
 ```
+
+### Git rebase 修改歷史訊息
+
+1. 進入互動模式
+
+   ```shell
+   git rebase -i 1de2076
+   ```
+
+   `-i` 進入互動模式
+
+   `1de2076` 此次互動的應用範圍為，從現在到`1de2076`這個 commit
+
+2. 編輯訊息
+
+   此時會跳出 Vim 編輯器
+
+   ```shell
+   pick 382a2a5 add database settings
+   pick cd82f29 add cat 1
+   pick 1de2076 add cat 2
+
+   # Rebase bb0c9c2..27f6ed6 onto bb0c9c2 (6 commands)
+   #
+   # Commands:
+   # p, pick = use commit
+   # r, reword = use commit, but edit the commit message
+   # e, edit = use commit, but stop for amending
+   # s, squash = use commit, but meld into previous commit
+   # f, fixup = like "squash", but discard this commit's log message
+   # x, exec = run command (the rest of the line) using shell
+   # d, drop = remove commit
+   #
+   # These lines can be re-ordered; they are executed from top to bottom.
+   #
+   # If you remove a line here THAT COMMIT WILL BE LOST.
+   #
+   # However, if you remove everything, the rebase will be aborted.
+   #
+   # Note that empty commits are commented out
+   ```
+
+   此順序和 git log 的順序相反
+
+   - 將要編輯的 commit 修改前面的指令
+
+     - `p, pick` 使用提交，不進行修改
+     - `r, reword` 使用提交，但編輯提交訊息
+     - `e, edit` 使用提交，但停止修改
+     - `s, squash` 使用提交，但合併到先前的提交中
+     - `f, fixup` 就像“squash”，但丟棄此提交的日誌訊息
+     - `x, exec` 使用 shell 執行指令（該行的其餘部分）
+     - `d, drop` 刪除提交
+
+   若要修改`1de2076`的提交內容錯字，則將 `pick 1de2076 add cat 2`修改成 `r 1de2076 add cat 2`。
+
+   存檔並離開後，就會再跳出另一個 vim 編輯器，此為欲修改的 commit 內容。
+
+3. 取消這次的 rebase
+
+   ```shell
+   git reset ORIG_HEAD --hard
+   ```
 
 ## git 遠端操作
 
