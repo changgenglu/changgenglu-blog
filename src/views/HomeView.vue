@@ -1,17 +1,19 @@
 <template>
   <div class="container-lg">
     <div class="d-flex justify-content-center p-4">
-      <div class="row">
-        <div class="col-5 pt-1">
-          <span>搜尋筆記：</span>
-        </div>
-        <div class="col-7">
-          <input type="text" v-model="searchText" placeholder="輸入關鍵字" class="form-control form-control-sm">
-        </div>
+      <div class="row search-input">
+        <span class="col-2">
+          <svg aria-label="Search" width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+            <path
+              d="M21.71 20.29 18 16.61A9 9 0 1 0 16.61 18l3.68 3.68a.999.999 0 0 0 1.42 0 1 1 0 0 0 0-1.39ZM11 18a7 7 0 1 1 0-14 7 7 0 0 1 0 14Z">
+            </path>
+          </svg>
+        </span>
+        <input type="text" v-model="searchText" placeholder="搜尋筆記" class="col-10">
       </div>
     </div>
     <div class="row">
-      <div v-for="(item, index) in searchResult" :key="index" :class="{ 'col-6': !isMobile }">
+      <div v-for="(item, index) in markdownCards" :key="index" :class="{ 'col-6': !isMobile }">
         <router-link :to="`/${item.name}`">
           <div class="card mb-3 bg-transparent" :class="{ 'border-light': isMobile }">
             <div class="card-header d-flex"
@@ -35,14 +37,14 @@
       </div>
     </div>
     <!-- pagination -->
-    <ul class="pagination" v-show="searchResults.length !== 0">
+    <ul class="pagination" v-show="searchResults.length !== 0 && paginationPageNum.length !== 1">
       <li class="page-item" @click.prevent="setPage(currentPage - 1)">
         <a class="page-link" href="#" aria-label="Previous">
           <span aria-hidden="true">&laquo;</span>
         </a>
       </li>
-      <li class="page-item" :class="{ 'active': (currentPage === (n)) }" v-for="(n, index) in totalPages" :key="index"
-        @click.prevent="setPage(n)">
+      <li class="page-item" :class="{ 'active': (currentPage === (n)) }" v-for="(n, index) in paginationPageNum"
+        :key="index" @click.prevent="setPage(n)">
         <a class="page-link" href="#">{{ n }}</a>
       </li>
       <li class="page-item" @click.prevent="setPage(currentPage + 1)">
@@ -63,35 +65,47 @@ export default {
   data() {
     return {
       files: [],
-      dataInPage: 6,
+      CardNum: 6,
       currentPage: 1,
       searchText: '',
       searchResults: [],
       isMobile: false,
+      paginationLength: 5
     }
   },
   watch: {
-    searchText: function () {
+    searchText() {
       this.search();
     },
   },
   computed: {
-    totalPages() {
-      if (this.searchResults.length === 0) {
-        return Math.ceil(this.files.length / this.dataInPage)
-      } else {
-        return Math.ceil(this.searchResults.length / this.dataInPage)
+    paginationPageNum() {
+      let pageCount = [];
+      let totalPage = this.totalPage;
+      for (let i = 0; i < this.paginationLength; i++) {
+        if (this.currentPage >= totalPage - (this.paginationLength - 1)) {
+          pageCount.push(i + totalPage - (this.paginationLength - 1));
+        } else {
+          pageCount.push(i + this.currentPage);
+        }
       }
-      //Math.ceil()取最小整數
+      return pageCount.filter(i => i > 0);
+    },
+    totalPage() {
+      if (this.searchResults.length === 0) {
+        return Math.ceil(this.files.length / this.CardNum)
+      } else {
+        return Math.ceil(this.searchResults.length / this.CardNum)
+      }
     },
     pageStart() {
-      return (this.currentPage - 1) * this.dataInPage
+      return (this.currentPage - 1) * this.CardNum
     },
     pageEnd() {
-      return this.currentPage * this.dataInPage
+      return this.currentPage * this.CardNum
       //取得該頁最後一個值的 index
     },
-    searchResult() {
+    markdownCards() {
       const { searchResults, files, pageStart, pageEnd } = this;
 
       if (searchResults.length === files.length) {
@@ -109,11 +123,11 @@ export default {
         this.isMobile = false;
       }
     },
-    search: function () {
+    search() {
       const searchText = this.searchText.toLowerCase();
       this.searchResults = this.files.filter(file => file.name.toLowerCase().includes(searchText));
     },
-    getFilesInFolder: function () {
+    getFilesInFolder() {
       this.files = AllMyArticle.map(item => (
         {
           date: item.date,
@@ -123,22 +137,13 @@ export default {
       ))
     },
     setPage(page) {
-      if (page <= 0 || page > this.totalPages) {
-        return
-      }
+      if (page <= 0 || page > this.totalPage) { return }
       this.currentPage = page
     },
-    countDate: function (fileDate) {
-      // 取得本地時間
+    countDate(fileDate) {
       var now = new Date();
-
-      // 將指定時間轉換為日期物件
       var specifiedDate = new Date(fileDate);
-
-      // 計算本地時間與指定時間的差距（以毫秒為單位）
       var differenceMilliseconds = now.getTime() - specifiedDate.getTime();
-
-      // 將差距時間轉換為語意化時間
       var seconds = Math.floor(differenceMilliseconds / 1000) % 60;
       var minutes = Math.floor(differenceMilliseconds / (1000 * 60)) % 60;
       var hours = Math.floor(differenceMilliseconds / (1000 * 60 * 60)) % 24;
@@ -149,8 +154,6 @@ export default {
       function addS(value, unit) {
         return value !== 1 ? unit + "s" : unit;
       }
-
-      // 輸出語意化時間
       if (years > 0) {
         return years + ` ${addS(years, "year")} `;
       } else if (months > 0) {
@@ -175,6 +178,31 @@ export default {
 }
 </script>
 
+<style scoped>
+.pagination {
+  padding: 0;
+  justify-content: center;
+  --bs-pagination-color: rgb(116, 116, 116);
+  --bs-pagination-hover-color: white;
+  --bs-pagination-focus-color: white;
+  --bs-pagination-bg: none;
+  --bs-pagination-border-color: none;
+  --bs-pagination-hover-bg: none;
+  --bs-pagination-active-color: #fff;
+  --bs-pagination-focus-color: none;
+  --bs-pagination-focus-bg: none;
+  --bs-pagination-focus-box-shadow: none;
+  --bs-pagination-active-bg: none;
+}
+
+.search-input>input {
+  background-color: rgb(17, 28, 29);
+  border: 0;
+  text-align: center;
+  color: white;
+}
+</style>
+
 <style>
 .card span {
   color: #888888;
@@ -188,11 +216,6 @@ export default {
 
 a {
   text-decoration: none;
-}
-
-.pagination {
-  padding: 0;
-  justify-content: center;
 }
 
 .h5 {

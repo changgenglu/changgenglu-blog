@@ -6,10 +6,10 @@
       </button>
     </div>
     <div :class="{ 'd-flex': !isMobile }">
-      <div v-show="showMenu" :class="{ 'col-3': !isMobile, 'col-12': isMobile }">
+      <div v-show="showMenu && markdownMenu" :class="{ 'col-3': !isMobile, 'col-12': isMobile }">
         <Markdown class="sticky-sm-top" id="menu" :source="markdownMenu" v-show="showMenu" />
       </div>
-      <div class='markdown-content px-3  position-sticky-end' :class="{ 'col-9': !isMobile, 'col-12': isMobile }">
+      <div class='markdown-content px-3  position-sticky-end' :class="{ 'col-9': markdownMenu && !isMobile, 'col-12': markdownMenu && isMobile, 'w-100': !markdownMenu }">
         <Markdown :source="markdownContent" />
       </div>
     </div>

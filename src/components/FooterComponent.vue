@@ -4,7 +4,7 @@
       <div class="d-flex align-items-center justify-content-center small">
         <div class="text-muted">
           <span>powered by: </span>
-          <a href="https://github.com/changgenglu">changgenglu</a>
+          <a href="https://github.com/changgenglu" class="fst-italic"> changgenglu</a>
         </div>
       </div>
     </div>
