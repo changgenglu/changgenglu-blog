@@ -57,7 +57,6 @@ export default {
       }
     },
     checkDevice() {
-      console.log(window.innerWidth);
       if (window.innerWidth <= 768) {
         this.isMobile = true;
         this.showMenu = false
@@ -69,6 +68,7 @@ export default {
   },
   mounted() {
     this.loadMarkdown();
+    this.checkDevice();
     addEventListener('resize', this.checkDevice);
   },
 }

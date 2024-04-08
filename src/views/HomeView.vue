@@ -67,7 +67,6 @@ export default {
       currentPage: 1,
       searchText: '',
       searchResults: [],
-      windowSize: window.innerWidth,
       isMobile: false,
     }
   },
@@ -75,9 +74,6 @@ export default {
     searchText: function () {
       this.search();
     },
-    windowSize: function () {
-      this.checkDevice()
-    }
   },
   computed: {
     totalPages() {
@@ -107,8 +103,10 @@ export default {
   },
   methods: {
     checkDevice() {
-      if (this.windowSize < 768) {
+      if (window.innerWidth < 768) {
         this.isMobile = true;
+      } else {
+        this.isMobile = false;
       }
     },
     search: function () {
@@ -171,6 +169,7 @@ export default {
   mounted() {
     this.getFilesInFolder();
     this.searchResults = this.files;
+    this.checkDevice();
     addEventListener('resize', this.checkDevice);
   },
 }
