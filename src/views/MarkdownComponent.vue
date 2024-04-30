@@ -206,13 +206,6 @@ h6 {
   background-color: #383838;
 }
 
-#to-footer-btn {
-  position: fixed;
-  right: 0%;
-  top: 88%;
-  width: 3.5em;
-}
-
 @media (max-width: 768px) {
   .markdown-content pre code {
     padding: 20px;

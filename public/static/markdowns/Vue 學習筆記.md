@@ -51,6 +51,10 @@
     - [基本用法：取得 dom 元素](#基本用法取得-dom-元素)
     - [獲取子組件中的 data 和調用子組件的方法](#獲取子組件中的-data-和調用子組件的方法)
     - [this.$refs 介紹](#thisrefs-介紹)
+  - [Mixin 共用方法](#mixin-共用方法)
+    - [局部混入](#局部混入)
+    - [全域混入](#全域混入)
+    - [vuex 和 mixin 的區別](#vuex-和-mixin-的區別)
   - [備註](#備註)
     - [Truthy(真值) 與 Falsy(假值)](#truthy真值-與-falsy假值)
     - [判斷當前環境是否為開發環境](#判斷當前環境是否為開發環境)
@@ -1202,6 +1206,218 @@ export default {
 };
 </script>
 ```
+
+## Mixin 共用方法
+
+> 參考資料：
+>
+> [彻底搞懂 Vue 中的 Mixin 混入（保姆级教程）](https://juejin.cn/post/7076340796361801759)
+
+將組件的共用邏輯或設定抽出，當組件需要使用時，直接將抽出的部分混入到組件內部。
+
+```js
+// src/mixin/index.js
+export const index = {
+  data() {
+    return {
+      msg: "msg from mixin",
+    };
+  },
+  computed: {},
+  created() {
+    console.log("created in mixin");
+  },
+  mounted() {
+    console.log("mounted in mixin");
+  },
+  methods: {
+    clickMe() {
+      console.log("click in mixin");
+    },
+  },
+};
+```
+
+當 mixin 定義好之後，依據不同的業務場景，可以分為兩種：局部混入和全局混入。顧名思義，局部混入和元件的載入有點類似，就是當需要使用到 mixin 的程式碼時，在元件中引入。而全局混入則將 mixin 於 app.js 中引入，此時專案中任何元件都可以使用 mixin。
+
+### 局部混入
+
+在 component 中引入 mixin：
+
+```vue
+// src/App.vue
+<template>
+  <div id="app">
+    <img alt="Vue logo" src="./assets/logo.png" />
+    <button @click="clickMe">button</button>
+  </div>
+</template>
+
+<script>
+import { mixins } from "./mixin/index";
+export default {
+  name: "App",
+  mixins: [mixins],
+  created() {
+    console.log("component call mixin data: ", this.msg);
+  },
+  mounted() {
+    console.log("mounted in component");
+  },
+};
+</script>
+```
+
+輸出：
+
+```text
+created in mixin
+component call mixin data: msg from mixin
+mounted in mixin
+mounted in component
+click in mixin
+```
+
+- mixin 的生命週期函數會和元件的生命週期一起合併執行
+- 元件可以使用 mixin 中的 data 資料
+- 元件中可以直接呼叫 mixin 中的方法
+- 生命週期的執行順序為：先執行 mixin 再執行 component
+
+若多個元件都有引入 mixin，當期中一個元件修改了 mixin 的資料，會影響其他元件嗎？
+
+```vue
+// src/component/demo.vue
+<template>
+  <button @click="demoShowMsg">demo button</button>
+</template>
+<script>
+import { mixins } from "../mixin/index";
+export default {
+  mixins: [mixins],
+  methods: {
+    demoShowMsg() {
+      console.log("msg in demo: ", this.msg);
+    },
+  },
+};
+</script>
+```
+
+在 App.vue 中引入
+
+```vue
+// src/App.vue
+<template>
+  <div id="app">
+    <img alt="Vue logo" src="./assets/logo.png" />
+    <button @click="clickMe">button</button>
+    <button @click="changeMsg">edit mixin data</button>
+    <demo></demo>
+  </div>
+</template>
+
+<script>
+import { mixins } from "./mixin/index";
+import demo from "./components/demo.vue";
+export default {
+  name: "App",
+  mixins: [mixins],
+  components: { demo },
+  created() {
+    console.log("component call mixin data: ", this.msg);
+  },
+  mounted() {
+    console.log("mounted in component");
+  },
+  methods: {
+    changeMsg() {
+      this.msg = "new message";
+      console.log("new msg:", this.msg);
+    },
+  },
+};
+</script>
+```
+
+輸出：
+
+```text
+created in mixin
+component call mixin data: msg from mixin
+created in mixin
+mounted in mixin
+mounted in mixin
+mounted in component
+new msg in App: new message
+msg in demo: msg from mixin
+```
+
+由上面程式碼可以得知，當 App.vue 中修改 msg 後，demo 元件並沒有受到任何變化。
+
+### 全域混入
+
+將 mixin 在 main.js 中註冊後，便可以在任何元件中直接使用。
+
+```js
+// main.js
+import Vue from "vue";
+import App from "./App.vue";
+import { mixins } from "./mixin/index";
+Vue.mixin(mixins);
+
+Vue.config.productionTip = false;
+
+new Vue({
+  render: (h) => h(App),
+}).$mount("#app");
+```
+
+此時若將前面的 App.vue 中引入 mixin 的部分註解掉，會發現效果和局部混入沒有任何差別。
+
+```vue
+// src/App.vue
+<template>
+  <div id="app">
+    <img alt="Vue logo" src="./assets/logo.png" />
+    <button @click="clickMe">button</button>
+    <button @click="changeMsg">edit mixin data</button>
+    <demo></demo>
+  </div>
+</template>
+
+<script>
+// import { mixins } from "./mixin/index";
+import demo from "./components/demo.vue";
+export default {
+  name: "App",
+  // mixins: [mixins],
+  components: { demo },
+  created() {
+    console.log("component call mixin data: ", this.msg);
+  },
+  mounted() {
+    console.log("mounted in component");
+  },
+  methods: {
+    changeMsg() {
+      this.msg = "new message";
+      console.log("new msg:", this.msg);
+    },
+  },
+};
+</script>
+```
+
+雖然這樣做很方便，但是一般而言不推薦。
+
+vue 官方：
+
+> 請謹慎使用全域混入，因為他會影響每個獨立建立的 Vue 實例（包括第三方元件）。大多數情況下，只應應用於自訂選項，推薦將其作為插件發布，以避免重複應用程式混入。
+
+### vuex 和 mixin 的區別
+
+- vuex: 用來做狀態管理，裡面定義的變數在不同元件中均可以使用和修改。而在任一元件中修改此變數的值後，其他元件中此變數的值也會隨之修改。
+- mixin: 可以定義共用的變數，在每個組件之中使用。引入組件後，每個變數都是獨立的，值的修改在組件中不會互相影響。
 
 ## 備註
 
