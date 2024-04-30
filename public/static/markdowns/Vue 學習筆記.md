@@ -51,6 +51,7 @@
     - [基本用法：取得 dom 元素](#基本用法取得-dom-元素)
     - [獲取子組件中的 data 和調用子組件的方法](#獲取子組件中的-data-和調用子組件的方法)
     - [this.$refs 介紹](#thisrefs-介紹)
+  - [this.$el](#thisel)
   - [Mixin 共用方法](#mixin-共用方法)
     - [局部混入](#局部混入)
     - [全域混入](#全域混入)
@@ -1204,6 +1205,33 @@ export default {
     console.log(this.$refs.refContent);
   }
 };
+</script>
+```
+
+## this.$el
+
+在 vue 中，this.$el 是一個指向 Vue 實例渲染的一個 dom 元素的引用。用來訪問 vue 實例所渲染的 dom 元素。
+
+在 javascript 中使用 document 時，會進行全域的 dom 操作，而在 vue 中，this.$el 的 dom 作用範圍僅在執行的組件中。
+
+```vue
+<template>
+  <div>
+    <h1>Hello, {{ name }}!</h1>
+  </div>
+</template>
+
+<script>
+export default {
+  data() {
+    return {
+      name: 'Vue'
+    }
+  },
+  mounted() {
+    console.log(this.$el) // 输出 <div><h1>Hello, Vue!</h1></div>
+  }
+}
 </script>
 ```
 
