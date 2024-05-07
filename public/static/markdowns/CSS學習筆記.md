@@ -34,17 +34,22 @@
     - [repeat 重複](#repeat-重複)
     - [size 背景圖片尺寸](#size-背景圖片尺寸)
   - [Display](#display)
-    - [Display Outside](#display-outside)
-      - [Block 區塊元素](#block-區塊元素)
-      - [Inline 行內元素](#inline-行內元素)
-    - [Display Inside](#display-inside)
-      - [Table](#table)
-      - [Flex](#flex)
-        - [Flex-direction 方向性](#flex-direction-方向性)
+    - [Block 區塊元素](#block-區塊元素)
+    - [Inline 行內元素](#inline-行內元素)
+    - [Table](#table)
+    - [Flex](#flex)
+      - [外容器](#外容器)
+        - [flex-direction 方向性](#flex-direction-方向性)
+        - [flex-wrap 斷行](#flex-wrap-斷行)
         - [justify-content 調整內容](#justify-content-調整內容)
-        - [align-items 對齊物件](#align-items-對齊物件)
+        - [align-items 物件對齊](#align-items-物件對齊)
+        - [align-content 多行物件對齊](#align-content-多行物件對齊)
+      - [內元件](#內元件)
+        - [flex-grow 元件的延伸性](#flex-grow-元件的延伸性)
+        - [flex-shrink 元件的收縮](#flex-shrink-元件的收縮)
+        - [flex-basis 元件基準值](#flex-basis-元件基準值)
         - [align-self 自身對齊](#align-self-自身對齊)
-      - [Wrap 斷行](#wrap-斷行)
+        - [order 調整順序](#order-調整順序)
     - [Global 全域屬性](#global-全域屬性)
       - [inherit 跟隨父層屬性](#inherit-跟隨父層屬性)
       - [initial 變回原本屬性](#initial-變回原本屬性)
@@ -427,86 +432,212 @@ div {
 
 ## Display
 
-### Display Outside
-
-#### Block 區塊元素
+### Block 區塊元素
 
 - 總是以新的一行開始，所以無論設定多少寬度，他基本容器的寬度，還是會撐滿整個空間。
 - 即使容器中的元素已經被調整成 50%，但他還是會將後面的元素排擠在下面。
 
-#### Inline 行內元素
+### Inline 行內元素
 
 - 又稱線內元素，元素本身高度多少他就是多少，無法調整寬高，此外他可以設定 padding 的上下左右，而 margin 只能設定他的左右。
 - inline 屬性預設元素的排列為由左到右，直到裝滿容器。
 
-### Display Inside
-
-#### Table
+### Table
 
 - 可以將元素直接模擬成 table 來使用。
+  - row 對應 `<tr>`
+  - row-group 對應 `<tbody>`
+  - cell `<td>`
+  - caption `<caption`
+  - column `<col>`
+  - column-group `<colgroup>`
+  - header-group `<thead>`
+  - footer-group `<footer>`
 
-  - Table-Row 對應 `<tr>`
-  - Table-Row-Group 對應 `<tbody>`
-  - Table-Cell `<td>`
-  - Table-caption `<caption`
-  - Table-Column `<col>`
-  - Table-Column-Group `<colgroup>`
-  - Table-Header-Group `<thead>`
-  - Table-Footer-Group `<footer>`
-
-#### Flex
+### Flex
 
 - 設定 flex 屬性之前，需先設定父層容器 display: flex
 
-##### Flex-direction 方向性
+#### 外容器
 
-- 水平方向(瀏覽器預設)：row, row-reverse(水平方向反轉)
-- 垂直方向：column, column-reverse(垂直方向反轉)
+##### flex-direction 方向性
+
+- 決定 flex 的軸線方向，也就是「單行排列方向」，預設是橫的
+  - 水平方向(瀏覽器預設)：row, row-reverse(水平方向反轉)
+  - 垂直方向：column, column-reverse(垂直方向反轉)
+
+##### flex-wrap 斷行
+
+- 當內元件排列超過外容器主軸時的行為
+  - nowrap：強制不斷行。
+  - wrap：裝滿容器會強制斷行。
+  - wrap-reverse：裝滿容器會強制斷行，但排列順序是相反的。
 
 ##### justify-content 調整內容
 
 - 改變 flex 物件在主軸上的對齊(預設為水平方向)，若 flex-direction 為 column，則對齊方向改為垂直方向(y 軸)
-  - justify-content: flex-start 以起點為基準
-  - justify-content: flex-end 以尾端為基準
-  - justify-content: center 以中間為基準
-  - justify-content: space-between 會將物件依容器大小均分
-  - justify-content: space-around 會將物件依容器大小均分，並會給左右空間
+  - flex-start 以起點為基準
+  - flex-end 以尾端為基準
+  - center 以中間為基準
+  - space-between 會將物件依容器大小均分
+  - space-around 會將物件依容器大小均分，並會給左右空間
 
-##### align-items 對齊物件
+##### align-items 物件對齊
 
 - 改變橫軸上所有 flex 物件的對齊(預設為垂直方向)，若 flex-direction 為 column，則對其方向會改為水平方向(x 軸)
-  - align-items: flex-start 以起點為基準
-  - align-items: flex-end 以尾端為基準
-  - align-items: center 以中間為基準
-  - align-items: baseline 以物件基準線為基準
-  - align-items: stretch 以起點為基準，但會撐滿容器(瀏覽器預設)
+  - flex-start 以起點為基準
+  - flex-end 以尾端為基準
+  - center 以中間為基準
+  - baseline 以物件基準線為基準
+  - stretch 以起點為基準，但會撐滿容器(瀏覽器預設)
+
+##### align-content 多行物件對齊
+
+- 和 align-items 類似，差別為他是多行的排列方式。
+  - flex-start
+  - flex-end
+  - center
+  - baseline
+  - stretch
+
+#### 內元件
+
+```html
+<div class="container d-flex">
+  <div class="item item1">內元件1</div>
+  <div class="item item2">內元件2</div>
+  <div class="item item3">內元件3</div>
+</div>
+```
+
+##### flex-grow 元件的延伸性
+
+- 為一個數值，當空間分配還有剩餘的當前元件的伸展性，預設為 0，如果設置為 0 則不會縮放
+
+```css
+.container {
+  width: 100%;
+}
+
+.item {
+  width: 100px;
+}
+```
+
+將 item1 加上 grow，此時元件 1 會擴大將空間填滿。
+
+```css
+.item1 {
+  flex-grow: 1;
+}
+```
+
+將 item2 設定為 grow: 2，此時元件 2 比元件 1 還大。
+
+```css
+.item2 {
+  flex-grow: 2;
+}
+```
+
+flex-grow 的數值為外容器按剩餘空間依比例進行分配。
+
+- 內元件 1：佔據剩餘空間 1/3
+- 內元件 2：佔據剩餘空間 2/3
+
+##### flex-shrink 元件的收縮
+
+- 當空間分配不足時，當前元件的收縮性。預設為 0
+
+和 flex-grow 相反，內元件相加總和超過外容器的數值，依比例減少。
+
+```css
+.container {
+  width: 600px;
+}
+
+.item {
+  width: 300px;
+}
+
+.item1 {
+  flex-shrink: 3;
+}
+.item2 {
+  flex-shrink: 2;
+}
+.item3 {
+  flex-shrink: 1;
+}
+```
+
+三個 item 其總和大於 container，因此預設是會自動縮小，使用 flex-shrink 設定各個元件的縮小比例。
+
+##### flex-basis 元件基準值
+
+- 可使用不同單位的基準值
+
+```css
+.container {
+  width: 1200px;
+}
+.item1 {
+  flex-basis: 300px;
+}
+.item {
+  width: 200px;
+}
+```
+
+預設為 auto，當設定後，會覆蓋原先設定的 width 值。
 
 ##### align-self 自身對齊
 
-- 單獨改變物件在橫軸上的對齊(預設為垂直方向)，若 flex-direction 為 column，則對齊方向則改為水平方向(x 軸)
-  - align-self: flex-start 以起點為基準
-  - align-self: flex-end 以尾端為基準
-  - align-self: center 以中間為基準
-  - align-self: baseline 以物件基準線為基準
-  - align-self: stretch 以起點為基準，但會撐滿容器(瀏覽器預設)
+- 單獨改變內元件在橫軸上的對齊(預設為垂直方向)，若 flex-direction 為 column，則對齊方向則改為水平方向(x 軸)
+  - flex-start 以起點為基準
+  - flex-end 以尾端為基準
+  - center 以中間為基準
+  - baseline 以物件基準線為基準
+  - stretch 以起點為基準，但會撐滿容器(瀏覽器預設)
 
-#### Wrap 斷行
+##### order 調整順序
 
-- Flex-Nowrap：強制不斷行。
-- Flex-Wrap：裝滿容器會強制斷行。
-- Flex-Wrap-Reverse：裝滿容器會強制斷行，但排列順序是相反的。
+預設為 0，所想將其中一個元件，移動到前面，可以將其設定為 -1。
+
+```css
+.item2 {
+  order: -1;
+}
+```
+
+自訂排列順序：
+
+```css
+.item1 {
+  order: 4;
+}
+.item2 {
+  order: 1;
+}
+.item3 {
+  order: 3;
+}
+.item4 {
+  order: 2;
+}
+```
 
 ### Global 全域屬性
 
-- 除了 display 以外，齊他任意屬性都能使用
+- 除了 display 以外，其他任意屬性都能使用
 
 #### inherit 跟隨父層屬性
 
-- 當父層屬性為 block，子層下 Display:Inherit 時，子層屬性也會變成 block
+- 當父層屬性為 block，子層下 display:inherit 時，子層屬性也會變成 block
 
 #### initial 變回原本屬性
 
-- 假如我 div 屬性在某種情況下更改為 inline 屬性，那我後面有吃到同樣 CSS 的 div 想改回 Block，我只要下 Display:Initial，就會變回 Div 原本的 Block 屬性
+- 假如我 div 屬性在某種情況下更改為 inline 屬性，那我後面有吃到同樣 CSS 的 div 想改回 block，我只要下 display:initial，就會變回 div 原本的 block 屬性
 
 ### Display-Box 影響用箱子裝起來的所有元素
 
