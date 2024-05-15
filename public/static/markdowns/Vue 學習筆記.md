@@ -32,6 +32,13 @@
     - [v-show](#v-show)
   - [迴圈渲染](#迴圈渲染)
   - [事件監聽器](#事件監聽器)
+    - [事件通用型修飾子](#事件通用型修飾子)
+      - [.stop](#stop)
+      - [.prevent](#prevent)
+      - [.capture](#capture)
+      - [.self](#self)
+      - [.once](#once)
+      - [.passive](#passive)
   - [props](#props)
     - [命名與使用](#命名與使用)
     - [傳遞 props 值的方法](#傳遞-props-值的方法)
@@ -780,6 +787,168 @@ publishedAt: 2016-04-10
 
 當要在執行時去動態增減事件的監聽，這時就要用到 $on, $once, and $off 這些 js 函式來做設定。
 
+### 事件通用型修飾子
+
+> 一個事件指令可以加入多個修飾子，而修飾子的順序會影響執行的結果
+>
+> 如 `@click.prevent.self` 會先執行 `.prevent`，阻擋所有的點擊行為；而 `@click.self.prevent` 會先執行 `.self`，只會阻擋該元素自己的點擊事件。
+
+#### .stop
+
+阻止事件冒泡，同 `event.stopPropagation()`。
+
+```html
+<div class="outer" @click="alert('outer')">
+  <span>Outer</span>
+  <div class="inner" @click.stop="alert('inner')">Inner</div>
+</div>
+```
+
+在 inner 區塊加上 `.stop`，`click` 事件就不會向外層傳遞。
+
+#### .prevent
+
+阻擋元素的預設行為，同 `event.preventDefault()`。
+
+```html
+<a href="#" class="btn" @click.prevent="alert('hello')">click me</a>
+```
+
+當然也可以和 `.stop` 一起使用：
+
+```html
+<a href="#" class="btn" @click.stop.prevent="alert('hello')">click me</a>
+```
+
+#### .capture
+
+用來指定事件已捕獲的形式來觸發。
+
+```html
+<div class="outer" @click.capture="alert('outer')">
+  <span>outer</span>
+  <div class="inner" @click="alert('inner')">inner</div>
+</div>
+```
+
+當 outer 的點擊事件指定捕獲的修飾子後，在沒有加上捕獲修飾子的 inner 上點擊，會先觸發 inner 的點擊事件在觸發 outer 的點擊事件。
+
+而當 outer 的點擊事件加上捕獲後，則順序相反，點擊 inner 時會先印出 outer 再印出 inner。
+
+#### .self
+
+只會觸發元素自己的事件行為，由子層元素傳遞來的事件則不會觸發。
+
+燈箱範例：在燈箱開啟之後，點擊燈箱外遮罩可以自動關閉燈箱
+
+```vue
+<template>
+  <div class="modal-mask" :style="modelStyle">
+    <div class="modal-container" @click="isShow = false">
+      <div class="modal-body">Hello</div>
+    </div>
+  </div>
+
+  <button @click="isShow = true">Click me</button>
+</template>
+
+<script>
+export default {
+  data() {
+    return {
+      isShow: false,
+    };
+  },
+  computed: {
+    modalStyle() {
+      return {
+        display: this.isShow ? "" : "none",
+      };
+    },
+  },
+  methods: {
+    toggleModal() {
+      this.isShow = !this.isShow;
+    },
+  },
+};
+</script>
+
+<style lang="">
+#app {
+  display: block;
+  overflow: hidden;
+  width: 100%;
+}
+
+h4 {
+  margin: 1rem 0;
+  font-size: 1rem;
+}
+
+.modal-mask {
+  position: absolute;
+  z-index: 10;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  display: table;
+  background-color: rgba(0, 0, 0, 0.5);
+  transition: opacity 0.3s ease;
+}
+
+.modal-container {
+  cursor: pointer;
+  display: table-cell;
+  vertical-align: middle;
+}
+
+.modal-body {
+  cursor: auto;
+  display: block;
+  width: 50%;
+  margin: 0 auto;
+  padding: 2rem;
+  background-color: #fff;
+}
+</style>
+```
+
+上面是一個燈箱的範例。由於 modal-body 的內容區塊在 modal-container 之下，因此當 modal-body 被點擊時，燈箱也會被關閉。
+
+此時，若在 modal-container 的 click 事件加上 `.self` 修飾子，就可以排除這樣的問題。
+
+```html
+<div class="modal-mask" :style="modelStyle">
+  <div class="modal-container" @click.self="isShow = false">
+    <div class="modal-body">Hello</div>
+  </div>
+</div>
+
+<button @click="isShow = true">Click me</button>
+```
+
+#### .once
+
+讓指定的事件只會觸發一次。
+
+```html
+<button @click.once="plus">plus once</button>
+```
+
+#### .passive
+
+告訴瀏覽器這個事件處理器不會呼叫 `event.preventDefault` 來停止瀏覽器的原生行為。
+
+```html
+<div @scroll.passive="onScroll">...</div>
+```
+
+此屬性常用來改善 scroll 事件的效能，因為以前的瀏覽器要多判斷 scroll 事件會不會被 preventDefault，加上 passive 屬性之後會直接忽略這個判斷。當 passive 屬性為 true 時，表示此事件不會被 preventDefault。
+
+也就是，passive .prevent 兩修飾子無法同時使用，同時使用時，prevent 會被無視。
+
 ## props
 
 ### 命名與使用
@@ -1225,13 +1394,13 @@ export default {
 export default {
   data() {
     return {
-      name: 'Vue'
-    }
+      name: "Vue",
+    };
   },
   mounted() {
-    console.log(this.$el) // 输出 <div><h1>Hello, Vue!</h1></div>
-  }
-}
+    console.log(this.$el); // 输出 <div><h1>Hello, Vue!</h1></div>
+  },
+};
 </script>
 ```
 

@@ -377,7 +377,7 @@ php artisan serve
    php artisan config:clear
    ```
 
-4. Router 快取  
+4. Router 快取
    error: (Unable to prepare route [api/user] for serialization. Uses Closure. )
 
    ```bash
@@ -396,7 +396,7 @@ php artisan serve
    # 每次更新composer install 後，都要再執行一次
    ```
 
-6. 類別緩存  
+6. 類別緩存
    error: (Unable to prepare route [api/user] for serialization. Uses Closure. )
 
    ```bash
