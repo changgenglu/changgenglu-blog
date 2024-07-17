@@ -19,7 +19,7 @@
     - [fill()　置換陣列中的值](#fill置換陣列中的值)
   - [回傳陣列元素資訊或索引值](#回傳陣列元素資訊或索引值)
     - [length() 取得陣列長度](#length-取得陣列長度)
-    - [indexOf()](#indexof)
+    - [indexOf() 尋找是否有符合的元素](#indexof-尋找是否有符合的元素)
     - [lastIndexOf()](#lastindexof)
     - [find() 回傳第一個符合判斷條件的元素](#find-回傳第一個符合判斷條件的元素)
     - [findIndex()](#findindex)
@@ -240,7 +240,14 @@ let a = [1, 2, 3, 4, 5, 6, 7, 8];
 console.log(a.length); // 8
 ```
 
-### indexOf()
+### indexOf() 尋找是否有符合的元素
+
+```js
+const fruits = ["apple", "banana", "orange"];
+
+fruits.indexOf("mango"); // -1 表示找不到
+fruits.indexOf("apple"); // 0   表示在陣列的第 0 個位置找到
+```
 
 ### lastIndexOf()
 
