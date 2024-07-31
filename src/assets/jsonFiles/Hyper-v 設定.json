@@ -1,1 +1,1 @@
-{"name":"Hyper-v 設定.md","content":"# Hyper-v 設定\r\n\r\n- [參考資料](https://ithelp.ithome.com.tw/articles/10128382)\r\n\r\n## 虛擬交換器\r\n\r\n- 外部網路：讓虛擬機器可以與外部網路連線，簡單說就是與 host 主機共用實體網路卡\r\n- 內部網路：可讓 Host 主機與虛擬機器溝通\r\n- 私人網路：讓虛擬機器彼此可以溝通，與外部網路隔離\r\n","tocContent":""}
+{"name":"Hyper-v 設定.md","content":"# Hyper-v 設定\n\n- [參考資料](https://ithelp.ithome.com.tw/articles/10128382)\n\n## 虛擬交換器\n\n- 外部網路：讓虛擬機器可以與外部網路連線，簡單說就是與 host 主機共用實體網路卡\n- 內部網路：可讓 Host 主機與虛擬機器溝通\n- 私人網路：讓虛擬機器彼此可以溝通，與外部網路隔離\n","tocContent":""}

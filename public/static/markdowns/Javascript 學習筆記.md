@@ -32,8 +32,7 @@
     - [switch](#switch)
     - [while 迴圈](#while-迴圈)
     - [for 迴圈](#for-迴圈)
-    - [for of](#for-of)
-    - [for in](#for-in)
+    - [for...in 與 for...of](#forin-與-forof)
   - [函式 function](#函式-function)
     - [定義函式](#定義函式)
     - [箭頭函式](#箭頭函式)
@@ -1132,36 +1131,35 @@ for (var i = 0; i < 10; i++) {
 }
 ```
 
-### for of
+### for...in 與 for...of
+
+- 迭代物件屬性時，使用 `for...in`；迭代陣列時，使用 `for...of`。
+- `for...in` 輸出屬性名稱(key)，`for...of` 屬出值(value)。
 
 ```javascript
-var 物件 = ["A", "B", "C", "D"];
-for (const 變數1 of 物件1) {
-  // 大多使用在陣列，或是其他需要查找物件的內容物
+let array = [1, 3, 6];
+
+for (let i in array) {
+  console.log(i); // "0", "1", "2"
 }
 
-let 字串 = "ES6"; //例如用來查找字串或數列等等
-for (let 變數2 of 字串) {
-  console.log(變數2); // "E", "S", "6"
+for (let i of array) {
+  console.log(i); // 1, 3, 6
 }
 ```
 
-### for in
+若在此陣列中增加 `foo` 屬性
 
-```javascript
-var 物件2 = {
-  AA: 100,
-  BB: 20,
-};
-for (變數3 in 物件2) {
-  //會逐一尋找物件裡的屬性
-  //且只顯示有值的資料出來
-  console.log(物件2); //此時出現的是物件裡的字串
-  console.log(物件2[變數3]); //此時出現的是物件裡的數值
+```js
+array.foo = 'test'; // [ 1, 3, 6, foo: 'test' ]
+
+for (let i in array) {
+  console.log(i); // "0", "1", "2", "foo'
 }
 
-var 物件3 = [10, 20, 30];
-物件3[6] = 999; //這時物件3的陣列[10, 20, 30, nill]
+for (let i of array) {
+  console.log(i); // 1, 3, 6, undefined
+}
 ```
 
 ## 函式 function
