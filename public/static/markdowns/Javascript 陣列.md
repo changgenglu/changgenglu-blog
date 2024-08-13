@@ -454,7 +454,7 @@ console.log(a.every((e) => e > 0)); // true
 會將陣列中每一個元素帶入指定的函式中做判斷，只要有任一個元素符合判斷標準，就會回傳 true，若完全不符合，回傳 false
 
 ```javascript
-let a = [1, 2, 3, 4, 5, 6, 7, 8];
+let a = [1, 2, 3, 4, 5, 6];
 console.log(a.some((e) => e > 3)); // true (因為 4, 5, 6 大於 3)
 console.log(a.some((e) => e > 6)); // false (因為全部都小於或等於 6)
 ```
