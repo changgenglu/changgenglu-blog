@@ -19,6 +19,9 @@
       - [呼叫 function](#呼叫-function)
       - [IIFF 立即函式](#iiff-立即函式)
       - [Scope 作用域](#scope-作用域)
+      - [參數傳遞 call by value/reference//shares](#參數傳遞-call-by-valuereferenceshares)
+        - [call by value(pass by value) 傳值](#call-by-valuepass-by-value-傳值)
+        - [call by reference 傳址](#call-by-reference-傳址)
   - [運算式與運算子](#運算式與運算子)
     - [嚴謹模式](#嚴謹模式)
     - [賦值運算子](#賦值運算子)
@@ -43,6 +46,7 @@
       - [為何會有 Hoisting 的現象？](#為何會有-hoisting-的現象)
       - [最佳實踐](#最佳實踐)
     - [全域變數](#全域變數)
+    - [closure](#closure)
   - [Promise](#promise)
     - [如何使用 Promise](#如何使用-promise)
     - [狀態](#狀態)
@@ -733,6 +737,40 @@ IIFE 除了會自動執行以外，與一般 function 的特性都是一模一�
   myFunction();
   ```
 
+#### 參數傳遞 call by value/reference//shares
+
+##### call by value(pass by value) 傳值
+
+```js
+function calculate(a, b) {
+  let temp = a;
+  a = b;
+  b - temp;
+}
+
+let x = 10;
+let y = 20;
+calculate(x, y);
+console.log(x, y); // 10, 20
+```
+
+數字快打
+當執行計算後， x 和 y 的值並沒有改變，因為傳入的並不是 x 和 y 的值，而是當 function 呼叫時，複製 x 和 y 的值並宣告為新的變數 a 和 b。
+
+##### call by reference 傳址
+
+```js
+function calculate(obj) {
+  obj.number++;
+}
+
+let o = { number: 10 };
+calculate(o);
+console.log(o.number); // 11
+```
+
+為當一個變數型別為物件時，其傳遞至 function，在 function 中宣告的變數會指向外部的變數，因此，當修改 function 中的變數時，會改變外部的變數。
+
 ## 運算式與運算子
 
 ### 嚴謹模式
@@ -1151,7 +1189,7 @@ for (let i of array) {
 若在此陣列中增加 `foo` 屬性
 
 ```js
-array.foo = 'test'; // [ 1, 3, 6, foo: 'test' ]
+array.foo = "test"; // [ 1, 3, 6, foo: 'test' ]
 
 for (let i in array) {
   console.log(i); // "0", "1", "2", "foo'
@@ -1363,6 +1401,21 @@ var square = function (number) {
 >
 > 在 javascript ES6 之後有新的宣告方法 let 與 const，分別定義"變數"與"常數"
 > 和 var 不同的是，他們的作用區域是透過大括號`{}`來切分的
+
+### closure
+
+> 閉包(closure) 是一種函式，他能夠存取被宣告當下環境中的變數。
+>
+> closure 是兩個主體構成的一個組合。分別為：
+>
+> 1. 函式 (function)
+> 2. 函式被宣告時所在的語彙環境(lexical environment)
+>
+> 語彙環境 lexical environment:
+>
+> 函式被宣告時所在的 scope，而此 scope 裡面包含了能夠被這個函式存取到的變數。簡而言之，語彙環境就是「函式能夠存取到的所有變數」。
+>
+> 因此 closure 就是一個函式能夠存取，自己被宣告時的環境中的變數。
 
 ## Promise
 
