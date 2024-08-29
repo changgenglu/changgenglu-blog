@@ -1405,17 +1405,129 @@ var square = function (number) {
 ### closure
 
 > 閉包(closure) 是一種函式，他能夠存取被宣告當下環境中的變數。
->
-> closure 是兩個主體構成的一個組合。分別為：
->
-> 1. 函式 (function)
-> 2. 函式被宣告時所在的語彙環境(lexical environment)
->
-> 語彙環境 lexical environment:
->
-> 函式被宣告時所在的 scope，而此 scope 裡面包含了能夠被這個函式存取到的變數。簡而言之，語彙環境就是「函式能夠存取到的所有變數」。
->
-> 因此 closure 就是一個函式能夠存取，自己被宣告時的環境中的變數。
+
+closure 是兩個主體構成的一個組合。分別為：
+
+1. 函式 (function)
+2. 函式被宣告時所在的語彙環境(lexical environment)
+
+**語彙環境 lexical environment:**
+
+函式被宣告時所在的 scope，而此 scope 裡面包含了能夠被這個函式存取到的變數。簡而言之，語彙環境就是「函式能夠存取到的所有變數」。
+
+因此 closure 就是一個函式能夠存取，自己被宣告時的環境中的變數。
+
+```js
+function shop(shopType) {
+  // 餐廳菜單
+  let restaurantMenu = {
+    burger: 300,
+    pizza: 350,
+    sandwich: 100,
+    fries: 150,
+    milkshake: 90,
+  };
+  // 餐廳今日特餐
+  let restaurantSpecials = { steak: 500, lobster: 800 };
+  // 咖啡店菜單
+  let coffeeMenu = {
+    latte: 120,
+    dripCoffee: 150,
+    americano: 100,
+    espresso: 80,
+    tea: 150,
+  };
+
+  // 介紹菜單
+  function introduceMenu() {
+    let message = ""; // 招呼語
+    let menu = []; // 菜單內容
+    let special = []; // 特餐內容
+
+    // 現在用餐時段為下午茶或是正餐
+    if (shopType === "meal") {
+      message = "Welcome to our restaurant!";
+      menu = Object.keys(restaurantMenu);
+      special = Object.keys(restaurantSpecials);
+    } else if (shopType === "coffee") {
+      message = "Welcome to our coffee shop!";
+      menu = Object.keys(coffeeMenu);
+    }
+    console.log(message);
+    console.log("Our menu:");
+    menu.forEach((item) => {
+      console.log(`- ${item}`);
+    });
+
+    // 下午茶沒有提供特餐
+    if (special.length > 0) {
+      console.log("\nOur specials:");
+      special.forEach((item) => {
+        console.log(`- ${item}`);
+      });
+    }
+  }
+
+  // 結帳
+  function countPrice(items) {
+    let totalPrice = 0;
+    console.log("\nItems purchased today:");
+    for (const iterator of items) {
+      let price = 0;
+      if (shopType === "meal") {
+        if (typeof restaurantMenu[iterator] === "undefined") {
+          price = restaurantSpecials[iterator];
+        } else {
+          price = restaurantMenu[iterator];
+        }
+      } else if (shopType === "coffee") {
+        price = coffeeMenu[iterator];
+      }
+      console.log(`- ${iterator}: ${price} dollars`);
+      totalPrice += price;
+    }
+    console.log(`Total price: ${totalPrice}`);
+  }
+
+  // 更換菜單
+  function changeMenu(newMenu) {
+    if (shopType === "meal") {
+      restaurantMenu = newMenu;
+    } else if (shopType === "coffee") {
+      coffeeMenu = newMenu;
+    }
+  }
+
+  // 更換餐廳特餐
+  function changeSpecials(newSpecials) {
+    restaurantSpecials = newSpecials;
+  }
+  return {
+    greet: introduceMenu, // 介紹菜單
+    checkOut: countPrice, // 結帳
+    changeMenu: changeMenu, // 更換菜單
+    changeSpecials: changeSpecials, // 更換特餐
+  };
+}
+// 用餐時段為下午茶
+const good2drink = shop("coffee");
+good2drink.greet();
+good2drink.checkOut(["latte", "dripCoffee", "americano"]);
+
+// 用餐時段為正餐
+const good2eat = shop("meal");
+good2eat.greet();
+good2eat.checkOut(["burger", "fries", "milkshake", "steak"]);
+
+// 嘗試直接存取餐廳特餐變數
+console.log(good2eat.restaurantSpecials); // undefined
+
+// 修改餐廳菜單
+good2eat.restaurantSpecials = { dogShit: 500 };
+good2eat.greet(); // 未被影響
+good2eat.changeMenu({ ramen: 150, sushi: 180 });
+good2eat.greet(); // ramen, sushi
+```
 
 ## Promise
 
