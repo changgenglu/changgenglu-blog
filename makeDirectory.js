@@ -2,7 +2,8 @@ const fs = require("fs");
 const path = require("path");
 
 // 指定目錄路徑
-const directoryPath = "./public/static/markdowns";
+const directoryPath = "./src/markdownFiles";
+
 // 指定目標 json 的路徑
 const outputPath = "./src/assets/fileNames.json";
 
