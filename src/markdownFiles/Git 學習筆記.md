@@ -29,6 +29,10 @@
     - [在 git server 建立新儲存庫](#在-git-server-建立新儲存庫)
     - [將本地專案新增至遠端儲存庫](#將本地專案新增至遠端儲存庫)
     - [轉移資料庫：git mirror](#轉移資料庫git-mirror)
+    - [git push fail](#git-push-fail)
+      - [暫存空間不足](#暫存空間不足)
+      - [欲提交的分支受保護](#欲提交的分支受保護)
+      - [遠端儲存庫板本和本地不一樣](#遠端儲存庫板本和本地不一樣)
   - [Git 管理](#git-管理)
     - [使用 VSCode 管理 Git](#使用-vscode-管理-git)
   - [GitHub 操作](#github-操作)
@@ -772,6 +776,57 @@ git push --mirror
 
 ```bash
 git push --mirror https://github.com/your_name/your_project.git
+```
+
+### git push fail
+
+> 錯誤訊息：
+>
+> error: RPC 失敗。HTTP 400 curl 22 The requested URL returned error: 400
+>
+> send-pack: unexpected disconnect while reading sideband packet
+
+當 push 到遠端儲存庫時，錯誤通常會在上傳的途中，被伺服器端切斷連線。因此很難判斷錯誤發生原因。
+造成錯誤的可能原因如下：
+
+#### 暫存空間不足
+
+git 有兩種通訊協定，ssh 和 http。若是使用 HTTP 協定，其底層基於 TCP 可能會因為暫存不足導致連接已經關閉，但仍有未處理完的資料。
+
+1. 察看 git config
+
+```shell
+  git config -l
+  # http.postBuffer => 緩衝區大小
+```
+
+2. 加大緩衝區
+
+```shell
+  # 524288000 為 500MB，此緩衝值大小需斟酌設定。
+  # http.postbuffer=260000000
+  git config --global http.postBuffer 524288000
+
+  # 察看是否設定成功
+  git config -l | grep postbuffer
+```
+
+#### 欲提交的分支受保護
+
+> 錯誤訊息：
+>
+> Push rejected
+>
+> Push master to changgenglu/master was rejected by remote
+
+提交權限不足，需由管理員授權或另外拉 dev 分支後再合併到 master
+
+#### 遠端儲存庫板本和本地不一樣
+
+將遠端同步到本地：
+
+```git
+git pull --rebase origin master
 ```
 
 ## Git 管理
