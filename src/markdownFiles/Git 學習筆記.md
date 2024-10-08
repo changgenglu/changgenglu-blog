@@ -611,6 +611,11 @@ b65d2d2 (HEAD -> dev, tag: release_v2.0.0, origin/dev) no message
 [alias]
 st = status
 ptlg = log --color --graph --pretty=format:'%C(yellow)%h%Creset %C(bold brightred)%d%Creset %C()%s%Creset \n %C(blue italic dim)-- %an%Creset %C(green italic dim)(%cr)%Creset'
+# 若出現錯誤訊息：
+#   error: 無效的顏色值：bold brightred
+#   fatal: 不能解析 --pretty 格式
+# 則修改為下面指令 
+ptlg = log --color --graph --pretty=format:'%C(yellow)%h%Creset %C(bold red)%d%Creset %C(reset)%s%Creset \n %C(blue italic dim)-- %an%Creset %C(green italic dim)(%cr)%Creset'
 adal = add --all
 ```
 

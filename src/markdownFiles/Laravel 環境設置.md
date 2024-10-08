@@ -246,9 +246,8 @@ php -r "unlink('composer-setup.php');"
 確認是否成功安裝 Composer
 
 ```bash
+# 要看到有composer.phar的檔案
 ls
-
-// 要看到有composer.phar的檔案
 ```
 
 將 composer.phar 放入本地的目錄
