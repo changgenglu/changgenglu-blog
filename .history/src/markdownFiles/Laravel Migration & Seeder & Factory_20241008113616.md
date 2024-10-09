@@ -104,9 +104,7 @@ php artisan make:seed PersonTableSeeder
 在`database/seeds/DatabaseSeeder.php`中，修改要呼叫的 Seeder：
 
 ```php=
-$this->call([
-    PersonTableSeeder::class
-]);
+$this->call(PersonTableSeeder::class);
 ```
 
 執行 Seeder 時會呼叫 seeder 類別裡預設的 run() 方法。
@@ -141,7 +139,7 @@ php artisan db:seed
 php artisan db:seed --class=UsersTableSeeder
 ```
 
-## [Factory](https://learnku.com/docs/laravel/10.x/eloquent-factories/14894)
+## [Factory](https://learnku.com/docs/laravel/6.x/database-testing/5185)
 
 > [深入了解 Faker](https://learnku.com/laravel/t/62386)
 
@@ -155,7 +153,7 @@ php artisan make:factory PersonFactory --model=Person
 
 到`/database/factories/PersonFactory.php`，設定要填充的資料欄位。
 
-```php
+```php=
 $factory->define(Person::class, function (Faker $faker) {
     return [
         'last_name' => $faker->lastName,
@@ -164,22 +162,6 @@ $factory->define(Person::class, function (Faker $faker) {
     ];
 });
 ```
-
-### 工廠物件實例化
-
-當定義好工廠物件後，可以使用 model 的 factory 的靜態方法將工廠物件實例化。
-
-```php
-use App\Models\User
-
-$user = User::factory()->make();
-// 用 count 方法來建立多個模型集合
-$user = User::factory()->count(3)->make();
-// 調用工廠物件中定義的狀態
-$user = User::factory()->count(3)->suspended()->make();
-```
-
-
 
 ### [Faker Formatters](https://github.com/fzaninotto/Faker#formatters)
 
