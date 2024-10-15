@@ -10,20 +10,17 @@ node makeDirectory.js
 node markdownCompiler.js
 # 打包
 npm run build
-# 移動至到打包後的dist目錄
+# 移動至到打包後的 dist 目錄
 cd dist
-# 因為dist資料夾預設是被ignore的，因此在進入dist資料夾後初始化git
+# dist 資料夾預設是 ignore 的，因此在進入 dist 資料夾後初始化 git
 git init
 git add -A
 git commit -m "Deploy: $(date +'%Y-%m-%d %H:%M:%S')"
-# 部署到 https://github.com/<user-name>/<repo-name>.git 分支為 gh-pages
-# 若遠端分支存在 gh-pages，先刪除並重新建立分支
-git fetch --prune origin
-git branch -D gh-pages
-# 將dist資料夾中的內容推送至遠端eric-project的gh-pages分支中，並強制無條件將舊有的內容取代成目前的內容（指令 git push -f)
+# 將 dist 資料夾中的 main 分支，強制推送至 gh-pages 分支中，取代原始內容
 git push -f $GITHUB_URL main:gh-pages
 # 判斷是否部署成功
 if [ $? -eq 0 ]; then
+  clear
   echo "部署成功！"
 else
   echo "部署失敗。請檢查錯誤信息。"
