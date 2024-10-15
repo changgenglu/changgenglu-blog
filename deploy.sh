@@ -2,8 +2,6 @@
 GITHUB_URL="https://github.com/changgenglu/changgenglu-blog.git"
 # 當發生錯誤時終止腳本運行
 set -e
-# 清理舊打包檔
-rm -rf dist
 # 製作目錄
 node makeDirectory.js
 # 編譯 markdown
