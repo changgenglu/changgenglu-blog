@@ -11,6 +11,7 @@
     - [Hash](#hash)
     - [Sorted Set](#sorted-set)
   - [redis Key](#redis-key)
+  - [指令間聽](#指令間聽)
   - [Redis GUI](#redis-gui)
   - [windows 安裝 phpredis](#windows-安裝-phpredis)
 
@@ -232,6 +233,10 @@ string 最大可以儲存 512MB
 | RENAMENX key newkey                       | 當 newkey 不存在時，將 key 改名為 newkey  |
 | SCAN cursor [MATCH pattern] [COUNT count] | 迭代資料庫中的資料庫鍵                    |
 | TYPE key                                  | 返回 key 所儲存的值的類型                 |
+
+## 指令間聽
+
+在 redis-cli 中下 `monitor` 可監聽所有對 redis 的操作
 
 ## Redis GUI
 
