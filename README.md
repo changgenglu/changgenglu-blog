@@ -2,7 +2,7 @@
 
 ## To-do
 
-1. css 學習筆記更新
+1. 撰寫 Laravel 中大型專案架構
 
 ## Project setup
 
