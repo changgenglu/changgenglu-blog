@@ -1,4 +1,4 @@
-# PHP 物件導向
+ # PHP 物件導向
 
 <!-- TOC -->
 
@@ -33,7 +33,7 @@
 
 ## 物件和類別 `Objects` and `Classes`
 
-把類似或有關聯的工作或屬性，組織到類別`class`裡面。  
+把類似或有關聯的工作或屬性，組織到類別`class`裡面。
 這可以讓程式保持遵守 **不重複原則 “don’t repeat yourself” (DRY)**，更容易維護。
 
 - `class` 類別：可以比喻作一個建築的藍圖。類別是將房子的樣式設計出來。
@@ -442,7 +442,7 @@ unset($obj);
 echo "End of file.<br />";
 ```
 
-當物件試圖轉換成字串時，會觸發 `__toString` 函數，再由 `__toString` 函數呼叫 `getProperty()` 方法。  
+當物件試圖轉換成字串時，會觸發 `__toString` 函數，再由 `__toString` 函數呼叫 `getProperty()` 方法。
 輸出結果為
 
 ```html
@@ -921,7 +921,7 @@ context 'MyOtherClass'
 
 ### `Static` 靜態的
 
-在 MyClass 加入一個 `static` 變數與方法： `$count`、`plusOne()`。  
+在 MyClass 加入一個 `static` 變數與方法： `$count`、`plusOne()`。
 在類別的外面使用 `do…while` 迴圈增加 `$count` 的值。
 
 ```php
