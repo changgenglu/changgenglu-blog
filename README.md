@@ -3,6 +3,7 @@
 ## To-do
 
 1. 撰寫 Laravel 中大型專案架構
+2. 部署後所有文章修改時間被重置
 
 ## Project setup
 
