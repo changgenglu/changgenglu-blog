@@ -1,4 +1,4 @@
- # PHP 物件導向
+# PHP 物件導向
 
 <!-- TOC -->
 
@@ -180,7 +180,8 @@ echo $obj2->getProperty();
 輸出結果
 
 ```html
-I'm a class property! I'm a class property! I'm a new property value! I belong to the second instance!
+I'm a class property! I'm a class property! I'm a new property value! I belong
+to the second instance!
 ```
 
 - 物件導向將 `object` 視為獨立的個體，依照藍圖蓋出來的房子，每一間都是獨立的。
@@ -319,7 +320,8 @@ echo "End of file.<br />";
 最後輸出畫面
 
 ```html
-The class "MyClass" was initiated! I'm a class property! End of file. The class "MyClass" was destroyed.
+The class "MyClass" was initiated! I'm a class property! End of file. The class
+"MyClass" was destroyed.
 ```
 
 - 當物件使用完畢，PHP 會自動釋放記憶體。
@@ -371,7 +373,8 @@ echo "End of file.<br />";
 結果會輸出
 
 ```html
-The class "MyClass" was initiated! I'm a class property! The class "MyClass" was destroyed. End of file.
+The class "MyClass" was initiated! I'm a class property! The class "MyClass" was
+destroyed. End of file.
 ```
 
 ### `__toString`
@@ -391,7 +394,8 @@ echo $obj;
 輸出結果
 
 ```html
-The class "MyClass" was initiated! Catchable fatal error: Object of class MyClass could not be converted to string
+The class "MyClass" was initiated! Catchable fatal error: Object of class
+MyClass could not be converted to string
 ```
 
 加入 `__toString` 函數，來做轉換處理。
@@ -446,7 +450,8 @@ echo "End of file.<br />";
 輸出結果為
 
 ```html
-The class "MyClass" was initiated! Using the toString method: I'm a class property! The class "MyClass" was destroyed. End of file.
+The class "MyClass" was initiated! Using the toString method: I'm a class
+property! The class "MyClass" was destroyed. End of file.
 ```
 
 ### `__get` `__set` 強制封裝
@@ -544,7 +549,8 @@ echo $new_object->getProperty();
 結果輸出
 
 ```html
-The class "MyClass" was initiated! From a new method in MyOtherClass. I'm a class property! The class "MyClass" was destroyed.
+The class "MyClass" was initiated! From a new method in MyOtherClass. I'm a
+class property! The class "MyClass" was destroyed.
 ```
 
 ### 覆寫 Override 繼承的方法和屬性
@@ -610,7 +616,8 @@ echo $new_object->getProperty();
 在新類別中，覆寫 `__construct` 方法的輸出結果
 
 ```html
-A new constructor in MyOtherClass. From a new method in MyOtherClass. I'm a class property! The class "MyClass" was destroyed.
+A new constructor in MyOtherClass. From a new method in MyOtherClass. I'm a
+class property! The class "MyClass" was destroyed.
 ```
 
 ### `final` 避免被覆寫
@@ -705,8 +712,8 @@ echo $new_object->getProperty();
 結果輸出
 
 ```html
-The class "MyClass" was initiated! A new constructor in MyOtherClass. From a new method in MyOtherClass. I'm a class property! The class
-"MyClass" was destroyed.
+The class "MyClass" was initiated! A new constructor in MyOtherClass. From a new
+method in MyOtherClass. I'm a class property! The class "MyClass" was destroyed.
 ```
 
 ## 將屬性和方法加上可視性 Visibility
@@ -778,8 +785,8 @@ echo $new_object->getProperty();
 結果輸出
 
 ```html
-The class "MyClass" was initiated! A new constructor in MyOtherClass. Fatal error: Call to protected method MyClass::getProperty() from
-context ''
+The class "MyClass" was initiated! A new constructor in MyOtherClass. Fatal
+error: Call to protected method MyClass::getProperty() from context ''
 ```
 
 在子類別 MyOtherClass 中新增一個方法來調用父層的 `protected` `getProperty()` 方法
@@ -846,7 +853,8 @@ echo $new_object->callProtected();
 輸出結果
 
 ```html
-The class "MyClass" was initiated! A new constructor in MyOtherClass. I'm a class property! The class "MyClass" was destroyed.
+The class "MyClass" was initiated! A new constructor in MyOtherClass. I'm a
+class property! The class "MyClass" was destroyed.
 ```
 
 ### `Private` 隱私的
@@ -915,8 +923,8 @@ echo $new_object->callProtected();
 輸出結果
 
 ```html
-The class "MyClass" was initiated! A new constructor in MyOtherClass. Fatal error: Call to private method MyClass::getProperty() from
-context 'MyOtherClass'
+The class "MyClass" was initiated! A new constructor in MyOtherClass. Fatal
+error: Call to private method MyClass::getProperty() from context 'MyOtherClass'
 ```
 
 ### `Static` 靜態的
@@ -996,8 +1004,8 @@ do {
 輸出結果
 
 ```html
-The count is 1. The count is 2. The count is 3. The count is 4. The count is 5. The count is 6. The count is 7. The count is 8. The count is
-9. The count is 10.
+The count is 1. The count is 2. The count is 3. The count is 4. The count is 5.
+The count is 6. The count is 7. The count is 8. The count is 9. The count is 10.
 ```
 
 ## 介面與抽象類別的應用
@@ -1010,55 +1018,61 @@ The count is 1. The count is 2. The count is 3. The count is 4. The count is 5. 
 - 介面可以繼承其他的介面。
 - 類別可以同時執行多個介面。
 
+用於解決以下問題：
+
+1. 定義共同行為：介面定義一組方法，但不實作這些方法。他允許不同的類別實作相同介面，確保這些類別具有相同的方法。
+2. 實現多型：透過介面，可以實現多型，讓不同的物件以相同的方式被處理。
+3. 降低耦合：介面提供一種抽象層，使得依賴於介面的程式碼，不需要知道具體實作的細節。
+4. 強制契約：介面做為一種契約，確保實作該介面的類別必須提供特定的方法。
+
 Bark.php
 
 ```php
 <?php
-  interface Bark
-  {
-    public function bark();
-  }
+interface Bark
+{
+  public function bark();
+}
 ```
 
 Swim.php
 
 ```php
 <?php
-  interface Swim
-  {
-    public function swim();
-  }
+interface Swim
+{
+  public function swim();
+}
 ```
 
 Human.php
 
 ```php
 <?php
-  include "Bark.php";
-  include "Swim.php";
-
-  class Human implements Bark, Swim
+include "Bark.php";
+include "Swim.php";
+class Human implements Bark, Swim
+{
+  public function bark()
   {
-    public function bark()
-    {
-      echo "人類叫聲...是在叫什麼啦！！";
-    }
-
-    public function swim()
-    {
-      echo "人類在游泳...不是在洗澡嗎？";
-    }
+    echo "人類叫聲...是在叫什麼啦！！";
   }
+
+  public function swim()
+  {
+    echo "人類在游泳...不是在洗澡嗎？";
+  }
+}
 ```
 
 demo.php
 
 ```php
 <?php
-  include "Human.php";
-  $man = new Human();
-  echo $man->bark();
-  echo $man->swim();
+include "Human.php";
+$man = new Human();
+echo $man->bark();
+echo $man->swim();
 ```
 
 介面的使用時機 : 當「多個類別（Class）」之間有共同的方法（function），但方法實做的方式有差異，可以將這些共用「方法」寫成「介面（Interface）」，讓其他的「子類別（Class）」去實做這個介面
@@ -1150,14 +1164,22 @@ demo2.php
 ```php
 class Man
 {
-    public function walk() { // ... }
-    public function run() { // ... }
+    public function walk() {
+       // ...
+    }
+    public function run() {
+       // ...
+    }
 }
 
 class Woman
 {
-    public function walk() { // ... }
-    public function run() { // ... }
+    public function walk() {
+      // ...
+    }
+    public function run() {
+       // ...
+    }
 }
 ```
 
@@ -1166,8 +1188,12 @@ class Woman
 ```php
 trait Moveable
 {
-    public function walk() { // ... }
-    public function run() { // ... }
+    public function walk() {
+       // ...
+    }
+    public function run() {
+       // ...
+    }
 }
 
 class Man
@@ -1203,8 +1229,9 @@ class Child
 因為 CountAge 與 Child 中都存在 `$age` 這個屬性，此時便會產生
 
 ```html
-PHP Fatal error: Child and CountAge define the same property ($age) in the composition of Child. However, the definition differs and is
-considered incompatible.
+PHP Fatal error: Child and CountAge define the same property ($age) in the
+composition of Child. However, the definition differs and is considered
+incompatible.
 ```
 
 在使用這個 `trait` 的 `class` 都可以使用其所定義的方法。`trait` 中定義的方法為共有的。
@@ -1268,13 +1295,17 @@ class Wallet
 ```php
 trait USD
 {
-    private function convert(string $to) { // ... }
+    private function convert(string $to) {
+       // ...
+       }
     public function getUSDBalance(): int { return $this->convert('USD'); }
 }
 
 trait TWD
 {
-    private function convert(string $to) { // ... }
+    private function convert(string $to) {
+       // ...
+       }
     public function getTWDBalance(): int { return $this->convert('TWD'); }
 }
 

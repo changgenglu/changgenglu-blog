@@ -14,6 +14,7 @@
   - [指令間聽](#指令間聽)
   - [Redis GUI](#redis-gui)
   - [windows 安裝 phpredis](#windows-安裝-phpredis)
+  - [Redis 與 Memcached 的差異](#redis-與-memcached-的差異)
 
 <!-- /TOC -->
 
@@ -268,3 +269,12 @@ extension=php_redis.dll
 ```
 
 最後在 phpinfo 中檢查 php-redis 是否安裝成功
+
+## Redis 與 Memcached 的差異
+
+1. 資料結構： redis 提供多種資料結構，如字串、雜湊表、列表、集合、有序集合等。而 memcached 只有支援簡單的 key value。
+2. 持久化方式：redis 提供多種持久化方式：RDB、AOF，可以將資料儲存到硬碟中，而 memcached 不支援持久化。
+3. 資料分片方式： redis 使用 hash 槽分片方式，可以實現資料的自動分片和負載平衡，而 memcached 只能手動分片。
+4. 處理資料的方式：redis 使用單執行緒處理資料請求，支援事務、Lua 腳本等進階功能。而 memcached 使用多執行緒處理資料請求，只支援基本的 Get、Set 操作。
+5. 協議：Redis 使用自己的協議，支援多個資料庫，可以使用密碼進行認證。而 memcached 使用文字協議，只支援一個預設資料庫。
+6. 記憶體管理方式： redis 的記憶體管理比 memcached 更加複雜，支援更多的記憶體最佳化策略。
