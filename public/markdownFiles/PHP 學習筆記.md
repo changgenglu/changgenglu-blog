@@ -36,7 +36,6 @@
     - [`array_combine` 將傳入的參數合併為陣列](#array_combine-將傳入的參數合併為陣列)
     - [`array_unique` 從陣列中刪除重複的值](#array_unique-從陣列中刪除重複的值)
     - [`array_diff` 判斷陣列之間差異](#array_diff-判斷陣列之間差異)
-    - [`array_diff_assoc` 比較多陣列的 key 和 value](#array_diff_assoc-比較多陣列的-key-和-value)
     - [`array_slice` 從陣列中取得一段連續的元素](#array_slice-從陣列中取得一段連續的元素)
     - [日期/時間](#日期時間)
       - [`date` 格式化 Unix timestamps](#date-格式化-unix-timestamps)
@@ -1050,40 +1049,6 @@ Array
 [7] => Daisy
 )
 ```
-
-### `array_diff_assoc` 比較多陣列的 key 和 value
-
-此方法專門用來比較兩個或多個陣列之間的 key 和 value，並返回只存在第一陣列中的元素。
-
-```php
-array_diff_assoc(array $array1, array ...$arrays): array
-```
-
-- `$array1` 第一個用來比較的陣列，為基準陣列。函示會從這邊檢查那些元素不存在其他陣列中。
-- `$array2` 一個或多個用來和第一陣列比對的陣列。
-
-```php
-$array1 = [
-    'a' => 'apple',
-    'b' => 'banana',
-    'c' => 'cherry',
-];
-
-$array2 = [
-    'a' => 'apple',
-    'b' => 'blueberry',
-    'd' => 'date',
-];
-
-$result = array_diff_assoc($array1, $array2);
-
-print_r($result); // [ "b" => banana, "c" => cherry ]
-```
-
-- key 'a' 和 value 'apple' 在兩個陣列中都存在，無差異。
-- key 'b' 的值不同 'banana' 和 'blueberry'，被認為有差異。
-- key 'c' 只存在於第一陣列，因此保留
-- key 'd' 只存在第二陣列，不影響結果文字範本
 
 ### `array_slice` 從陣列中取得一段連續的元素
 
