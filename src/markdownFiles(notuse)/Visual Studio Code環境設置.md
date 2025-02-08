@@ -93,14 +93,13 @@
 
 ## 快速鍵
 
-- 開啟終端機 Command + `
 - 註解行 `Command + /`
 - 選取一段字詞 `Command + D`
-- 開啟搜尋 `Command + F`
-- 儲存 `Command + S`
-- 回上一步 `Command + Z`
+- 開啟全目錄搜尋 `ctrl + shift + F`
 - 移動當前行向上向下 `option + ↑ / ↓`
 - 複製當前行向上向下 `shift + option + ↑ / ↓`
-- 觸發建議 `control + space`
-- 參數建議 `shift + option + space`
-- 格式化 `shift + option + space`
+- 格式化 `shift + option + f`
+- 前往檔案 `ctrl + P`
+- 指定範圍格式化 `ctrl + K` `ctrl + F`
+- 變更語言模式 `ctrl + K` `M`
+- 刪除行 `ctrl + shift + K`
