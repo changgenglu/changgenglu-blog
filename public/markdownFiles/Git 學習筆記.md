@@ -22,6 +22,8 @@
     - [將未完成的工作暫存：git stash](#將未完成的工作暫存git-stash)
     - [解決合併衝突](#解決合併衝突)
     - [Git 別名](#git-別名)
+      - [設定 git reset --hard 的 alias](#設定-git-reset---hard-的-alias)
+      - [.gitconfig 檔案的使用注意事項](#gitconfig-檔案的使用注意事項)
     - [Git rebase](#git-rebase)
       - [修改歷史訊息](#修改歷史訊息)
       - [取消 merge 清除合併紀錄](#取消-merge-清除合併紀錄)
@@ -572,6 +574,91 @@ ptlg = log --color --graph --pretty=format:'%C(yellow)%h%Creset %C(bold red)%d%C
 adal = add --all
 ```
 
+#### 設定 git reset --hard 的 alias
+
+將本地分支更新到和遠端分支的節點，經常會使用 `git reset --hard` 指令。可以透過以下方式設定 alias：
+
+**方法 1：基本的 Git alias**
+
+```bash
+git config --global alias.reset-to 'reset --hard'
+```
+
+使用方式：
+```bash
+git reset-to origin/master
+git reset-to origin/develop
+```
+
+**方法 2：帶有默認值的進階 alias**
+
+```bash
+git config --global alias.reset-to '!f(){ git reset --hard ${1:-origin/master}; }; f'
+```
+
+使用方式：
+```bash
+git reset-to                    # 默認重置到 origin/master
+git reset-to origin/develop     # 指定分支
+```
+
+**方法 3：更短的 alias 名稱**
+
+```bash
+git config --global alias.rh 'reset --hard'
+```
+
+使用方式：
+```bash
+git rh origin/master
+git rh origin/develop
+```
+
+**方法 4：Shell alias（在 ~/.zshrc 或 ~/.bashrc 中）**
+
+```bash
+alias greset='git reset --hard'
+alias grh='git reset --hard'
+```
+
+**方法 5：更進階的 Shell function**
+
+在您的 `~/.zshrc` 檔案中加入：
+
+```bash
+# Git reset to remote branch
+greset() {
+    local branch=${1:-origin/master}
+    git reset --hard $branch
+}
+```
+
+#### .gitconfig 檔案的使用注意事項
+
+**重要：**.gitconfig 檔案修改後無需使用 `source` 指令
+
+`.gitconfig` 是 Git 的配置檔案，使用 INI 格式，不是 Shell 腳本檔案。修改後 Git 會自動讀取新的配置。
+
+**錯誤示例：**
+```bash
+source .gitconfig  # ❌ 錯誤：會出現 "no matches found: [core]" 錯誤
+```
+
+**正確做法：**
+```bash
+# 直接修改 .gitconfig 檔案後，無需額外操作
+# 可以用以下指令驗證配置是否正確載入：
+
+# 查看所有配置
+git config --list
+
+# 查看特定的 alias
+git config --get-regexp alias
+
+# 測試 alias 是否有效
+git config --get alias.reset-to
+```
+
 ### Git rebase
 
 從字面上來看 rebase 可以理解為：重新定義分支的參考基準
@@ -699,6 +786,206 @@ adal = add --all
 ```bash
 git reset ORIG_HEAD --hard
 ```
+
+### Git 檔案忽略設定指南
+
+#### 問題背景
+
+在團隊開發中，有時候需要讓某些檔案：
+- 保持在遠端 repository 中（其他人可以修改）
+- 但本地的修改不會被追蹤或同步到遠端
+- 切換分支時本地修改不會丟失
+- 不影響其他團隊成員的工作
+
+#### 常見的錯誤方案：使用 .gitignore
+
+##### 為什麼 .gitignore 不適合
+
+```bash
+# 錯誤的做法
+echo "Backend.php" >> .gitignore
+echo ".env" >> .gitignore
+```
+
+**問題：**
+- `.gitignore` 是用來忽略**未被追蹤**的檔案
+- 如果檔案已經在 repository 中，`.gitignore` 不會生效
+- 需要使用 `git rm --cached` 移除追蹤，但這會影響其他人
+- `.gitignore` 本身會被提交，影響整個團隊
+
+#### 正確的解決方案：使用 skip-worktree
+
+##### 什麼是 skip-worktree
+
+`skip-worktree` 是 Git 的一個功能，用於標記某些檔案：
+- 檔案仍然在 repository 中
+- 本地修改不會被 Git 追蹤
+- 其他人可以正常修改和推送這些檔案
+
+##### 操作步驟
+
+**1. 設定 skip-worktree**
+
+```bash
+# 對指定檔案設定 skip-worktree
+git update-index --skip-worktree app/Services/Backend.php
+git update-index --skip-worktree .env
+```
+
+**2. 檢查設定**
+
+```bash
+# 查看所有檔案的狀態，S 開頭的表示 skip-worktree
+git ls-files -v
+
+# 只查看被 skip-worktree 的檔案
+git ls-files -v | grep ^S
+
+# 只查看被 assume-unchanged 的檔案（類似功能）
+git ls-files -v | grep ^h
+```
+
+**3. 取消設定（如果需要）**
+
+```bash
+# 取消 skip-worktree 設定
+git update-index --no-skip-worktree app/Services/Backend.php
+git update-index --no-skip-worktree .env
+```
+
+##### 檔案狀態標記說明
+
+- **H** - 正常追蹤的檔案
+- **S** - skip-worktree 的檔案
+- **h** - assume-unchanged 的檔案
+
+#### 設定存儲位置
+
+##### 主要存儲位置
+
+**`.git/index` 檔案** - Git 的索引檔案（二進位檔案）
+- 儲存檔案的狀態和元資料
+- 記錄 skip-worktree 和 assume-unchanged 的標記
+- 包含暫存區的內容
+
+##### 特性
+
+1. **本地設定** - 只存在於你的本地 repository 中
+2. **不會被推送** - 其他人不會看到你的 skip-worktree 設定
+3. **不會被拉取** - 其他人的設定不會影響你
+4. **Binary 檔案** - 無法直接編輯
+
+#### 管理和注意事項
+
+##### 日常管理
+
+```bash
+# 查看目前所有被忽略的檔案
+git ls-files -v | grep ^S
+
+# 暫時恢復追蹤（用於推送重要更新）
+git update-index --no-skip-worktree 檔案名稱
+# 進行修改和提交
+git add 檔案名稱
+git commit -m "更新重要檔案"
+git push
+# 重新設定忽略
+git update-index --skip-worktree 檔案名稱
+```
+
+##### 處理衝突
+
+當其他人修改了被 skip-worktree 的檔案時：
+
+```bash
+# 1. 遇到衝突時，先取消 skip-worktree
+git update-index --no-skip-worktree 檔案名稱
+
+# 2. 拉取最新變更
+git pull
+
+# 3. 解決衝突（如果有）
+# 編輯檔案，解決衝突
+
+# 4. 提交解決方案（如果有衝突）
+git add 檔案名稱
+git commit -m "解決衝突"
+
+# 5. 重新設定 skip-worktree
+git update-index --skip-worktree 檔案名稱
+```
+
+##### 重要限制
+
+1. **Clone 時會重置** - 重新 clone repository 時，所有 skip-worktree 設定都會消失
+2. **無法備份** - 這些設定無法透過 Git 本身備份或同步
+3. **本地環境特有** - 每個開發者都需要在自己的環境中重新設定
+
+#### 團隊協作建議
+
+##### 建立 Setup 腳本
+
+```bash
+#!/bin/bash
+# setup-local-ignore.sh
+
+echo "設定本地檔案忽略..."
+git update-index --skip-worktree app/Services/Backend.php
+git update-index --skip-worktree .env
+
+echo "已設定以下檔案為 skip-worktree："
+git ls-files -v | grep ^S
+```
+
+##### 文件化
+
+在專案的 README.md 中說明：
+
+```markdown
+## 本地開發設定
+
+某些檔案需要設定為 skip-worktree 以避免本地修改被推送：
+
+```bash
+git update-index --skip-worktree app/Services/Backend.php
+git update-index --skip-worktree .env
+```
+
+或執行 setup 腳本：
+```bash
+./setup-local-ignore.sh
+```
+```
+
+#### 替代方案比較
+
+| 方案 | 適用場景 | 優點 | 缺點 |
+|------|----------|------|------|
+| `.gitignore` | 未被追蹤的檔案 | 團隊共享、簡單 | 不適用於已追蹤的檔案 |
+| `skip-worktree` | 已追蹤但不想同步本地修改 | 不影響其他人、保持檔案在 repo 中 | 需要每個人單獨設定 |
+| `assume-unchanged` | 性能優化用途 | 類似 skip-worktree | 主要用於性能，不是為了忽略修改 |
+
+#### 最佳實踐
+
+1. **明確區分用途** - 使用 `.gitignore` 處理未追蹤檔案，使用 `skip-worktree` 處理已追蹤但不想同步的檔案
+2. **團隊溝通** - 在 README 中明確說明哪些檔案需要設定 skip-worktree
+3. **建立腳本** - 為新團隊成員提供自動設定腳本
+4. **定期檢查** - 定期檢查 `git ls-files -v | grep ^S` 確認設定正確
+5. **衝突處理** - 建立標準流程處理 skip-worktree 檔案的衝突
+
+---
+
+#### 總結
+
+對於需要「檔案存在於遠端但不想追蹤本地修改」的需求，`git update-index --skip-worktree` 是最佳解決方案。它能夠：
+
+- ✅ 保持檔案在 repository 中
+- ✅ 不追蹤本地修改
+- ✅ 不影響其他團隊成員
+- ✅ 切換分支時保持本地修改
+- ✅ 允許其他人推送修改
+
+記住，這是一個本地設定，需要每個開發者在自己的環境中配置。
 
 ## git 遠端操作
 
