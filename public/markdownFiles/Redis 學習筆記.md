@@ -9,7 +9,23 @@
     - [List](#list)
     - [Set](#set)
     - [Hash](#hash)
+      - [HGETALL 指令詳細說明](#hgetall-指令詳細說明)
     - [Sorted Set](#sorted-set)
+  - [Redis Pipeline](#redis-pipeline)
+    - [簡介](#簡介)
+    - [工作原理](#工作原理)
+    - [效能提升原理](#效能提升原理)
+    - [使用場景](#使用場景)
+    - [優缺點](#優缺點)
+    - [程式語言範例](#程式語言範例)
+      - [Redis CLI 範例](#redis-cli-範例)
+      - [Python 範例](#python-範例)
+      - [Node.js 範例](#nodejs-範例)
+      - [PHP 範例](#php-範例)
+      - [Laravel 範例](#laravel-範例)
+    - [效能測試範例](#效能測試範例)
+    - [注意事項](#注意事項)
+    - [最佳實踐](#最佳實踐)
   - [redis Key](#redis-key)
   - [指令間聽](#指令間聽)
   - [Redis GUI](#redis-gui)
@@ -162,6 +178,84 @@ string 最大可以儲存 512MB
 > HMGET phone name priceHSET
 ```
 
+#### HGETALL 指令詳細說明
+
+`HGETALL` 是 Redis 用於取得指定 Hash（雜湊）鍵下所有欄位（field）與對應值（value）的指令。回傳結果會依序列出所有欄位名稱與其值，適合用於一次取得整個 Hash 的所有資料。
+
+**語法：**
+```
+HGETALL <key>
+```
+- `<key>`：要查詢的 Hash 鍵名。
+
+**回傳格式：**
+- 若指定的 key 存在且為 Hash，回傳所有欄位與值，格式為陣列（field1, value1, field2, value2, ...）。
+- 若 key 不存在，回傳空陣列。
+
+**範例：**
+
+Redis CLI 範例：
+```shell
+127.0.0.1:6379> HSET user:1001 name "小明" age "25" city "台北"
+(integer) 3
+127.0.0.1:6379> HGETALL user:1001
+1) "name"
+2) "小明"
+3) "age"
+4) "25"
+5) "city"
+6) "台北"
+```
+
+Python 範例：
+```python
+import redis
+r = redis.Redis(host='localhost', port=6379, db=0, decode_responses=True)
+r.hset('user:1001', mapping={'name': '小明', 'age': '25', 'city': '台北'})
+result = r.hgetall('user:1001')
+print(result)  # {'name': '小明', 'age': '25', 'city': '台北'}
+```
+
+Node.js 範例：
+```js
+const { createClient } = require('redis');
+const client = createClient();
+(async () => {
+  await client.connect();
+  await client.hSet('user:1001', { name: '小明', age: '25', city: '台北' });
+  const result = await client.hGetAll('user:1001');
+  console.log(result); // { name: '小明', age: '25', city: '台北' }
+  await client.quit();
+})();
+```
+
+**常見用途：**
+- 一次取得某個使用者、設定檔、會話等所有屬性
+- 檢查 Hash 內所有資料內容
+- 配合資料遷移、備份時導出完整 Hash
+- 快速檢查設定或狀態資訊
+
+**與 HGET 差異：**
+- `HGETALL`：一次取得 Hash 內所有欄位與值
+- `HGET`：僅取得指定欄位的值
+
+範例：
+```shell
+127.0.0.1:6379> HGET user:1001 name
+"小明"
+127.0.0.1:6379> HGETALL user:1001
+1) "name"
+2) "小明"
+3) "age"
+4) "25"
+3) "city"
+4) "台北"
+```
+
+**注意事項：**
+- 若 Hash 很大，`HGETALL` 可能回傳大量資料，請注意效能與網路流量。
+- 若 key 不存在，回傳空陣列，不會報錯。
+
 ### Sorted Set
 
 為有序的 Set，其順序會依照傳入的權重值排序，在查找資料時，可使用 binary search，因此查找效率高。由於 Sorted Set 的高效能查詢，Sorted Set 可當做一組 Hash 資料的 index，將物件 id 以及 index field 儲存在 Sort Set，單筆物件的完整資料儲存在 Hash。
@@ -212,6 +306,217 @@ string 最大可以儲存 512MB
 # ZINCRBY <key> <increment> <member>    # 幫 member 的 score 分數增加
 > ZINCRBY students 10 aaron             # 幫 aaron 的 score 加 10
 ```
+
+## Redis Pipeline
+
+### 簡介
+
+Redis Pipeline（管道）是一種將多個 Redis 指令打包在一起發送的技術，可以大幅提升 Redis 操作的效能。傳統的 Redis 操作模式是「請求-回應」的往返模式，而 Pipeline 允許客戶端將多個指令一次性發送到 Redis 伺服器，然後一次性接收所有回應。
+
+### 工作原理
+
+**傳統模式（無 Pipeline）：**
+```
+Client -> SET key1 value1 -> Server
+Client <- OK <- Server
+Client -> SET key2 value2 -> Server
+Client <- OK <- Server
+Client -> SET key3 value3 -> Server
+Client <- OK <- Server
+```
+
+**Pipeline 模式：**
+```
+Client -> SET key1 value1 -> Server
+Client -> SET key2 value2 -> Server
+Client -> SET key3 value3 -> Server
+Client <- OK <- Server
+Client <- OK <- Server
+Client <- OK <- Server
+```
+
+### 效能提升原理
+
+1. **減少網路往返次數**：將多個指令打包成一個批次發送
+2. **降低網路延遲影響**：減少 TCP 連接的開銷
+3. **提高吞吐量**：特別適合需要執行大量指令的場景
+
+### 使用場景
+
+- **批量資料操作**：一次性設定多個 key-value
+- **資料初始化**：大量資料的初始載入
+- **統計資料處理**：需要執行多個計數器操作
+- **快取預熱**：系統啟動時預先載入快取資料
+- **資料遷移**：大量資料的匯入匯出
+
+### 優缺點
+
+**優點：**
+- 大幅提升效能，特別是在高延遲網路環境下
+- 減少網路開銷
+- 提高系統吞吐量
+- 適合批量操作場景
+
+**缺點：**
+- 不支援原子性操作（與 Redis Transaction 不同）
+- 記憶體使用量可能增加
+- 錯誤處理較複雜
+- 不適合需要即時回應的場景
+
+### 程式語言範例
+
+#### Redis CLI 範例
+
+```bash
+# 使用 redis-cli 的 --pipe 選項
+echo -en '*3\r\n$3\r\nSET\r\n$4\r\nkey1\r\n$5\r\nvalue1\r\n*3\r\n$3\r\nSET\r\n$4\r\nkey2\r\n$5\r\nvalue2\r\n' | redis-cli --pipe
+
+# 或者使用檔案方式
+cat commands.txt | redis-cli --pipe
+```
+
+#### Python 範例
+
+```python
+import redis
+
+# 建立 Redis 連接
+r = redis.Redis(host='localhost', port=6379, db=0)
+
+# 使用 Pipeline
+pipe = r.pipeline()
+
+# 將多個指令加入 Pipeline
+pipe.set('user:1:name', '小明')
+pipe.set('user:1:age', '25')
+pipe.set('user:1:city', '台北')
+pipe.incr('user:counter')
+pipe.expire('user:1:name', 3600)
+
+# 執行所有指令
+results = pipe.execute()
+print(results)  # [True, True, True, 1, True]
+
+# 使用上下文管理器
+with r.pipeline() as pipe:
+    pipe.set('key1', 'value1')
+    pipe.set('key2', 'value2')
+    pipe.set('key3', 'value3')
+    results = pipe.execute()
+```
+
+#### Node.js 範例
+
+```javascript
+const { createClient } = require('redis');
+
+async function pipelineExample() {
+    const client = createClient();
+    await client.connect();
+
+    // 建立 Pipeline
+    const pipeline = client.multi();
+
+    // 加入多個指令
+    pipeline.set('user:1:name', '小明');
+    pipeline.set('user:1:age', '25');
+    pipeline.set('user:1:city', '台北');
+    pipeline.incr('user:counter');
+    pipeline.expire('user:1:name', 3600);
+
+    // 執行 Pipeline
+    const results = await pipeline.exec();
+    console.log(results);
+
+    await client.quit();
+}
+
+pipelineExample();
+```
+
+#### PHP 範例
+
+```php
+<?php
+$redis = new Redis();
+$redis->connect('127.0.0.1', 6379);
+
+// 開始 Pipeline
+$redis->multi();
+
+// 加入多個指令
+$redis->set('user:1:name', '小明');
+$redis->set('user:1:age', '25');
+$redis->set('user:1:city', '台北');
+$redis->incr('user:counter');
+$redis->expire('user:1:name', 3600);
+
+// 執行 Pipeline
+$results = $redis->exec();
+print_r($results);
+?>
+```
+
+#### Laravel 範例
+
+```php
+use Illuminate\Support\Facades\Redis;
+
+// 使用 Laravel Redis Facade
+$pipeline = Redis::pipeline();
+
+$pipeline->set('user:1:name', '小明');
+$pipeline->set('user:1:age', '25');
+$pipeline->set('user:1:city', '台北');
+$pipeline->incr('user:counter');
+$pipeline->expire('user:1:name', 3600);
+
+$results = $pipeline->execute();
+dd($results);
+```
+
+### 效能測試範例
+
+```python
+import redis
+import time
+
+r = redis.Redis(host='localhost', port=6379, db=0)
+
+# 測試傳統模式
+start_time = time.time()
+for i in range(1000):
+    r.set(f'key{i}', f'value{i}')
+traditional_time = time.time() - start_time
+
+# 測試 Pipeline 模式
+start_time = time.time()
+pipe = r.pipeline()
+for i in range(1000):
+    pipe.set(f'key{i}', f'value{i}')
+pipe.execute()
+pipeline_time = time.time() - start_time
+
+print(f'傳統模式耗時: {traditional_time:.4f} 秒')
+print(f'Pipeline 模式耗時: {pipeline_time:.4f} 秒')
+print(f'效能提升: {traditional_time/pipeline_time:.2f} 倍')
+```
+
+### 注意事項
+
+1. **記憶體使用**：Pipeline 會將所有指令暫存在記憶體中，大量指令時需注意記憶體使用量
+2. **錯誤處理**：Pipeline 中的某個指令失敗不會影響其他指令的執行
+3. **原子性**：Pipeline 不保證原子性，如需原子性操作請使用 Redis Transaction
+4. **網路延遲**：在低延遲網路環境下，Pipeline 的效能提升可能不明顯
+5. **指令順序**：Pipeline 中的指令會按順序執行，但回應順序可能不同
+
+### 最佳實踐
+
+1. **適當的批次大小**：建議每批次 100-1000 個指令
+2. **錯誤處理**：實作適當的錯誤處理機制
+3. **監控記憶體**：監控 Pipeline 的記憶體使用情況
+4. **測試效能**：在實際環境中測試 Pipeline 的效能提升
+5. **考慮替代方案**：對於簡單操作，考慮使用 Redis 的批量指令（如 MSET、MGET）
 
 ## redis Key
 
