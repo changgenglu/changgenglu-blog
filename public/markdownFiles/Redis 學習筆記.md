@@ -10,6 +10,7 @@
     - [Set](#set)
     - [Hash](#hash)
       - [HGETALL 指令詳細說明](#hgetall-指令詳細說明)
+      - [Laravel 更新 Hash 指定 Key 值的情境範例](#laravel-更新-hash-指定-key-值的情境範例)
     - [Sorted Set](#sorted-set)
   - [Redis Pipeline](#redis-pipeline)
     - [簡介](#簡介)
@@ -36,7 +37,7 @@
 
 ## redis-cil
 
-```bash
+```shell
 # redis-cli -h <host> -p <port>
 redis-cli -h 127.0.0.1 -p 6379
 ```
@@ -58,7 +59,7 @@ redis-cli -h 127.0.0.1 -p 6379
 
 string 最大可以儲存 512MB
 
-```redis
+```shell
 # SET key value [EX seconds|PX milliseconds|KEEPTTL] [NX|XX]
 > SET phone Note10 EX 10          # 10 秒過期
 > SET price 23900
@@ -86,7 +87,7 @@ string 最大可以儲存 512MB
 - 適用時機
   - Message Quene: 只需取出頭尾的元素，不需要搜尋
 
-```redis
+```shell
 # 在 List 中新增元素
 # RPUSH <key> <element> [element ...] / LPUSH <key> <element> [element ...]
 > RPUSH frameworks react vue angular  # 3
@@ -119,7 +120,7 @@ string 最大可以儲存 512MB
   - CRUD: SADD SREM SMEMBERS SCARD SPOP
   - 集合操作: SDIFF SINTER SUNION
 
-```redis
+```shell
 # SADD <key> <member> [member ...]   # 新增元素到 Set 中
 > SADD languages english             # 1，新增的元素數目
 > SADD languages frensh chinese      # 2，新增的元素數目
@@ -158,10 +159,13 @@ string 最大可以儲存 512MB
 為 key-value 的資料類型，也是 Redis 的主結構，非常適合用於儲存物件型資料，例如 User 物件有姓名、年齡、信箱等。當物件非常小時，Hash 會將資料壓縮後儲存，因此單台 redis 可以儲存數百萬個小物件。
 
 - Hash 的基礎操作
-  - CRUD: HSET HGET HDEL
-  - 多欄位讀: HGETALL HKEYS HMGET
+  - **Create**: HSET, HMSET, HSETNX
+  - **Read**: HGET, HMGET, HGETALL, HKEYS, HVALS, HEXISTS, HLEN
+  - **Update**: HSET (覆蓋), HINCRBY, HINCRBYFLOAT
+  - **Delete**: HDEL
+  - **多欄位操作**: HMSET, HMGET, HGETALL
 
-```redis
+```shell
 # HSET <key> <field> <value> [field value...]   # 新增 field-value pairs 到 Hash 中
 > HSET phone name "iphone"       # 1，新增的數目
 > HSET phone price 22500     # 1，新增的數目
@@ -170,12 +174,52 @@ string 最大可以儲存 512MB
 # HGET <key> <field>             # 取得 field 的 value
 > HGET phone name                # "iphone mini"
 
-# HGETALL <key>                  # 取得所該 hash 對所有值
+# HGETALL <key>                  # 取得該 hash 的所有值
 > HGETALL phone
 
-# HMSET <key> <field> <value> [field value...]  # 和 HSET 相同
+# HMSET <key> <field> <value> [field value...]  # 一次設定多個 field-value pairs
+> HMSET phone brand "Apple" model "iPhone 15"    # OK
+
 # HMGET <key> <field> [field...]    # 一次取出多個 field 的值
-> HMGET phone name priceHSET
+> HMGET phone name price brand      # ["iphone mini", "22500", "Apple"]
+
+# HDEL <key> <field> [field...]     # 刪除指定的 field
+> HDEL phone brand model            # 2，刪除的 field 數目
+
+# HEXISTS <key> <field>             # 檢查 field 是否存在
+> HEXISTS phone name                # 1，存在
+> HEXISTS phone brand               # 0，不存在
+
+# HKEYS <key>                       # 取得所有 field 名稱
+> HKEYS phone                       # ["name", "price"]
+
+# HVALS <key>                       # 取得所有 value
+> HVALS phone                       # ["iphone mini", "22500"]
+
+# HLEN <key>                        # 取得 field 數量
+> HLEN phone                        # 2
+
+# HSETNX <key> <field> <value>     # 只在 field 不存在時才設定
+> HSETNX phone color "black"       # 1，成功設定
+> HSETNX phone name "iPhone 16"    # 0，field 已存在，不更新
+
+# HINCRBY <key> <field> <increment>    # 將 field 的數值增加指定值
+> HSET counter views 100              # 設定初始值
+> HINCRBY counter views 50            # 150，views 增加 50
+
+# HINCRBYFLOAT <key> <field> <increment>  # 將 field 的浮點數值增加指定值
+> HSET product rating 4.5             # 設定初始評分
+> HINCRBYFLOAT product rating 0.3     # 4.8，rating 增加 0.3
+
+# HSTRLEN <key> <field>              # 取得 field 值的字串長度
+> HSTRLEN phone name                  # 12，"iphone mini" 的長度
+
+# 實用範例：使用者資料管理
+> HSET user:1001 name "小明" age "25" email "ming@example.com" city "台北"
+> HSET user:1001 last_login "2024-01-15" login_count 0
+> HINCRBY user:1001 login_count 1    # 登入次數 +1
+> HMGET user:1001 name age city      # ["小明", "25", "台北"]
+> HGETALL user:1001                  # 取得完整使用者資料
 ```
 
 #### HGETALL 指令詳細說明
@@ -183,18 +227,22 @@ string 最大可以儲存 512MB
 `HGETALL` 是 Redis 用於取得指定 Hash（雜湊）鍵下所有欄位（field）與對應值（value）的指令。回傳結果會依序列出所有欄位名稱與其值，適合用於一次取得整個 Hash 的所有資料。
 
 **語法：**
-```
+
+```shell
 HGETALL <key>
 ```
+
 - `<key>`：要查詢的 Hash 鍵名。
 
 **回傳格式：**
+
 - 若指定的 key 存在且為 Hash，回傳所有欄位與值，格式為陣列（field1, value1, field2, value2, ...）。
 - 若 key 不存在，回傳空陣列。
 
 **範例：**
 
 Redis CLI 範例：
+
 ```shell
 127.0.0.1:6379> HSET user:1001 name "小明" age "25" city "台北"
 (integer) 3
@@ -207,39 +255,76 @@ Redis CLI 範例：
 6) "台北"
 ```
 
-Python 範例：
-```python
-import redis
-r = redis.Redis(host='localhost', port=6379, db=0, decode_responses=True)
-r.hset('user:1001', mapping={'name': '小明', 'age': '25', 'city': '台北'})
-result = r.hgetall('user:1001')
-print(result)  # {'name': '小明', 'age': '25', 'city': '台北'}
-```
+Laravel phpredis 範例：
 
-Node.js 範例：
-```js
-const { createClient } = require('redis');
-const client = createClient();
-(async () => {
-  await client.connect();
-  await client.hSet('user:1001', { name: '小明', age: '25', city: '台北' });
-  const result = await client.hGetAll('user:1001');
-  console.log(result); // { name: '小明', age: '25', city: '台北' }
-  await client.quit();
-})();
+```php
+<?php
+
+use Illuminate\Support\Facades\Redis;
+
+// 設定 Hash 資料
+Redis::hset('user:1001', 'name', '小明');
+Redis::hset('user:1001', 'age', '25');
+Redis::hset('user:1001', 'city', '台北');
+
+// 一次設定多個欄位
+Redis::hmset('user:1001', [
+    'email' => 'ming@example.com',
+    'last_login' => '2024-01-15',
+    'login_count' => 0
+]);
+
+// 取得單個欄位值
+$name = Redis::hget('user:1001', 'name'); // "小明"
+
+// 取得多個欄位值
+$userData = Redis::hmget('user:1001', ['name', 'age', 'city']);
+// ["小明", "25", "台北"]
+
+// 取得所有欄位和值
+$allData = Redis::hgetall('user:1001');
+// ["name" => "小明", "age" => "25", "city" => "台北", "email" => "ming@example.com", ...]
+
+// 檢查欄位是否存在
+$exists = Redis::hexists('user:1001', 'name'); // true
+
+// 取得所有欄位名稱
+$fields = Redis::hkeys('user:1001'); // ["name", "age", "city", "email", ...]
+
+// 取得所有值
+$values = Redis::hvals('user:1001'); // ["小明", "25", "台北", "ming@example.com", ...]
+
+// 取得欄位數量
+$count = Redis::hlen('user:1001'); // 5
+
+// 數值操作
+Redis::hincrby('user:1001', 'login_count', 1); // 登入次數 +1
+
+// 刪除欄位
+Redis::hdel('user:1001', 'last_login'); // 1
+
+// 使用 Laravel 的 Redis Facade 進行批量操作
+Redis::pipeline(function ($pipe) {
+    $pipe->hset('user:1001', 'status', 'active');
+    $pipe->hset('user:1001', 'updated_at', now()->toISOString());
+    $pipe->expire('user:1001', 3600); // 1小時過期
+});
 ```
 
 **常見用途：**
+
 - 一次取得某個使用者、設定檔、會話等所有屬性
 - 檢查 Hash 內所有資料內容
 - 配合資料遷移、備份時導出完整 Hash
 - 快速檢查設定或狀態資訊
 
 **與 HGET 差異：**
+
 - `HGETALL`：一次取得 Hash 內所有欄位與值
 - `HGET`：僅取得指定欄位的值
 
 範例：
+
 ```shell
 127.0.0.1:6379> HGET user:1001 name
 "小明"
@@ -253,8 +338,150 @@ const client = createClient();
 ```
 
 **注意事項：**
+
 - 若 Hash 很大，`HGETALL` 可能回傳大量資料，請注意效能與網路流量。
 - 若 key 不存在，回傳空陣列，不會報錯。
+
+#### Laravel 更新 Hash 指定 Key 值的情境範例
+
+以下展示在 Laravel 專案中常見的 Hash 更新情境，包含簡單的 Redis 指令和操作流程：
+
+**1. 使用者資料更新流程：**
+
+```php
+// 設定使用者資料到 Hash
+$userId = 1001;
+$redisKey = "user:{$userId}:profile";
+
+// 流程 1: 單一欄位更新
+Redis::hset($redisKey, 'name', '小明');
+Redis::hset($redisKey, 'age', '25');
+
+// 流程 2: 批量更新多個欄位
+Redis::hmset($redisKey, [
+    'email' => 'ming@example.com',
+    'city' => '台北',
+    'last_login' => now()->toISOString()
+]);
+
+// 流程 3: 更新修改時間戳
+Redis::hset($redisKey, 'updated_at', now()->toISOString());
+
+// 流程 4: 設定過期時間（24小時）
+Redis::expire($redisKey, 86400);
+```
+
+**2. 計數器操作流程：**
+
+```php
+// 流程 1: 登入次數遞增
+$loginCount = Redis::hincrby($redisKey, 'login_count', 1);
+
+// 流程 2: 評分遞增（浮點數）
+$newRating = Redis::hincrbyfloat($redisKey, 'rating', 0.5);
+
+// 流程 3: 檢查欄位是否存在
+if (Redis::hexists($redisKey, 'login_count')) {
+    // 欄位存在，進行更新
+    Redis::hset($redisKey, 'last_activity', now()->toISOString());
+}
+```
+
+**3. 條件式更新流程：**
+
+```php
+<?php
+
+// 流程 1: 只在欄位不存在時設定（HSETNX）
+$result = Redis::hsetnx($redisKey, 'created_at', now()->toISOString());
+if ($result) {
+    echo "新欄位已建立";
+} else {
+    echo "欄位已存在，未更新";
+}
+
+// 流程 2: 檢查並更新受保護欄位
+$protectedFields = ['_system', '_version'];
+$field = 'status';
+
+if (!in_array($field, $protectedFields)) {
+    Redis::hset($redisKey, $field, 'active');
+    Redis::hset($redisKey, '_last_updated', now()->toISOString());
+}
+```
+
+**4. 批量操作流程（使用 Pipeline）：**
+
+```php
+<?php
+
+// 流程: 使用 Pipeline 進行多個操作
+Redis::pipeline(function ($pipe) use ($redisKey) {
+    // 更新使用者狀態
+    $pipe->hset($redisKey, 'status', 'online');
+
+    // 更新活動時間
+    $pipe->hset($redisKey, 'last_activity', now()->toISOString());
+
+    // 遞增活動計數
+    $pipe->hincrby($redisKey, 'activity_count', 1);
+
+    // 設定過期時間
+    $pipe->expire($redisKey, 3600);
+});
+```
+
+**5. 資料查詢和驗證流程：**
+
+```php
+<?php
+
+// 流程 1: 取得更新後的資料
+$userData = Redis::hgetall($redisKey);
+
+// 流程 2: 取得特定欄位值
+$name = Redis::hget($redisKey, 'name');
+$age = Redis::hget($redisKey, 'age');
+
+// 流程 3: 取得多個欄位值
+$profileFields = Redis::hmget($redisKey, ['name', 'age', 'city']);
+
+// 流程 4: 檢查欄位數量
+$fieldCount = Redis::hlen($redisKey);
+```
+
+**6. 快取管理流程：**
+
+```php
+<?php
+
+// 流程 1: 更新系統設定
+$settingsKey = 'settings:app';
+Redis::hset($settingsKey, 'maintenance_mode', 'false');
+Redis::hset($settingsKey, 'cache_ttl', '3600');
+
+// 流程 2: 批量更新設定
+Redis::hmset($settingsKey, [
+    'debug_mode' => 'true',
+    'log_level' => 'info',
+    'timezone' => 'Asia/Taipei'
+]);
+
+// 流程 3: 更新快取時間戳
+Redis::hset($settingsKey, '_last_updated', now()->toISOString());
+```
+
+**主要操作流程總結：**
+
+1. **單一更新**: 使用 `HSET` 更新個別欄位
+2. **批量更新**: 使用 `HMSET` 一次更新多個欄位
+3. **條件更新**: 使用 `HSETNX` 避免覆蓋現有資料
+4. **數值操作**: 使用 `HINCRBY` 和 `HINCRBYFLOAT` 進行計數
+5. **批量操作**: 使用 `Pipeline` 提升效能
+6. **資料驗證**: 使用 `HEXISTS` 檢查欄位存在性
+7. **過期管理**: 使用 `EXPIRE` 設定快取生命週期
+
+這些流程展示了在 Laravel 中如何有效地使用 Redis Hash 進行各種更新操作，適合用於使用者資料管理、計數器、系統設定等場景。
 
 ### Sorted Set
 
@@ -280,7 +507,7 @@ const client = createClient();
   - CN: 修改返回值為發生變化的成員總數，原始是返回新添加成員的總數(CH 為 change 的縮寫)。更改的元素是新增加的成員，已經存在的成員更新分數。所以在命令中指定的成員有相同的分數將不被計算在內。一般而言，ZADD 只會返回新增成員的數量
   - INCR: 當 ZADD 指定這個選項時，成員的做就等同 ZINCRBY 命令，對成員的分數進行遞增操作。
 
-```redis
+```shell
 # ZADD <key> [NX|XX] [CH] [INCR] <score> <member> [score member ...]，新增 sorted Set
 > ZADD students 1 aaron                  # 1
 > ZADD students 2 allison         # 1
@@ -316,6 +543,7 @@ Redis Pipeline（管道）是一種將多個 Redis 指令打包在一起發送�
 ### 工作原理
 
 **傳統模式（無 Pipeline）：**
+
 ```
 Client -> SET key1 value1 -> Server
 Client <- OK <- Server
@@ -326,6 +554,7 @@ Client <- OK <- Server
 ```
 
 **Pipeline 模式：**
+
 ```
 Client -> SET key1 value1 -> Server
 Client -> SET key2 value2 -> Server
@@ -352,12 +581,14 @@ Client <- OK <- Server
 ### 優缺點
 
 **優點：**
+
 - 大幅提升效能，特別是在高延遲網路環境下
 - 減少網路開銷
 - 提高系統吞吐量
 - 適合批量操作場景
 
 **缺點：**
+
 - 不支援原子性操作（與 Redis Transaction 不同）
 - 記憶體使用量可能增加
 - 錯誤處理較複雜
@@ -367,7 +598,7 @@ Client <- OK <- Server
 
 #### Redis CLI 範例
 
-```bash
+```shell
 # 使用 redis-cli 的 --pipe 選項
 echo -en '*3\r\n$3\r\nSET\r\n$4\r\nkey1\r\n$5\r\nvalue1\r\n*3\r\n$3\r\nSET\r\n$4\r\nkey2\r\n$5\r\nvalue2\r\n' | redis-cli --pipe
 
@@ -408,27 +639,27 @@ with r.pipeline() as pipe:
 #### Node.js 範例
 
 ```javascript
-const { createClient } = require('redis');
+const { createClient } = require("redis");
 
 async function pipelineExample() {
-    const client = createClient();
-    await client.connect();
+  const client = createClient();
+  await client.connect();
 
-    // 建立 Pipeline
-    const pipeline = client.multi();
+  // 建立 Pipeline
+  const pipeline = client.multi();
 
-    // 加入多個指令
-    pipeline.set('user:1:name', '小明');
-    pipeline.set('user:1:age', '25');
-    pipeline.set('user:1:city', '台北');
-    pipeline.incr('user:counter');
-    pipeline.expire('user:1:name', 3600);
+  // 加入多個指令
+  pipeline.set("user:1:name", "小明");
+  pipeline.set("user:1:age", "25");
+  pipeline.set("user:1:city", "台北");
+  pipeline.incr("user:counter");
+  pipeline.expire("user:1:name", 3600);
 
-    // 執行 Pipeline
-    const results = await pipeline.exec();
-    console.log(results);
+  // 執行 Pipeline
+  const results = await pipeline.exec();
+  console.log(results);
 
-    await client.quit();
+  await client.quit();
 }
 
 pipelineExample();
