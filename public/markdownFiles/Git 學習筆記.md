@@ -28,8 +28,24 @@
       - [修改歷史訊息](#修改歷史訊息)
       - [取消 merge 清除合併紀錄](#取消-merge-清除合併紀錄)
     - [ORIG\_HEAD](#orig_head)
-  - [git 遠端操作](#git-遠端操作)
-    - [更改 git remote 位置](#更改-git-remote-位置)
+    - [Git 檔案忽略設定指南](#git-檔案忽略設定指南)
+      - [問題背景](#問題背景)
+      - [常見的錯誤方案：使用 .gitignore](#常見的錯誤方案使用-gitignore)
+        - [為什麼 .gitignore 不適合](#為什麼-gitignore-不適合)
+      - [正確的解決方案：使用 skip-worktree](#正確的解決方案使用-skip-worktree)
+        - [什麼是 skip-worktree](#什麼是-skip-worktree)
+        - [操作步驟](#操作步驟)
+        - [檔案狀態標記說明](#檔案狀態標記說明)
+      - [設定存儲位置](#設定存儲位置)
+        - [主要存儲位置](#主要存儲位置)
+        - [特性](#特性)
+      - [管理和注意事項](#管理和注意事項)
+        - [日常管理](#日常管理)
+        - [處理衝突](#處理衝突)
+        - [重要限制](#重要限制)
+      - [團隊協作建議](#團隊協作建議)
+        - [建立 Setup 腳本](#建立-setup-腳本)
+        - [文件化](#文件化)
     - [在 git server 建立新儲存庫](#在-git-server-建立新儲存庫)
     - [將本地專案新增至遠端儲存庫](#將本地專案新增至遠端儲存庫)
     - [轉移資料庫：git mirror](#轉移資料庫git-mirror)
@@ -572,6 +588,7 @@ ptlg = log --color --graph --pretty=format:'%C(yellow)%h%Creset %C(bold brightre
 # 則修改為下面指令
 ptlg = log --color --graph --pretty=format:'%C(yellow)%h%Creset %C(bold red)%d%Creset %C(reset)%s%Creset \n %C(blue italic dim)-- %an%Creset %C(green italic dim)(%cr)%Creset'
 adal = add --all
+rh = reset --hard
 ```
 
 #### 設定 git reset --hard 的 alias
@@ -585,6 +602,7 @@ git config --global alias.reset-to 'reset --hard'
 ```
 
 使用方式：
+
 ```bash
 git reset-to origin/master
 git reset-to origin/develop
@@ -597,6 +615,7 @@ git config --global alias.reset-to '!f(){ git reset --hard ${1:-origin/master}; 
 ```
 
 使用方式：
+
 ```bash
 git reset-to                    # 默認重置到 origin/master
 git reset-to origin/develop     # 指定分支
@@ -609,6 +628,7 @@ git config --global alias.rh 'reset --hard'
 ```
 
 使用方式：
+
 ```bash
 git rh origin/master
 git rh origin/develop
@@ -640,11 +660,13 @@ greset() {
 `.gitconfig` 是 Git 的配置檔案，使用 INI 格式，不是 Shell 腳本檔案。修改後 Git 會自動讀取新的配置。
 
 **錯誤示例：**
+
 ```bash
 source .gitconfig  # ❌ 錯誤：會出現 "no matches found: [core]" 錯誤
 ```
 
 **正確做法：**
+
 ```bash
 # 直接修改 .gitconfig 檔案後，無需額外操作
 # 可以用以下指令驗證配置是否正確載入：
@@ -792,6 +814,7 @@ git reset ORIG_HEAD --hard
 #### 問題背景
 
 在團隊開發中，有時候需要讓某些檔案：
+
 - 保持在遠端 repository 中（其他人可以修改）
 - 但本地的修改不會被追蹤或同步到遠端
 - 切換分支時本地修改不會丟失
@@ -808,6 +831,7 @@ echo ".env" >> .gitignore
 ```
 
 **問題：**
+
 - `.gitignore` 是用來忽略**未被追蹤**的檔案
 - 如果檔案已經在 repository 中，`.gitignore` 不會生效
 - 需要使用 `git rm --cached` 移除追蹤，但這會影響其他人
@@ -818,6 +842,7 @@ echo ".env" >> .gitignore
 ##### 什麼是 skip-worktree
 
 `skip-worktree` 是 Git 的一個功能，用於標記某些檔案：
+
 - 檔案仍然在 repository 中
 - 本地修改不會被 Git 追蹤
 - 其他人可以正常修改和推送這些檔案
@@ -864,6 +889,7 @@ git update-index --no-skip-worktree .env
 ##### 主要存儲位置
 
 **`.git/index` 檔案** - Git 的索引檔案（二進位檔案）
+
 - 儲存檔案的狀態和元資料
 - 記錄 skip-worktree 和 assume-unchanged 的標記
 - 包含暫存區的內容
@@ -941,7 +967,7 @@ git ls-files -v | grep ^S
 
 在專案的 README.md 中說明：
 
-```markdown
+````markdown
 ## 本地開發設定
 
 某些檔案需要設定為 skip-worktree 以避免本地修改被推送：
@@ -950,12 +976,15 @@ git ls-files -v | grep ^S
 git update-index --skip-worktree app/Services/Backend.php
 git update-index --skip-worktree .env
 ```
+````
 
 或執行 setup 腳本：
+
 ```bash
 ./setup-local-ignore.sh
 ```
-```
+
+````
 
 #### 替代方案比較
 
@@ -997,13 +1026,13 @@ git update-index --skip-worktree .env
 
   ```bash
   git remote set-url origin https://XXX.git
-  ```
+````
 
-  檢查 remote url 是否修改成功
+檢查 remote url 是否修改成功
 
-  ```bash
-  git remote -v
-  ```
+```bash
+git remote -v
+```
 
 ### 在 git server 建立新儲存庫
 

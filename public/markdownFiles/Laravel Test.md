@@ -50,3 +50,88 @@ php artisan test --filter ExampleTest::testExample
 // 傳遞參數
 php artisan test --testsuite=Feature --stop-on-failure
 ```
+
+## Laravel PHPUnit 測試指令
+
+### 🔹 1. 執行全部測試
+
+```bash
+./vendor/bin/phpunit
+```
+
+---
+
+### 🔹 2. 執行特定資料夾的測試
+
+```bash
+./vendor/bin/phpunit tests/Integration/AgentGameController
+```
+
+---
+
+### 🔹 3. 執行特定檔案
+
+```bash
+./vendor/bin/phpunit tests/Integration/AgentGameController/AgentGameControllerTest.php
+```
+
+---
+
+### 🔹 4. 執行特定 class
+
+```bash
+./vendor/bin/phpunit --filter Tests\\Integration\\AgentGameController\\AgentGameControllerTest
+```
+
+---
+
+### 🔹 5. 執行特定測試方法
+
+（例如 `test_store_api`）
+
+```bash
+./vendor/bin/phpunit --filter test_store_api
+```
+
+或搭配檔案：
+
+```bash
+./vendor/bin/phpunit tests/Integration/AgentGameController/AgentGameControllerTest.php --filter test_store_api
+```
+
+---
+
+### 🔹 6. 顯示更乾淨的輸出（加 `-testdox`）
+
+```bash
+./vendor/bin/phpunit --testdox tests/Integration/AgentGameController
+```
+
+輸出會變成比較可讀的格式，例如：
+
+```
+Agent Game Controller
+ ✔ store api
+ ✔ index api
+ ✘ update api
+```
+
+---
+
+### 🔹 7. 只跑失敗過的測試
+
+```bash
+./vendor/bin/phpunit --rerun
+```
+
+（需要 `phpunit.xml` 設定 cache，Laravel 預設就有）
+
+
+### 🔹 8. 執行測試覆蓋率報告
+
+```bash
+./vendor/bin/phpunit --coverage-html coverage
+```
+
+- ✅ 成功產出 `coverage/index.html`
+- ✅ 可使用 `php -S 0.0.0.0:8082 -t coverage/` 架簡易伺服器觀看

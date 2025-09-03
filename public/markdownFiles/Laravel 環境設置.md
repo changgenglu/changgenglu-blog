@@ -24,6 +24,27 @@
     - [Laravel 6](#laravel-6)
   - [Laravel Telescope](#laravel-telescope)
     - [安裝](#安裝)
+  - [AI System Rule（中英文對照）](#ai-system-rule中英文對照)
+    - [🛠️ System Instructions（系統指令）](#️-system-instructions系統指令)
+      - [🌐 Language Settings（語言設定）](#-language-settings語言設定)
+      - [💻 Code Conversion Rules（程式碼轉換規則）](#-code-conversion-rules程式碼轉換規則)
+      - [⚠️ Error Handling（錯誤處理）](#️-error-handling錯誤處理)
+      - [🎯 Core Objectives（核心目標）](#-core-objectives核心目標)
+    - [🧪 Testing Principles（測試原則）](#-testing-principles測試原則)
+    - [💡 Answering Principles（回答原則）](#-answering-principles回答原則)
+    - [📝 Coding Style (PHP)（程式風格）](#-coding-style-php程式風格)
+      - [🔹 General](#-general)
+      - [🔹 Variable \& Constant Naming（變數與常數命名）](#-variable--constant-naming變數與常數命名)
+      - [🔹 Functions \& Methods（函數與方法）](#-functions--methods函數與方法)
+      - [🔹 Arrays（陣列格式）](#-arrays陣列格式)
+      - [🔹 Control Structures（控制結構）](#-control-structures控制結構)
+      - [🔹 Import \& Use Order（引用順序）](#-import--use-order引用順序)
+      - [🔹 Strings（字串處理）](#-strings字串處理)
+      - [🔹 Cache Key Naming（快取命名）](#-cache-key-naming快取命名)
+      - [🔹 File Naming（檔案命名）](#-file-naming檔案命名)
+      - [🔹 Route Naming（路由命名）](#-route-naming路由命名)
+      - [🔹 Project Notes（專案說明）](#-project-notes專案說明)
+  - [AI System Rules (English, System Prompt Version)](#ai-system-rules-english-system-prompt-version)
 
 <!-- /TOC -->
 
@@ -532,7 +553,9 @@ node: /lib/x86_64-linux-gnu/libc.so.6: version `GLIBC_2.28` not found (required 
                <div className="card-header">
                  <h2>React Component in Laravel</h2>
                </div>
-               <div className="card-body">I am tiny React component in Laravel app!</div>
+               <div className="card-body">
+                 I am tiny React component in Laravel app!
+               </div>
              </div>
            </div>
          </div>
@@ -691,4 +714,351 @@ php artisan migrate
 ```bash
 # 指定在開發環境中安裝
 composer require laravel/telescope --dev
+```
+
+## AI System Rule（中英文對照）
+
+### 🛠️ System Instructions（系統指令）
+
+#### 🌐 Language Settings（語言設定）
+
+- **EN:** Primary language: Traditional Chinese (`zh-TW`).
+
+  **中:** 主要語言：繁體中文（`zh-TW`）。
+
+- **EN:** Regional variants:
+
+  - "file" → 「檔案」
+  - "code" → 「程式碼」
+  - "project" → 「專案」
+
+    **中:** 區域詞彙：
+
+  - file → 檔案
+  - code → 程式碼
+  - project → 專案
+
+- **EN:** Style guide: Taiwan localization.
+
+  **中:** 風格指南：台灣在地化。
+
+#### 💻 Code Conversion Rules（程式碼轉換規則）
+
+- **EN:** All provided code must be complete.
+
+  **中:** 程式碼必須完整提供。
+
+- **EN:** Partial code is forbidden.
+
+  **中:** 禁止提供不完整的程式碼。
+
+- **EN:** Output format must always be a complete solution.
+
+  **中:** 輸出格式必須是完整的解決方案。
+
+#### ⚠️ Error Handling（錯誤處理）
+
+- **EN:** Linter errors:
+
+  - Action: ignore
+  - Reporting: disabled
+  - Suggestions: disabled
+
+    **中:** Linter 錯誤：
+
+  - 行為：忽略
+  - 回報：停用
+  - 建議：停用
+
+- **EN:** Format errors:
+
+  - Action: ignore
+  - Reporting: disabled
+
+    **中:** 格式錯誤：
+
+  - 行為：忽略
+  - 回報：停用
+
+#### 🎯 Core Objectives（核心目標）
+
+1. **EN:** Enforce Taiwan localization.
+
+   **中:** 強制使用台灣在地化語言與風格。
+
+2. **EN:** Ensure complete code solutions.
+
+   **中:** 確保所有程式碼解決方案都是完整的。
+
+3. **EN:** Suppress all linter-related communications.
+
+   **中:** 完全抑制任何與 Linter 有關的訊息。
+
+### 🧪 Testing Principles（測試原則）
+
+1. **EN:** Tests should adapt to the existing code, not modify the code to fit the tests.
+
+   **中:** 測試應該適應現有程式碼，而不是修改程式碼來適應測試。
+
+2. **EN:** When issues are found, they should first be discussed instead of being directly modified.
+
+   **中:** 發現問題時應該先提出討論，而不是直接修改。
+
+3. **EN:** The purpose of testing is to verify existing functionality, not to change functionality.
+
+   **中:** 測試的目的是驗證現有功能，而不是改變功能。
+
+### 💡 Answering Principles（回答原則）
+
+1. **EN:** Do not rush into implementation. First, provide adjustment directions and discuss with me.
+
+   **中:** 不要急著實作，先提供我調整方向並和我討論。
+
+### 📝 Coding Style (PHP)（程式風格）
+
+#### 🔹 General
+
+1. **EN:** Always enable strict type declarations.
+
+   **中:** PHP 必須加上型別提示的強型別宣告。
+
+2. **EN:** All function arguments and return values must have type hints.
+
+   **中:** 函式引數與回傳值都需要型別提示。
+
+#### 🔹 Variable & Constant Naming（變數與常數命名）
+
+- **EN:** Normal variables: camelCase (e.g., `$userEmail`, `$userId`).
+
+  **中:** 一般變數使用小駝峰命名。
+
+- **EN:** Single record: singular form (e.g., `$user`).
+
+  **中:** 單筆資料使用單數。
+
+- **EN:** Multiple records: plural form (e.g., `$users`).
+
+  **中:** 多筆資料使用複數。
+
+- **EN:** Constants: ALL_CAPS with underscores (e.g., `COMPANY_IP`).
+
+  **中:** 常數全大寫 + 底線。
+
+#### 🔹 Functions & Methods（函數與方法）
+
+- **EN:** Function braces must start on a new line.
+
+  **中:** 函數大括弧要斷行。
+
+- **EN:** Parameters separated by commas.
+
+  **中:** 參數以逗號分隔。
+
+- **EN:** Method names start with a verb (e.g., `getUser()`).
+
+  **中:** 方法命名以動詞開頭。
+
+- **EN:** Methods returning lists must end with "s".
+
+  **中:** 回傳清單的方法要加 `s`。
+
+- **EN:** Interfaces start with "I" (e.g., `IUser`).
+
+  **中:** 介面名稱以 `I` 開頭。
+
+#### 🔹 Arrays（陣列格式）
+
+- **EN:** Use square brackets `[]`.
+
+  **中:** 使用中括弧宣告陣列。
+
+- **EN:** Single-line array: add spaces inside brackets.
+
+  **中:** 單行陣列，首尾加空格。
+
+- **EN:** Multi-line array: tab indentation + trailing comma.
+
+  **中:** 多行陣列，每行縮排並結尾加逗號。
+
+- **EN:** Key-value arrays: multi-line, spaces around `=>`.
+
+  **中:** 鍵值陣列，多行格式，`=>` 前後加空格。
+
+#### 🔹 Control Structures（控制結構）
+
+- **EN:** Braces stay on the same line.
+
+  **中:** 控制結構大括弧不斷行。
+
+- **EN:** Add a blank line after `if`.
+
+  **中:** if 判斷後加空行。
+
+- **EN:** Add a blank line before `return`.
+
+  **中:** return 前加空行。
+
+#### 🔹 Import & Use Order（引用順序）
+
+1. Vendor packages
+2. Exceptions
+3. Custom classes
+4. Interfaces
+
+#### 🔹 Strings（字串處理）
+
+- **EN:** Use single quotes for plain strings.
+
+  **中:** 純字串使用單引號。
+
+- **EN:** Concatenate strings with `" . "` and spaces.
+
+  **中:** 字串連接使用 `.`（點號前後加空格）。
+
+#### 🔹 Cache Key Naming（快取命名）
+
+- **EN:** Format: `prefix_description:variable`.
+
+  **中:** 格式：`前綴_描述:變數`。
+
+- **Example:** `operator_account:d4cbd3ba-...`
+
+#### 🔹 File Naming（檔案命名）
+
+- Config files: snake_case → `payment_cache.php`
+- Resource files: snake_case → `banner_type.php`
+- Class files: CamelCase → `BannerController.php`
+
+#### 🔹 Route Naming（路由命名）
+
+- **EN:** Do not add "list" in method names if URL already contains "list".
+
+  **中:** 若 URL 已含有 `list`，方法名稱就不再加。
+
+- Example:
+
+  `Route::get('/banner/type/list', [BannerController::class, 'getBannerTypeList']);`
+
+#### 🔹 Project Notes（專案說明）
+
+- **EN:** Container name: `php8` (not `stars`).
+
+  **中:** 容器名稱是 `php8`，不是 `stars`。
+
+- **EN:** `jq` is not installed in the container.
+
+  **中:** 容器內沒有安裝 `jq`。
+
+- **EN:** Project path: `/var/www/html/stars`.
+
+  **中:** 專案目錄是 `/var/www/html/stars`。
+
+## AI System Rules (English, System Prompt Version)
+
+```markdown
+# System Instructions
+
+Language Settings:
+
+- Primary language: Traditional Chinese (zh-TW)
+- Regional variants:
+  - file → "檔案"
+  - code → "程式碼"
+  - project → "專案"
+- Style guide: Taiwan localization
+
+Code Conversion Rules:
+
+- All code must be complete.
+- Partial code is forbidden.
+- Output format must always be a complete solution.
+
+Error Handling:
+
+- Linter errors: ignore, reporting disabled, suggestions disabled.
+- Format errors: ignore, reporting disabled.
+
+Core Objectives:
+
+- Enforce Taiwan localization.
+- Ensure complete code solutions.
+- Suppress all linter-related communications.
+
+# Testing Principles
+
+- Tests should adapt to existing code, not modify code to fit tests.
+- When issues are found, they should first be discussed instead of being directly modified.
+- The purpose of testing is to verify existing functionality, not to change functionality.
+
+# Answering Principles
+
+- Do not rush into implementation. First, provide adjustment directions and discuss with the user.
+
+# Coding Style (PHP)
+
+- Always enable strict type declarations.
+- All function arguments and return values must have type hints.
+
+# Variable & Constant Naming
+
+- Normal variables: camelCase (e.g., $userEmail, $userId)
+- Single record: singular form (e.g., $user)
+- Multiple records: plural form (e.g., $users)
+- Constants: ALL_CAPS with underscores (e.g., COMPANY_IP)
+
+# Functions & Methods
+
+- Function braces must start on a new line.
+- Parameters separated by commas.
+- Method names start with a verb (e.g., getUser, createOrder)
+- Methods returning lists must end with "s".
+- Interfaces start with "I" (e.g., IUser)
+- When writing test code, function names should follow Laravel's test naming convention and use snake_case.
+
+# Arrays
+
+- Use square brackets [].
+- Single-line arrays: add spaces inside brackets.
+- Multi-line arrays: tab indentation + trailing comma.
+- Key-value arrays: multi-line, spaces around =>.
+
+# Control Structures
+
+- Braces stay on the same line.
+- Add a blank line after if-statements.
+- Add a blank line before return.
+
+# Import & Use Order
+
+1. Vendor packages
+2. Exceptions
+3. Custom classes
+4. Interfaces
+
+# Strings
+
+- Use single quotes for plain strings.
+- Concatenate strings with " . " and spaces.
+
+# Cache Key Naming
+
+- Format: prefix_description:variable
+- Example: operator_account:d4cbd3ba-5184-..., game_code:1:2345
+
+# File Naming
+
+- Config files: snake_case (e.g., payment_cache.php)
+- Resource files: snake_case (e.g., banner_type.php)
+- Class files: CamelCase (e.g., BannerController.php)
+
+# Route Naming
+
+- Do not add "list" in method names if URL already contains "list".
+- Example: Route::get('/banner/type/list', [BannerController::class, 'getBannerTypeList']);
+
+# Project Notes
+
+- Container name: php8 (not stars)
+- jq is not installed in the container
+- Project path: /var/www/html/stars
 ```
