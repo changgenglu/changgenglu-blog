@@ -4,6 +4,7 @@
 
 - [Redis 學習筆記](#redis-學習筆記)
   - [redis-cil](#redis-cil)
+    - [scan keys tool](#scan-keys-tool)
   - [資料類型](#資料類型)
     - [string](#string)
     - [List](#list)
@@ -40,6 +41,107 @@
 ```shell
 # redis-cli -h <host> -p <port>
 redis-cli -h 127.0.0.1 -p 6379
+```
+
+### scan keys tool
+
+find_redis_keys.sh
+
+chmod +x find_redis_keys.sh
+
+- 開頭檢查 redis-cli，若未安裝會嘗試用 apk add redis 安裝
+- 支援 -h 參數顯示 常見 pattern 速查表
+- 使用者輸入 Redis host、port、db、pattern
+- 顯示找到的 key 與總數
+- 刪除選項：
+  - y → 刪除全部
+  - n → 不刪除
+  - 輸入指定 key → 只刪該 key
+
+```bash
+#!/bin/bash
+
+# 檢查 redis-cli 是否存在
+if ! command -v redis-cli >/dev/null 2>&1; then
+  echo "redis-cli 未安裝，開始安裝 redis..."
+  if command -v apk >/dev/null 2>&1; then
+    apk add --no-cache redis
+  else
+    echo "錯誤：找不到 apk，請手動安裝 redis-cli。"
+    exit 1
+  fi
+fi
+
+# 再次確認是否安裝成功
+if ! command -v redis-cli >/dev/null 2>&1; then
+  echo "安裝 redis 失敗，請檢查環境。"
+  exit 1
+fi
+
+# 如果參數為 -h，顯示 pattern 範例速查表
+if [ "$1" = "-h" ]; then
+  echo "常見 Redis key pattern 範例速查表："
+  echo "-----------------------------------"
+  echo "rtp:*           → 查詢以 rtp: 開頭的 key (前綴)"
+  echo "*:blocked       → 查詢以 :blocked 結尾的 key (後綴)"
+  echo "*user*          → 查詢包含 user 的 key"
+  echo "session:??      → 查詢 session: 後接任意兩個字元的 key"
+  echo "log:[0-9]*      → 查詢 log: 開頭後面接數字的 key"
+  echo ""
+  echo "用法範例： ./delete_keys.sh   或   ./delete_keys.sh -h"
+  exit 0
+fi
+
+echo "redis-cli 已安裝。"
+echo ""
+
+# 詢問 Redis Host
+read -p "請輸入 Redis Host (預設: 127.0.0.1): " REDIS_HOST
+REDIS_HOST=${REDIS_HOST:-127.0.0.1}
+
+# 詢問 Redis Port
+read -p "請輸入 Redis Port (預設: 6379): " REDIS_PORT
+REDIS_PORT=${REDIS_PORT:-6379}
+
+# 詢問 Redis DB
+read -p "請輸入 Redis DB index (預設: 0): " REDIS_DB
+REDIS_DB=${REDIS_DB:-0}
+
+# 詢問要掃描的 pattern
+read -p "請輸入要掃描的 key pattern (前綴例: rtp:*，後綴例: *:blocked): " KEY_PATTERN
+
+echo ""
+echo "開始掃描符合 pattern [$KEY_PATTERN] 的 key (DB=$REDIS_DB)..."
+KEYS=$(redis-cli -h "$REDIS_HOST" -p "$REDIS_PORT" -n "$REDIS_DB" --scan --pattern "$KEY_PATTERN")
+
+if [ -z "$KEYS" ]; then
+  echo "沒有找到符合的 key。"
+  exit 0
+fi
+
+COUNT=$(echo "$KEYS" | wc -l | tr -d ' ')
+echo "總共找到 $COUNT 筆 key："
+echo "$KEYS"
+echo ""
+
+# 詢問刪除方式
+read -p "請輸入刪除選項 (<y> 刪除全部, <n> 不刪除, <key> 刪除指定key): " INPUT
+
+if [ "$INPUT" = "y" ] || [ "$INPUT" = "Y" ]; then
+  DELETED=$(echo "$KEYS" | xargs redis-cli -h "$REDIS_HOST" -p "$REDIS_PORT" -n "$REDIS_DB" del | tail -n1)
+  echo "已刪除全部 $DELETED 筆 key。"
+elif [ "$INPUT" = "n" ] || [ "$INPUT" = "N" ]; then
+  echo "已取消刪除。"
+else
+  # 指定刪除單一 key
+  DELETED=$(redis-cli -h "$REDIS_HOST" -p "$REDIS_PORT" -n "$REDIS_DB" del "$INPUT")
+  if [ "$DELETED" -eq 1 ]; then
+    echo "已刪除指定 key: $INPUT"
+  else
+    echo "未找到指定的 key: $INPUT"
+  fi
+fi
+
 ```
 
 ## 資料類型

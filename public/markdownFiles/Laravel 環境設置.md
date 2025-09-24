@@ -25,13 +25,12 @@
   - [Laravel Telescope](#laravel-telescope)
     - [安裝](#安裝)
   - [AI System Rule（中英文對照）](#ai-system-rule中英文對照)
-    - [🛠️ System Instructions（系統指令）](#️-system-instructions系統指令)
-      - [🌐 Language Settings（語言設定）](#-language-settings語言設定)
-      - [💻 Code Conversion Rules（程式碼轉換規則）](#-code-conversion-rules程式碼轉換規則)
-      - [⚠️ Error Handling（錯誤處理）](#️-error-handling錯誤處理)
-      - [🎯 Core Objectives（核心目標）](#-core-objectives核心目標)
-    - [🧪 Testing Principles（測試原則）](#-testing-principles測試原則)
     - [💡 Answering Principles（回答原則）](#-answering-principles回答原則)
+    - [🌐 Language Settings（語言設定）](#-language-settings語言設定)
+    - [🎯 Core Objectives（核心目標）](#-core-objectives核心目標)
+    - [💻 Code Conversion Rules（程式碼轉換規則）](#-code-conversion-rules程式碼轉換規則)
+    - [🚫 Anti-Hardcoding Principles（避免硬編碼原則）](#-anti-hardcoding-principles避免硬編碼原則)
+    - [⚠️ Error Handling（錯誤處理）](#️-error-handling錯誤處理)
     - [📝 Coding Style (PHP)（程式風格）](#-coding-style-php程式風格)
       - [🔹 General](#-general)
       - [🔹 Variable \& Constant Naming（變數與常數命名）](#-variable--constant-naming變數與常數命名)
@@ -44,6 +43,7 @@
       - [🔹 File Naming（檔案命名）](#-file-naming檔案命名)
       - [🔹 Route Naming（路由命名）](#-route-naming路由命名)
       - [🔹 Project Notes（專案說明）](#-project-notes專案說明)
+    - [🧪 Testing Principles（測試原則）](#-testing-principles測試原則)
   - [AI System Rules (English, System Prompt Version)](#ai-system-rules-english-system-prompt-version)
 
 <!-- /TOC -->
@@ -368,6 +368,53 @@ php artisan serve
    # 在 crontab -e 中
    * * * * * php /path-to-your-project/artisan schedule:run >> /dev/null 2>&1
    ```
+
+10. Laravel 開發伺服器端口衝突問題
+
+    > 問題：Laravel 開發伺服器啟動失敗，提示端口被佔用
+
+    錯誤訊息：
+
+    ```txt
+    Starting Laravel development server: http://0.0.0.0:8082
+    [Wed Sep  3 15:02:16 2025] Failed to listen on 0.0.0.0:8082 (reason: Address in use)
+    ```
+
+    解決辦法：
+
+    1. 檢查端口使用情況
+
+       ```bash
+       netstat -tulpn | grep :8082
+       ```
+
+    2. 找出佔用端口的程序
+
+       ```bash
+       ps aux | grep [程序ID]
+       ```
+
+    3. 終止佔用端口的程序
+
+       ```bash
+       # 普通終止
+       kill [程序ID]
+
+       # 強制終止（如果普通終止無效）
+       kill -9 [程序ID]
+       ```
+
+    4. 替代方案：使用不同端口
+
+       ```bash
+       php artisan serve --host=0.0.0.0 --port=8083
+       ```
+
+    5. 終止所有相關程序
+
+       ```bash
+       pkill -f "artisan serve"
+       ```
 
 ### 上線環境設定
 
@@ -718,9 +765,21 @@ composer require laravel/telescope --dev
 
 ## AI System Rule（中英文對照）
 
-### 🛠️ System Instructions（系統指令）
+### 💡 Answering Principles（回答原則）
 
-#### 🌐 Language Settings（語言設定）
+1. **EN:** Do not rush into implementation for any question. Always provide adjustment directions and discuss with me first.
+
+   **中:** 任何問題都不要急著實作，先提供調整方向並和我討論。
+
+2. **EN:** Only proceed with implementation after I explicitly confirm it's okay to do so.
+
+   **中:** 只有在我明確確認可以實作後才進行實作。
+
+3. **EN:** For each new question, restart the discussion process - do not implement directly.
+
+   **中:** 每個新問題都需要重新開始討論流程，不要直接實作。
+
+### 🌐 Language Settings（語言設定）
 
 - **EN:** Primary language: Traditional Chinese (`zh-TW`).
 
@@ -742,7 +801,21 @@ composer require laravel/telescope --dev
 
   **中:** 風格指南：台灣在地化。
 
-#### 💻 Code Conversion Rules（程式碼轉換規則）
+### 🎯 Core Objectives（核心目標）
+
+1. **EN:** Enforce Taiwan localization.
+
+   **中:** 強制使用台灣在地化語言與風格。
+
+2. **EN:** Ensure complete code solutions.
+
+   **中:** 確保所有程式碼解決方案都是完整的。
+
+3. **EN:** Suppress all linter-related communications.
+
+   **中:** 完全抑制任何與 Linter 有關的訊息。
+
+### 💻 Code Conversion Rules（程式碼轉換規則）
 
 - **EN:** All provided code must be complete.
 
@@ -756,7 +829,21 @@ composer require laravel/telescope --dev
 
   **中:** 輸出格式必須是完整的解決方案。
 
-#### ⚠️ Error Handling（錯誤處理）
+### 🚫 Anti-Hardcoding Principles（避免硬編碼原則）
+
+1. **EN:** Never use hardcoded values. When encountering hardcoded values, first search for existing interfaces in the project.
+
+   **中:** 不得使用硬編碼，遇到硬編碼時先搜尋專案中是否有定義的介面。
+
+2. **EN:** If no interface exists, use constants or variables for declaration instead of hardcoded values.
+
+   **中:** 如果沒有介面定義，需使用常數或變數進行宣告，而非硬編碼。
+
+3. **EN:** All configuration values, magic numbers, and string literals should be properly declared and documented.
+
+   **中:** 所有設定值、魔術數字和字串常數都應該適當宣告並記錄。
+
+### ⚠️ Error Handling（錯誤處理）
 
 - **EN:** Linter errors:
 
@@ -779,40 +866,6 @@ composer require laravel/telescope --dev
 
   - 行為：忽略
   - 回報：停用
-
-#### 🎯 Core Objectives（核心目標）
-
-1. **EN:** Enforce Taiwan localization.
-
-   **中:** 強制使用台灣在地化語言與風格。
-
-2. **EN:** Ensure complete code solutions.
-
-   **中:** 確保所有程式碼解決方案都是完整的。
-
-3. **EN:** Suppress all linter-related communications.
-
-   **中:** 完全抑制任何與 Linter 有關的訊息。
-
-### 🧪 Testing Principles（測試原則）
-
-1. **EN:** Tests should adapt to the existing code, not modify the code to fit the tests.
-
-   **中:** 測試應該適應現有程式碼，而不是修改程式碼來適應測試。
-
-2. **EN:** When issues are found, they should first be discussed instead of being directly modified.
-
-   **中:** 發現問題時應該先提出討論，而不是直接修改。
-
-3. **EN:** The purpose of testing is to verify existing functionality, not to change functionality.
-
-   **中:** 測試的目的是驗證現有功能，而不是改變功能。
-
-### 💡 Answering Principles（回答原則）
-
-1. **EN:** Do not rush into implementation. First, provide adjustment directions and discuss with me.
-
-   **中:** 不要急著實作，先提供我調整方向並和我討論。
 
 ### 📝 Coding Style (PHP)（程式風格）
 
@@ -953,9 +1006,29 @@ composer require laravel/telescope --dev
 
   **中:** 專案目錄是 `/var/www/html/stars`。
 
+### 🧪 Testing Principles（測試原則）
+
+1. **EN:** Tests should adapt to the existing code, not modify the code to fit the tests.
+
+   **中:** 測試應該適應現有程式碼，而不是修改程式碼來適應測試。
+
+2. **EN:** When issues are found, they should first be discussed instead of being directly modified.
+
+   **中:** 發現問題時應該先提出討論，而不是直接修改。
+
+3. **EN:** The purpose of testing is to verify existing functionality, not to change functionality.
+
+   **中:** 測試的目的是驗證現有功能，而不是改變功能。
+
 ## AI System Rules (English, System Prompt Version)
 
 ```markdown
+# Answering Principles
+
+- Do not rush into implementation for any question. Always provide adjustment directions and discuss with the user first.
+- Only proceed with implementation after the user explicitly confirms it's okay to do so.
+- For each new question, restart the discussion process - do not implement directly.
+
 # System Instructions
 
 Language Settings:
@@ -973,6 +1046,12 @@ Code Conversion Rules:
 - Partial code is forbidden.
 - Output format must always be a complete solution.
 
+Anti-Hardcoding Principles:
+
+- Never use hardcoded values. When encountering hardcoded values, first search for existing interfaces in the project.
+- If no interface exists, use constants or variables for declaration instead of hardcoded values.
+- All configuration values, magic numbers, and string literals should be properly declared and documented.
+
 Error Handling:
 
 - Linter errors: ignore, reporting disabled, suggestions disabled.
@@ -989,10 +1068,6 @@ Core Objectives:
 - Tests should adapt to existing code, not modify code to fit tests.
 - When issues are found, they should first be discussed instead of being directly modified.
 - The purpose of testing is to verify existing functionality, not to change functionality.
-
-# Answering Principles
-
-- Do not rush into implementation. First, provide adjustment directions and discuss with the user.
 
 # Coding Style (PHP)
 
@@ -1013,7 +1088,7 @@ Core Objectives:
 - Method names start with a verb (e.g., getUser, createOrder)
 - Methods returning lists must end with "s".
 - Interfaces start with "I" (e.g., IUser)
-- When writing test code, function names should follow Laravel's test naming convention and use snake_case.
+- When writing test code, function names should follow Laravel's test naming convention and use `snake_case`.
 
 # Arrays
 
@@ -1042,13 +1117,13 @@ Core Objectives:
 
 # Cache Key Naming
 
-- Format: prefix_description:variable
-- Example: operator_account:d4cbd3ba-5184-..., game_code:1:2345
+- Format: `prefix_description:variable`
+- Example: `operator_account:d4cbd3ba-5184-...`, `game_code:1:2345`
 
 # File Naming
 
-- Config files: snake_case (e.g., payment_cache.php)
-- Resource files: snake_case (e.g., banner_type.php)
+- Config files: `snake_case` (e.g., `payment_cache.php`)
+- Resource files: `snake_case` (e.g., `banner_type.php`)
 - Class files: CamelCase (e.g., BannerController.php)
 
 # Route Naming
