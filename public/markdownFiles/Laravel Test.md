@@ -140,7 +140,10 @@ Agent Game Controller
 
 ### 概述
 
-寫整合測試，資料目錄結構以及撰寫風格參考 `tests/Integration/PlatformConfigController/`，並且需遵守整合測試的精神。若撰寫的 api 中有嚴重違反 SOLID 原則時，可以簡單提出，讓我評估後續的優化方向。
+- 需遵守整合測試的精神。
+- 若撰寫的 api 中有嚴重違反 SOLID 原則時，可以簡單提出，讓我評估後續的優化方向。
+- 需遵守 coding style 的規範
+
 
 ### 撰寫風格內容總結
 
@@ -150,11 +153,12 @@ Agent Game Controller
 2. **檔案命名**：使用 `Test.php` 而非 `IntegrationTest.php`
 3. **方法命名**：使用 snake_case 而非 camelCase
 4. **常數定義**：定義 METHOD、URL 常數，建議使用 Laravel 內建的 Response::HTTP_OK 等常數
-5. **屬性類型**：使用 PHP 8 屬性類型聲明
-6. **Redis 清理**：在 setUp/tearDown 中清理 Redis，需確認該測試的 api 是否有使用 redis，否則不應操作 redis
-7. **測試撰寫**：重點需確保 input, output 的正確，以及測試涵蓋所有商業邏輯
-8. **測試資料建立**：setupTestData 時建立資料原則：應優先使用 factory 中定義的 function。
-9. **測試資料使用**：撰寫測試方法時，建議優先以現有的測試資料進行修改以符合當前至測試情境，並在斷言後復原其數據，而非建立新的測試資料
+5. **錯誤處理**：業務邏輯測試驗證錯誤處理時，需使用 `resources/lang/en/error.php` 中定義的 error code
+6. **屬性類型**：使用 PHP 8 屬性類型聲明
+7. **Redis 清理**：在 setUp/tearDown 中清理 Redis，需確認該測試的 api 是否有使用 redis，否則不應操作 redis
+8. **測試撰寫**：重點需確保 input, output 的正確，以及測試涵蓋所有商業邏輯
+9. **測試資料建立**：setupTestData 時建立資料原則：應優先使用 factory 中定義的 function。
+10. **測試資料使用**：撰寫測試方法時，建議優先以現有的測試資料進行修改以符合當前至測試情境，並在斷言後復原其數據，而非建立新的測試資料
 
 #### 測試覆蓋範圍
 
@@ -220,7 +224,7 @@ public function test_missing_pid_header(): void
         self::URL,
         $params,
         'x-pid',
-        self::HTTP_STATUS_UNAUTHORIZED,
+        Response::HTTP_UNAUTHORIZED,
         $expectedResult
     );
 }
@@ -234,6 +238,7 @@ public function test_missing_pid_header(): void
 public function setUp(): void
 {
     parent::setUp();
+    $this->setUpSQLiteForTesting();
     Redis::flushdb();
     $this->setLaravelStart();
     $this->setupTestData();
@@ -266,6 +271,6 @@ $expectedResult = [
 ];
 
 $response = $this->apiRequest(self::METHOD, self::URL, $params);
-$response->assertStatus(self::HTTP_STATUS_OK)
+$response->assertStatus(Response::HTTP_OK)
     ->assertJson($expectedResult);
 ```
