@@ -690,15 +690,15 @@ php 中構造方法是物件創建完成後，第一個被物件自動呼叫的�
        }
 
        /**
-        * say 说话方法
+        * say
         */
        public function say()
        {
-           echo "我叫：".$this->name."，性别：".$this->sex."，年齡：".$this->age;
+           echo "我叫：".$this->name."，性別：".$this->sex."，年齡：".$this->age;
        }
 
        /**
-        * 声明一个析构方法
+        * 宣告一個解構函數
         */
        public function __destruct()
        {
@@ -738,7 +738,7 @@ php 中構造方法是物件創建完成後，第一個被物件自動呼叫的�
        function __call($funName, $arguments)
        {
              echo "你所呼叫的函數：" . $funName . "(參數：" ;  // 輸出呼叫的不存在方法名稱
-             print_r($arguments); // 输出呼叫不存在方法的參數列表
+             print_r($arguments); // 輸出呼叫不存在方法的參數列表
              echo ")不存在！<br>\n"; // 結束換行
        }
    }
@@ -776,8 +776,8 @@ class Person
     public static function __callStatic($funName, $arguments)
     {
         echo "你所呼叫的靜態方法：" . $funName . "(參數：" ;  // 輸出呼叫不存在的方法名稱
-        print_r($arguments); // 输出呼叫不存在方法時傳入的參數
-        echo ")不存在！<br>\n"; // 结束换行
+        print_r($arguments); // 輸出呼叫不存在方法時傳入的參數
+        echo ")不存在！<br>\n"; // 結束換行
     }
 }
 
@@ -827,7 +827,7 @@ $Person->say();
 
   $Person = new Person("小明", 60);   // 透過將 Persian 類別實例化的物件，並透過建構函示為屬性添加預設值
   echo "姓名：" . $Person->name . "<br>";   // 直接呼叫私有屬性 $name，自動呼叫了__get()方法可以間接獲取
-  echo "年龄：" . $Person->age . "<br>";    // 自動呼叫 __get()方法，根據物件本身的情況會返回不同的值
+  echo "年齡：" . $Person->age . "<br>";    // 自動呼叫 __get()方法，根據物件本身的情況會返回不同的值
   ```
 
   ```php
@@ -877,12 +877,12 @@ $Person->say();
   }
 
   $Person= new Person("小明", 25); // 注意，初始值將被下面所更改
-  // 自動呼叫 __set()，將數系名稱name傳遞給第一個參數，將屬性值"小明"傳遞給第二參數
-  $Person->name = "小红";     // 赋值成功。如果没有__set()，則出錯。
-  // 自動呼叫 __set() 函数，將屬性名稱 age 傳給第一個參數，將屬性值 26 傳給第二個參數
-  $Person->age = 16; //赋值成功
-  $Person->age = 160; //160是一个非法值，赋值失效
-  $Person->say();  //输出：我叫小红，今年 16 歲了
+  // 自動呼叫 __set()，將屬性名稱 name 傳遞給第一個參數，將屬性值"小紅"傳遞給第二參數
+  $Person->name = "小紅";     // 賦值成功。若沒有 __set() 則會噴錯。
+  // 自動呼叫 __set() ，將屬性名稱 age 傳給第一個參數，將屬性值 16 傳給第二個參數
+  $Person->age = 16; //賦值成功
+  $Person->age = 160; //160是一个非法值，賦值失效
+  $Person->say();  //輸出：我叫小紅，今年 16 歲了
   ```
 
 ### `__isset()` 當私有屬性呼叫 isset() 或 empty() 時呼叫此方法
@@ -899,18 +899,18 @@ $Person->say();
 ```php
 $fruits = ["apple", "banana", "cherry", "date"];
 
-// 使用 in_array 检查数组中是否包含 "cherry"，不考虑数据类型
+// 使用 in_array 檢查陣列中是否包含 "cherry"，不考慮數值型別
 if (in_array("cherry", $fruits)) {
-    echo "数组中包含 'cherry'。";
+    echo "陣列中包含 'cherry'。";
 } else {
-    echo "数组中不包含 'cherry'。";
+    echo "陣列中不包含 'cherry'。";
 }
 
-// 使用 in_array 检查数组中是否包含 2，考虑数据类型
+// 使用 in_array 檢查陣列中是否包含 2，考慮數值數值型別
 if (in_array(2, $fruits, true)) {
-    echo "数组中包含 2（考虑数据类型）。";
+    echo "陣列中包含 2（考慮數值數值型別）";
 } else {
-    echo "数组中不包含 2（考虑数据类型）。";
+    echo "陣列中不包含 2（考慮數值數值型別）";
 }
 
 ```
