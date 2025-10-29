@@ -1,9 +1,3 @@
----
-description: Stars 系統架構說明
-globs:
-alwaysApply: false
----
-
 # Stars 系統架構說明
 
 ## 系統整體概觀
