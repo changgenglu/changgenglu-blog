@@ -7,6 +7,7 @@
 ## 基本語法比較
 
 ### 傳統宣告方式（無型別）
+
 ```php
 class Example {
     private $dailyRankCache;
@@ -17,6 +18,7 @@ class Example {
 ```
 
 ### 現代宣告方式（有型別）
+
 ```php
 class Example {
     private RankCache $dailyRankCache;
@@ -31,6 +33,7 @@ class Example {
 ### 1. 型別安全性（Type Safety）
 
 **無型別宣告：**
+
 ```php
 class RankReport {
     private $dailyRankCache;
@@ -47,6 +50,7 @@ $report->setDailyCache(123);      // 錯誤的型別，但不會立即發現
 ```
 
 **有型別宣告：**
+
 ```php
 class RankReport {
     private RankCache $dailyRankCache;
@@ -65,6 +69,7 @@ $report->setDailyCache(123);      // Fatal Error: 型別不匹配
 ### 2. 程式碼可讀性
 
 **無型別宣告：**
+
 ```php
 class UserService {
     private $cache;
@@ -80,6 +85,7 @@ class UserService {
 ```
 
 **有型別宣告：**
+
 ```php
 class UserService {
     private CacheInterface $cache;
@@ -101,6 +107,7 @@ class UserService {
 ### 3. IDE 支援與自動完成
 
 **無型別宣告：**
+
 ```php
 class Example {
     private $dailyRankCache;
@@ -112,6 +119,7 @@ class Example {
 ```
 
 **有型別宣告：**
+
 ```php
 class Example {
     private RankCache $dailyRankCache;
@@ -125,6 +133,7 @@ class Example {
 ### 4. 文件化與維護性
 
 **無型別宣告：**
+
 ```php
 /**
  * 設定快取
@@ -136,6 +145,7 @@ public function setCache($cache) {
 ```
 
 **有型別宣告：**
+
 ```php
 /**
  * 設定快取
@@ -150,6 +160,7 @@ public function setCache(RankCache $cache) {
 ## 支援的型別
 
 ### 基本型別
+
 ```php
 class Example {
     private string $name;
@@ -162,6 +173,7 @@ class Example {
 ```
 
 ### 類別型別
+
 ```php
 class Example {
     private RankCache $rankCache;
@@ -172,6 +184,7 @@ class Example {
 ```
 
 ### 介面型別
+
 ```php
 class Example {
     private CacheInterface $cache;
@@ -181,6 +194,7 @@ class Example {
 ```
 
 ### 聯合型別（PHP 8.0+）
+
 ```php
 class Example {
     private string|int $id;
@@ -228,6 +242,7 @@ class RankReport {
 ## 最佳實踐
 
 ### 1. 總是使用型別宣告
+
 ```php
 // 好的做法
 class User {
@@ -247,6 +262,7 @@ class User {
 ```
 
 ### 2. 使用介面而非具體類別（依賴反轉）
+
 ```php
 // 好的做法
 class UserService {
@@ -262,6 +278,7 @@ class UserService {
 ```
 
 ### 3. 使用可空型別處理可選屬性
+
 ```php
 class User {
     private string $name;
@@ -271,6 +288,7 @@ class User {
 ```
 
 ### 4. 在建構子中初始化
+
 ```php
 class UserService {
     private UserRepositoryInterface $repository;
@@ -289,21 +307,25 @@ class UserService {
 ## 效能考量
 
 ### 編譯時檢查
+
 - 型別宣告在編譯時就會被檢查，不會影響執行時效能
 - 實際上可能提升效能，因為 PHP 引擎可以進行更好的優化
 
 ### 記憶體使用
+
 - 型別宣告本身不增加記憶體使用
 - 反而可能減少記憶體使用，因為引擎可以進行更精確的記憶體分配
 
 ## 相容性考量
 
 ### PHP 版本支援
+
 - PHP 7.4+：支援屬性型別宣告
 - PHP 8.0+：支援聯合型別
 - PHP 8.1+：支援唯讀屬性
 
 ### 向後相容性
+
 ```php
 // 如果需要在舊版本 PHP 中運行，可以使用 PHPDoc
 /**
