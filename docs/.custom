@@ -1,0 +1,233 @@
+alias pm='podman'
+alias init='sh ~/restartPod.sh'
+alias ll='ls -al'
+alias cursor='/mnt/c/Users/ivan.ma/AppData/Local/Programs/cursor/resources/app/bin/cursor'
+alias anti='/mnt/c/Users/ivan.ma/AppData/Local/Programs/Antigravity/bin/antigravity'
+
+## set env
+
+function gotoDev() {
+  gcloud container clusters get-credentials web-v1 --region asia-east1 --project gotomercury-460707
+}
+
+function gotoMars() {
+  gcloud container clusters get-credentials web-v2 --region asia-east1 --project development-operation-center
+}
+
+function gotoVenus() {
+  gcloud container clusters get-credentials web-v2 --region asia-east1 --project gotovenus
+}
+
+## --- tmp pod v3.1 (Auto-Tag + Custom Pod Name) ---
+
+DEFAULT_NS="tmp"
+
+function _getProjectId() {
+  case "${1}" in
+    "dev"|"mercury") echo "gotomercury-460707" ;;
+    "mars"|"staging") echo "development-operation-center" ;;
+    "venus"|"prod") echo "gotovenus" ;;
+    *) echo "" ;;
+  esac
+}
+
+function _getImageTag() {
+  local inputTag="${1}"
+  local envName="${2}"
+  local imageName="${3}"
+
+  # 1. 如果 CLI 參數有帶 Tag (或是輸入 "auto")
+  if [ -n "$inputTag" ] && [ "$inputTag" != "auto" ]; then
+    echo "$inputTag"
+    return 0
+  fi
+
+  # 2. 如果是 "auto" 或空值，準備進行自動獲取
+  # 如果是空值，先給使用者一個確認/輸入的機會
+  if [ -z "$inputTag" ]; then
+    echo -n "🏷️  請輸入 image-tag (預設: 自動獲取最新版): " >&2
+    read inputTag
+  fi
+
+  # 如果使用者輸入了特定 tag，就用輸入的
+  if [ -n "$inputTag" ]; then
+    echo "$inputTag"
+    return 0
+  fi
+
+  # 3. 執行 gcloud 自動獲取
+  echo "🔍 正在搜尋 ${envName} 環境中 ${imageName} 的最新 Tag..." >&2
+  local projectId
+  projectId=$(_getProjectId "${envName}")
+
+  if [ -z "$projectId" ]; then
+    echo "❌ 錯誤: 無法確認 Project ID，請手動輸入 Tag" >&2
+    return 1
+  fi
+
+  local latestTag
+  latestTag=$(gcloud artifacts docker tags list "asia-docker.pkg.dev/${projectId}/asia.gcr.io/${imageName}" \
+    --format="value(tag)" \
+    --sort-by="~tag" 2>/dev/null | grep -E '^[0-9]+$' | head -1)
+
+  if [ -z "$latestTag" ]; then
+    echo "❌ 錯誤: 找不到 ${imageName} 的最新 Tag，請檢查 gcloud 登入狀態或手動輸入" >&2
+    return 1
+  fi
+
+  echo "✅ 獲取成功: ${latestTag}" >&2
+  echo "$latestTag"
+}
+
+# [修改重點] 恢復互動輸入，但保留自動產生作為 Default
+function _getPodName() {
+  local inputName="${1}"
+  local defaultName="debug-$(date +%s | tail -c 5)"
+
+  # 1. 如果 CLI 有傳入參數，直接使用
+  if [ -n "$inputName" ]; then
+    echo "$inputName"
+    return 0
+  fi
+
+  # 2. 如果沒傳參數，讓使用者輸入，並顯示預設值
+  echo -n "🔧 請輸入 pod name (預設: ${defaultName}): " >&2
+  read inputName
+
+  if [ -n "$inputName" ]; then
+    echo "$inputName"
+  else
+    echo "$defaultName"
+  fi
+}
+
+function _buildPodCommand() {
+  local image="${1}"
+  local podName="${2}"
+  local ans
+
+  echo "--------------------------------------------------"
+  echo "🚀 準備執行 Pod (Namespace: ${DEFAULT_NS})"
+  echo "📦 Image: ${image}"
+  echo "🔧 Pod  : ${podName}"
+  echo "--------------------------------------------------"
+  echo -n "確認執行？ [y/N]: "
+  read ans
+
+  if [[ "$ans" =~ ^[Yy]$ ]]; then
+      kubectl -n "${DEFAULT_NS}" run --rm -it --restart=Never --image="${image}" "${podName}" -- sh
+  else
+      echo "🚫 已取消"
+  fi
+}
+
+function _getEnv() {
+  local env="${1}"
+  if [ -z "$env" ]; then
+    echo -n "🌏 請輸入環境 (dev, mars, venus): " >&2
+    read env
+  fi
+  if [ -z "$env" ]; then
+    echo "❌ 錯誤: 未輸入環境" >&2
+    return 1
+  fi
+  echo "$env"
+}
+
+function _getProject() {
+  local proj="${1}"
+  if [ -z "$proj" ]; then
+    echo -n "🏗️  請輸入專案 (stars, satel, cron, ego): " >&2
+    read proj
+  fi
+  if [ -z "$proj" ]; then
+    echo "❌ 錯誤: 未輸入專案" >&2
+    return 1
+  fi
+  echo "$proj"
+}
+
+function _resolveRegistry() {
+  case "${1}" in
+    "dev") echo "asia.gcr.io/gotomercury-460707" ;;
+    "mars") echo "asia.gcr.io/development-operation-center" ;;
+    "venus") echo "asia.gcr.io/gotovenus" ;;
+    *) echo "" ;;
+  esac
+}
+
+function _getProjectImageName() {
+  case "${1}" in
+    "star"|"stars") echo "stars" ;;
+    "satel"|"satellite") echo "satellite" ;;
+    "cron") echo "cron" ;;
+    "ego"|"eagle") echo "eagle" ;;
+    *) echo "${1}" ;;
+  esac
+}
+
+function _runTmp() {
+  local envName
+  envName=$(_getEnv "${1}") || return 1
+
+  local projNameInput
+  projNameInput=$(_getProject "${2}") || return 1
+
+  local projImageName
+  projImageName=$(_getProjectImageName "${projNameInput}")
+
+  local tag
+  tag=$(_getImageTag "${3}" "${envName}" "${projImageName}") || return 1
+
+  local podName
+  podName=$(_getPodName "${4}")
+
+  local registry
+  registry=$(_resolveRegistry "${envName}")
+
+  if [ -z "$registry" ]; then
+    echo "❌ 錯誤: 未知的環境 ${envName}" >&2
+    return 1
+  fi
+
+  _buildPodCommand "${registry}/${projImageName}:${tag}" "${podName}"
+}
+
+## --- create tmp alias ---
+
+# 使用方式:
+# 1. newTmpPod dev stars              (互動詢問 Tag 和 Pod Name)
+# 2. newTmpPod dev stars "" my-pod    (自動 Tag, 指定 Pod Name)
+# 3. newTmpPod dev stars auto my-pod  (自動 Tag, 指定 Pod Name)
+function newTmpPod() { _runTmp "${1}" "${2}" "${3}" "${4}"; }
+
+function findMyBranches() {
+# 這個腳本會自動獲取當前 Git 使用者的 email，並搜尋該使用者的所有遠端分支
+
+# 獲取當前 Git 使用者的 email 地址
+current_email=$(git config user.email)
+
+# 檢查是否成功獲取到使用者 email
+if [ -z "$current_email" ]; then
+    echo "錯誤：無法獲取 Git 使用者 email"
+    echo "請確認你已經設定了 Git 使用者 email："
+    echo "git config --global user.email \"your.email@example.com\""
+    exit 1
+fi
+
+echo "正在搜尋 email '$current_email' 的分支..."
+echo "----------------------------------------"
+
+# 使用 '%ae' 來獲取作者的 email 地址
+git -c diff.renameLimit=1889 for-each-ref --format='%(refname:short) %(creator)' 'refs/remotes' | \
+    while read -r branch creator; do
+        author_email=$(git log -1 --format='%ae' "$branch")
+        if [ "$author_email" = "$current_email" ]; then
+            author_name=$(git log -1 --format='%an' "$branch")
+            printf "Branch: %s\nAuthor: %s <%s>\n\n" \
+                "$branch" \
+                "$author_name" \
+                "$author_email"
+        fi
+    done
+}
