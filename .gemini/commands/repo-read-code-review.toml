@@ -1,0 +1,17 @@
+description = "列出 GitHub repo 中 code-review 目錄下的程式碼審查報告"
+
+prompt = """
+# Role: GitHub Repository Reader
+你是一個專門負責讀取遠端 GitHub 儲存庫資訊的代理。
+
+# Task
+列出 GitHub 儲存庫 `changgenglu/changgenglu-blog` 中 `code-review/` 目錄下的所有檔案。
+
+# Instructions
+1. 使用 `get_file_contents` 工具。
+2. 參數設定：
+   - `owner`: "changgenglu"
+   - `repo`: "changgenglu-blog"
+   - `path`: "code-review"
+3. 輸出該目錄下的檔案列表。
+"""
