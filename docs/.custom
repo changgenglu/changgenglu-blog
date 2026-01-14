@@ -3,6 +3,9 @@ alias init='sh ~/restartPod.sh'
 alias ll='ls -al'
 alias cursor='/mnt/c/Users/ivan.ma/AppData/Local/Programs/cursor/resources/app/bin/cursor'
 alias anti='/mnt/c/Users/ivan.ma/AppData/Local/Programs/Antigravity/bin/antigravity'
+alias php8='podman exec -it stars sh'
+alias php838='podman exec -it backend838 sh'
+alias node='podman exec -it node sh'
 
 ## set env
 
@@ -65,10 +68,23 @@ function _getImageTag() {
     return 1
   fi
 
+  # 根據環境決定 tag 格式
+  local tagPattern
+  case "${envName}" in
+    "venus"|"prod")
+      # venus 環境使用新格式: v20260114001-20260114100454
+      tagPattern='^v[0-9]+-[0-9]+$'
+      ;;
+    *)
+      # dev 和 mars 環境使用舊格式: 20251230103103
+      tagPattern='^[0-9]+$'
+      ;;
+  esac
+
   local latestTag
   latestTag=$(gcloud artifacts docker tags list "asia-docker.pkg.dev/${projectId}/asia.gcr.io/${imageName}" \
     --format="value(tag)" \
-    --sort-by="~tag" 2>/dev/null | grep -E '^[0-9]+$' | head -1)
+    --sort-by="~tag" 2>/dev/null | grep -E "${tagPattern}" | head -1)
 
   if [ -z "$latestTag" ]; then
     echo "❌ 錯誤: 找不到 ${imageName} 的最新 Tag，請檢查 gcloud 登入狀態或手動輸入" >&2
@@ -124,26 +140,59 @@ function _buildPodCommand() {
 function _getEnv() {
   local env="${1}"
   if [ -z "$env" ]; then
-    echo -n "🌏 請輸入環境 (dev, mars, venus): " >&2
-    read env
+    echo "🌏 請選擇環境:" >&2
+    echo "  1) dev (gotomercury-460707)" >&2
+    echo "  2) mars (development-operation-center)" >&2
+    echo "  3) venus (gotovenus)" >&2
+    echo -n "請輸入選項 [1-3]: " >&2
+    read choice
+    
+    case "$choice" in
+      1) env="dev" ;;
+      2) env="mars" ;;
+      3) env="venus" ;;
+      *) 
+        echo "❌ 錯誤: 無效的選項" >&2
+        return 1
+        ;;
+    esac
   fi
-  if [ -z "$env" ]; then
-    echo "❌ 錯誤: 未輸入環境" >&2
-    return 1
-  fi
-  echo "$env"
+  
+  # 驗證環境名稱
+  case "$env" in
+    "dev"|"mercury"|"mars"|"staging"|"venus"|"prod")
+      echo "$env"
+      ;;
+    *)
+      echo "❌ 錯誤: 無效的環境名稱" >&2
+      return 1
+      ;;
+  esac
 }
 
 function _getProject() {
   local proj="${1}"
   if [ -z "$proj" ]; then
-    echo -n "🏗️  請輸入專案 (stars, satel, cron, ego): " >&2
-    read proj
+    echo "🏗️  請選擇專案:" >&2
+    echo "  1) stars" >&2
+    echo "  2) satellite" >&2
+    echo "  3) cron" >&2
+    echo "  4) eagle" >&2
+    echo -n "請輸入選項 [1-4]: " >&2
+    read choice
+    
+    case "$choice" in
+      1) proj="stars" ;;
+      2) proj="satellite" ;;
+      3) proj="cron" ;;
+      4) proj="eagle" ;;
+      *) 
+        echo "❌ 錯誤: 無效的選項" >&2
+        return 1
+        ;;
+    esac
   fi
-  if [ -z "$proj" ]; then
-    echo "❌ 錯誤: 未輸入專案" >&2
-    return 1
-  fi
+  
   echo "$proj"
 }
 
@@ -196,10 +245,41 @@ function _runTmp() {
 ## --- create tmp alias ---
 
 # 使用方式:
-# 1. newTmpPod dev stars              (互動詢問 Tag 和 Pod Name)
-# 2. newTmpPod dev stars "" my-pod    (自動 Tag, 指定 Pod Name)
-# 3. newTmpPod dev stars auto my-pod  (自動 Tag, 指定 Pod Name)
-function newTmpPod() { _runTmp "${1}" "${2}" "${3}" "${4}"; }
+# 1. newTmpPod -h                     (顯示使用說明)
+# 2. newTmpPod                         (互動模式: 選擇環境、專案、Tag 和 Pod Name)
+# 3. newTmpPod dev stars               (互動詢問 Tag 和 Pod Name)
+# 4. newTmpPod dev stars "" my-pod     (自動 Tag, 指定 Pod Name)
+# 5. newTmpPod dev stars auto my-pod   (自動 Tag, 指定 Pod Name)
+function newTmpPod() {
+  # 顯示幫助訊息
+  if [ "${1}" = "-h" ] || [ "${1}" = "--help" ]; then
+    echo "📚 newTmpPod - 建立臨時 Kubernetes Pod"
+    echo ""
+    echo "用法:"
+    echo "  newTmpPod [環境] [專案] [tag] [pod名稱]"
+    echo ""
+    echo "參數:"
+    echo "  環境     - dev, mars, venus (可選，不提供則互動選擇)"
+    echo "  專案     - stars, satellite, cron, eagle (可選，不提供則互動選擇)"
+    echo "  tag      - image tag 或 'auto' 自動獲取 (可選，不提供則互動輸入)"
+    echo "  pod名稱  - 自訂 pod 名稱 (可選，不提供則互動輸入或自動生成)"
+    echo ""
+    echo "範例:"
+    echo "  newTmpPod                        # 完全互動模式"
+    echo "  newTmpPod dev stars              # 互動詢問 tag 和 pod 名稱"
+    echo "  newTmpPod dev stars auto         # 自動獲取 tag，互動輸入 pod 名稱"
+    echo "  newTmpPod dev stars auto my-pod  # 自動獲取 tag，指定 pod 名稱"
+    echo "  newTmpPod venus satellite 12345  # 指定 tag，互動輸入 pod 名稱"
+    echo ""
+    echo "環境對應:"
+    echo "  dev   → gotomercury-460707"
+    echo "  mars  → development-operation-center"
+    echo "  venus → gotovenus"
+    return 0
+  fi
+  
+  _runTmp "${1}" "${2}" "${3}" "${4}";
+}
 
 function findMyBranches() {
 # 這個腳本會自動獲取當前 Git 使用者的 email，並搜尋該使用者的所有遠端分支
@@ -230,4 +310,47 @@ git -c diff.renameLimit=1889 for-each-ref --format='%(refname:short) %(creator)'
                 "$author_email"
         fi
     done
+}
+
+## --- list all pods ---
+
+# 使用方式:
+# 1. getPods -h        (顯示使用說明)
+# 2. getPods           (列出 backend namespace 的 pods)
+# 3. getPods tmp       (列出 tmp namespace 的 pods)
+# 4. getPods all       (列出所有 namespace 的 pods)
+function getPods() {
+  # 顯示幫助訊息
+  if [ "${1}" = "-h" ] || [ "${1}" = "--help" ]; then
+    echo "📚 getPods - 列出 Kubernetes Pods"
+    echo ""
+    echo "用法:"
+    echo "  getPods [namespace]"
+    echo ""
+    echo "參數:"
+    echo "  namespace - 命名空間名稱 (可選，預設: backend)"
+    echo "              使用 'all' 列出所有命名空間的 pods"
+    echo ""
+    echo "範例:"
+    echo "  getPods          # 列出 backend namespace 的 pods"
+    echo "  getPods tmp      # 列出 tmp namespace 的 pods"
+    echo "  getPods default  # 列出 default namespace 的 pods"
+    echo "  getPods all      # 列出所有 namespace 的 pods"
+    echo ""
+    echo "顯示欄位:"
+    echo "  NAME, READY, STATUS, RESTARTS, AGE"
+    return 0
+  fi
+  
+  local namespace="${1:-backend}"
+  
+  if [ "$namespace" = "all" ]; then
+    echo "📦 列出所有 namespace 的 Pods:"
+    echo "----------------------------------------"
+    kubectl get pods --all-namespaces
+  else
+    echo "📦 列出 namespace '${namespace}' 的所有 Pods:"
+    echo "----------------------------------------"
+    kubectl get pods -n "${namespace}"
+  fi
 }
