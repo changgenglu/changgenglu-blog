@@ -124,7 +124,7 @@
 | 5 | 設定 Routes：於 `api.php` 的 `auth:backend` 群組中註冊路由 | 2,3 |
 | 6 | 執行 Seeder 驗證資料庫變更 (`php artisan db:seed --class=Feature`) | 4 |
 
-### 4.2 關鍵邏輯偽代碼
+### 4.2 關鍵邏輯
 
 #### Path Generation Strategy
 利用 `Storage` Service 的 `getPath` 方法組合路徑：
