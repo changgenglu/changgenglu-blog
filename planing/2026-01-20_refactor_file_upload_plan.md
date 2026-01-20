@@ -1,60 +1,65 @@
-# 檔案上傳重構與 Storage Service 優化規劃
+# 2026-01-20_refactor_file_upload_plan.md - 檔案上傳重構與 Storage Service 優化實作規劃
 
 ## 1. 需求概述
 
 ### 1.1 背景與目標
-- **背景**：目前 `StickerController` 與 `ActivityPopupController` 等控制器中，檔案上傳的商業邏輯（如檔案類型檢查、備圖生成、路徑組裝）直接暴露在 Controller 層，違反 SOLID 原則（SRP 單一職責）。此外，`Storage` Service 內部可能直接依賴 `GoogleStorage` 實作，缺乏依賴注入（DI）的彈性。
+- **背景**：目前檔案上傳邏輯（驗證、備圖、路徑處理）散落在 `StickerController` 與 `ActivityPopupController`，違反單一職責原則。且 `Storage` Service 缺乏依賴注入，難以測試與替換。
 - **目標**：
-  1. 將檔案上傳相關的商業邏輯封裝至 `Storage` Service 中。
-  2. 重構 `Storage` Service，改用依賴注入（Dependency Injection）方式引入 `GoogleStorage`。
-  3. 確保重構過程不影響現有的 API IO 與前端功能。
+  1. **邏輯封裝**：將上傳、檔名生成、圖片轉檔（JPG/WebP）邏輯移至 `Storage` Service。
+  2. **架構解耦**：保留自定義 `App\Library\GoogleStorage`，但透過 Laravel Service Container 進行綁定與注入，解決配置散落問題。
+  3. **安全性提升**：強制使用 UUID 或安全雜湊生成檔名，杜絕路徑遍歷風險。
 - **影響範圍**：
+  - `app/Services/Storage.php`
+  - `app/Providers/AppServiceProvider.php`
   - `app/Http/Controllers/StickerController.php`
   - `app/Http/Controllers/ActivityPopupController.php`
-  - `app/Services/Storage.php`
-  - `app/Library/GoogleStorage.php` (視情況調整介面)
 
 ### 1.2 範圍界定
 - **包含**：
-  - 提取 Controller 中的檔案驗證、備圖轉換 (`webp` <-> `jpg`)、路徑生成邏輯。
-  - 修改 `Storage` Service 以支援依賴注入。
-  - 統一處理圖片與 JSON 檔案的上傳流程。
+  - 在 `AppServiceProvider` 註冊 `GoogleStorage` 單例。
+  - 重構 `Storage` Service 實作 `uploadFile` 與 `uploadImageWithBackup`。
+  - 修正 Controller 改用 Service 方法。
+  - **同步處理**：圖片轉檔與備圖生成維持同步執行（依照需求，不使用 Queue）。
 - **不包含**：
-  - 修改前端上傳介面。
-  - 變更現有的資料庫結構。
-  - 變更 API 回傳格式（Response Structure）。
+  - 非同步隊列（Queue）實作。
+  - 更換底層 Storage Library（維持使用 `GoogleStorage.php`）。
 - **假設條件**：
-  - `app('Service')::init('Storage')` 機制允許或可相容 Laravel 的 Service Container 注入，或需在 Service 建構子中手動解析依賴。
+  - `config/google/storage.php` 或類似設定檔包含 `keyFilePath` 與 `bucketName`。
+  - 專案的 `app('Service')::init('Storage')` 機制若不支援自動依賴注入，將改用 `app(Storage::class)` 或在 Service 內部 `resolve()`。
 
 ---
 
 ## 2. 系統架構變更
 
 ### 2.1 資料庫變更
-*本次重構不涉及資料庫變更。*
+*本次不涉及資料庫變更*
 
-### 2.2 程式碼結構
+### 2.2 設定變更
+| 設定檔 | 變更內容 | 說明 |
+|-------|---------|-----|
+| `app/Providers/AppServiceProvider.php` | 註冊 `GoogleStorage` 綁定 | 透過 `app(GoogleStorage::class)` 統一管理實例化與 Config |
+
+### 2.3 程式碼結構
 #### 修改檔案
 | 檔案路徑 | 修改內容摘要 |
 |---------|-------------|
-| `app/Services/Storage.php` | 1. 引入 `GoogleStorage` 依賴注入。<br>2. 新增 `processUpload` 與 `processImageUploadWithBackup` 封裝方法。 |
-| `app/Http/Controllers/ActivityPopupController.php` | 移除上傳邏輯，改呼叫 `Storage` Service 的高階方法。 |
-| `app/Http/Controllers/StickerController.php` | 移除上傳邏輯，改呼叫 `Storage` Service 的高階方法。 |
+| `app/Services/Storage.php` | 1. 引入 `GoogleStorage`。<br>2. 實作安全檔名生成 (UUID)。<br>3. 封裝圖片轉檔邏輯。 |
+| `app/Http/Controllers/StickerController.php` | 移除上傳邏輯，呼叫 Service。 |
+| `app/Http/Controllers/ActivityPopupController.php` | 移除上傳邏輯，呼叫 Service。 |
 
 ---
 
 ## 3. API 規格設計
 
-*本次為內部重構，對外的 API Request/Response 格式維持不變。*
-*僅列出受影響的 API 端點供測試驗證參考。*
+*API 對外介面 (Contract) 維持不變，僅內部實作重構。*
 
-### 3.1 驗證端點
+### 3.1 驗證端點 (參考用)
 | Method | Path | 說明 |
 |--------|------|-----|
 | POST | `/api/activity_popup/upload` | 活動彈窗 JSON 上傳 |
-| POST | `/api/activity_popup/image_upload` | 活動彈窗圖片上傳（含備圖） |
+| POST | `/api/activity_popup/image_upload` | 活動彈窗圖片上傳 (同步產生 WebP/JPG 備圖) |
 | POST | `/api/sticker/upload` | 貼圖 JSON 上傳 |
-| POST | `/api/sticker/image_upload` | 貼圖圖片上傳（含備圖） |
+| POST | `/api/sticker/image_upload` | 貼圖圖片上傳 (同步產生 WebP/JPG 備圖) |
 
 ---
 
@@ -64,110 +69,122 @@
 
 | # | 任務 | 依賴 |
 |---|-----|-----|
-| 1 | **Refactor Storage Service (DI)**<br>修改 `app/Services/Storage.php`，在建構子中注入 `App\Library\GoogleStorage`。 | - |
-| 2 | **Implement General Upload Logic**<br>在 `Storage` Service 新增 `uploadJson(UploadedFile $file, string $pathKey, string $fileName, array $params)` 方法，封裝路徑生成與上傳。 | 1 |
-| 3 | **Implement Image Upload Logic**<br>在 `Storage` Service 新增 `uploadImageWithBackup(UploadedFile $image, string $pathKey, string $subPath, array $params)` 方法，封裝格式轉換、備圖生成與雙重上傳邏輯。 | 1 |
-| 4 | **Refactor ActivityPopupController**<br>替換 `upload` 與 `imageUpload` 方法內容，改用上述 Service 方法。 | 2, 3 |
-| 5 | **Refactor StickerController**<br>替換 `upload` 與 `imageUpload` 方法內容，改用上述 Service 方法。 | 2, 3 |
-| 6 | **Verification**<br>執行單元測試或手動測試上傳功能。 | 4, 5 |
+| 1 | **Config Binding**<br>在 `AppServiceProvider` 中綁定 `App\Library\GoogleStorage`，注入設定參數。 | - |
+| 2 | **Refactor Storage Service (Base)**<br>在 `Storage` Service 中引入 `GoogleStorage` (透過 Constructor 或 resolve)，並實作 `generateSecureFilename()`。 | 1 |
+| 3 | **Implement General Upload**<br>實作 `uploadFile(UploadedFile $file, string $pathKey, array $params)`，使用安全檔名。 | 2 |
+| 4 | **Implement Image Logic (Sync)**<br>實作 `uploadImageWithBackup(...)`。<br>**注意**：需在記憶體內完成 `Intervention/Image` 轉檔並同步上傳。 | 2 |
+| 5 | **Refactor ActivityPopupController**<br>替換原上傳程式碼。 | 3, 4 |
+| 6 | **Refactor StickerController**<br>替換原上傳程式碼。 | 3, 4 |
 
-### 4.2 關鍵邏輯（Pseudo Code）
+### 4.2 關鍵邏輯
 
-#### Storage Service 依賴注入與新方法
+#### AppServiceProvider Binding
+```php
+$this->app->singleton(\App\Library\GoogleStorage::class, function ($app) {
+    // 假設設定位於 config('google.storage')
+    // 或讀取既有寫死的設定方式，但集中於此處
+    $config = config('google.storage') ?? [
+        'keyFilePath' => base_path('config/google/key.json'), // 範例路徑
+        'bucketName'  => env('GOOGLE_CLOUD_STORAGE_BUCKET'),
+    ];
+    return new \App\Library\GoogleStorage($config);
+});
+```
+
+#### Storage Service 核心邏輯
 ```php
 namespace App\Services;
 
 use App\Library\GoogleStorage;
 use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Str;
+use Intervention\Image\Facades\Image;
 
 class Storage
 {
     protected $googleStorage;
 
-    // 透過 Laravel Container 解析，或由 Service Factory 傳入
-    public function __construct(GoogleStorage $googleStorage)
+    public function __construct()
     {
-        $this->googleStorage = $googleStorage;
+        // 若 Service Factory 不支援 DI，則手動解析
+        $this->googleStorage = app(GoogleStorage::class);
     }
 
     /**
-     * 處理一般檔案上傳 (如 JSON)
+     * 生成安全路徑 (UUID)
      */
-    public function uploadFile(UploadedFile $file, string $pathKey, string $fileName, array $pathParams = []): bool
+    protected function generateSecurePath(string $basePath, string $extension): string
     {
-        // 1. Check File Type (Basic)
-        // 2. Generate Path using getPath($pathKey, $fileName, $pathParams)
-        // 3. Upload using $this->googleStorage or internal upload method
+        $uuid = (string) Str::uuid();
+        // 確保路徑結尾無多餘斜線
+        return rtrim($basePath, '/') . '/' . $uuid . '.' . $extension;
     }
 
     /**
-     * 處理圖片上傳並自動生成備圖 (WebP <-> JPG)
+     * 圖片同步上傳與備圖 (WebP <-> JPG)
      */
-    public function uploadImageWithBackup(UploadedFile $image, string $pathKey, string $relativePath, array $pathParams = []): bool
+    public function uploadImageWithBackup(UploadedFile $file, string $pathKey, array $params = []): bool
     {
-        // 1. 取得原檔名與類型
-        // 2. 上傳原圖
-        // 3. 判斷是否需要備圖 (jpg/jpeg <-> webp)
-        // 4. 呼叫 Utils::imgBackup 生成備圖
-        // 5. 上傳備圖
-        // 6. 回傳結果
+        // 1. 取得基本資訊
+        $originalExt = strtolower($file->getClientOriginalExtension());
+        $realPath = $file->getRealPath();
+
+        // 2. 定義路徑 (使用 UUID，不信任 ClientOriginalName)
+        $basePath = $this->getPathByKey($pathKey, $params); // 假設已有此方法解析路徑 Key
+        $mainStoragePath = $this->generateSecurePath($basePath, $originalExt);
+
+        // 3. 上傳主圖
+        $this->googleStorage->upload(fopen($realPath, 'r'), $mainStoragePath);
+
+        // 4. 處理備圖 (同步處理)
+        // 邏輯：若上傳 JPG -> 轉 WebP；若上傳 WebP -> 轉 JPG
+        $backupExt = ($originalExt === 'webp') ? 'jpg' : 'webp';
+        $backupStoragePath = str_replace(".{$originalExt}", ".{$backupExt}", $mainStoragePath);
+
+        // 使用 Intervention Image 轉換格式
+        $img = Image::make($realPath);
+        $encodedImg = $img->encode($backupExt, 80); // 品質 80
+
+        // 因 GoogleStorage::upload 預期檔案路徑或 Resource，需使用 temp file 或 stream
+        $tempPath = tempnam(sys_get_temp_dir(), 'img_backup');
+        file_put_contents($tempPath, (string)$encodedImg);
+
+        try {
+            $this->googleStorage->upload(fopen($tempPath, 'r'), $backupStoragePath);
+        } finally {
+            @unlink($tempPath); // 清理暫存
+        }
+
+        return true;
     }
-}
-```
-
-#### Controller 重構後樣貌
-```php
-public function imageUpload(Request $request)
-{
-    // ... 驗證與權限檢查 ...
-
-    // 取得 Provider 資訊 (維持在 Controller 或移至 Service 視 Internal 依賴而定，建議維持 Controller 傳入 ID)
-    $providerResponse = ...; 
-
-    $storageService = app('Service')::init('Storage');
-    
-    // 呼叫封裝後的方法
-    $result = $storageService->uploadImageWithBackup(
-        $validated['image'],
-        self::IMG_PATH, // 'base_image'
-        self::ACTIVITY_POPUP_PATH . '/' . $validated['image']->getClientOriginalName(),
-        ['client_id' => $providerResponse['client_id']]
-    );
-
-    if (!$result) {
-        throw new \App\Exceptions\RuntimeException('upload_image_failed');
-    }
-
-    return ['result' => true];
 }
 ```
 
 ### 4.3 錯誤處理設計
 | Exception | 錯誤碼 | 觸發條件 |
 |-----------|-------|---------|
-| RuntimeException | `invalid_file_type` | 檔案類型不符合預期 (由 Service 拋出) |
-| RuntimeException | `upload_file_failed` | 上傳至 Google Storage 失敗 |
-| RuntimeException | `upload_image_failed` | 圖片或備圖上傳失敗 |
+| RuntimeException | `file_upload_error` | Google Storage 上傳失敗 |
+| RuntimeException | `image_process_error` | 圖片格式不支援或轉檔失敗 (如記憶體不足) |
 
 ---
 
 ## 5. 部署與驗證
 
 ### 5.1 部署注意事項
-- 本次變更主要為 PHP 程式碼邏輯重構，不需執行 Migration。
-- 需確認 `composer dump-autoload` 是否需要執行（若有新增類別）。
+| 階段 | 項目 | 說明 |
+|-----|-----|-----|
+| 部署前 | Config | 確認 Google Cloud Key File 路徑與權限正確 |
+| 部署後 | Autoload | 執行 `composer dump-autoload` 確保 ServiceProvider 載入 |
 
 ### 5.2 驗證項目
-#### 手動驗證流程
-1. **活動彈窗上傳**：
-   - 上傳 JSON：確認路徑正確且內容可讀取。
-   - 上傳圖片 (JPG)：確認 Google Storage 存在 JPG 原圖與 WebP 備圖。
-   - 上傳圖片 (WebP)：確認 Google Storage 存在 WebP 原圖與 JPG 備圖。
-2. **貼圖上傳**：
-   - 執行相同測試，確保功能未回歸。
+#### 單元/整合測試
+| 測試類別 | 測試項目 | 預期結果 |
+|---------|---------|---------|
+| ActivityPopupUpload | 上傳 JPG 圖片 | Google Storage 出現 UUID 命名的 .jpg 與對應 .webp |
+| StickerUpload | 上傳惡意檔名 (../../hack.jpg) | 檔案儲存為 UUID 檔名，未發生路徑遍歷 |
+| ServiceTest | 依賴解析 | `app(GoogleStorage::class)` 能成功回傳實例 |
 
 ### 5.3 自我檢查點
-- [ ] `Storage` Service 是否正確使用依賴注入（或 `app()` 解析）。
-- [ ] 備圖邏輯 (`jpg` vs `webp`) 是否與原 Controller 邏輯一致（特別是 `jpeg` 轉 `jpg` 的處理）。
-- [ ] 權限檢查是否保留在 Controller 層（`isCtl`）。
-- [ ] API 回傳結構維持不變。
+- [ ] 是否已移除 Controller 中所有 `getClientOriginalName` 的路徑組裝用法？
+- [ ] `GoogleStorage` 的實例化是否已透過 `AppServiceProvider` 統一管理？
+- [ ] 圖片轉檔是否正確處理了暫存檔清理 (`unlink`)？
