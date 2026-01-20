@@ -24,7 +24,7 @@
 ### ⚪ 技術債（Technical Debt）
 | 項目 | 描述 | 未來行動 |
 |-----|-----|---------|
-| 推播邏輯位置 | 目前推播邏輯散落在 Controller。理想上應由 Domain Service (如 `GameService`) 處理，並注入 `Pusher` Service。 | 待專案導入完整的 Dependency Injection (DI) 機制後，再進行架構重構，將通知邏輯移入 Domain Service。 |
+| 推播邏輯位置 | 目前推播邏輯散落在 Controller。理想上應由 Notify Service (如 `GameBroadcaster`) 處理，並注入 `Pusher` Service。 | 待專案導入完整的 Dependency Injection (DI) 機制後，再進行架構重構，將通知邏輯移入 Notify Service。 |
 
 ---
 

@@ -13,11 +13,9 @@ prompt = """
 # Constraints & Rules
 
 <prime_directives>
-  1. **Language**: 所有輸出必須為 **繁體中文**。
-  2. **Stack**: PHP 8.3+, Laravel 12+, Redis, MySQL。
-  3. **No Innovation**: 禁止擅自添加「規劃文檔」以外的功能。
-  4. **Verification**: 實作前必須先讀取相關代碼。
-  5. **Technical Debt**: 發現技術債時標記 `// TODO: [TECH_DEBT]` 但不主動修復。
+  1. **Stack**: PHP 8.3+, Laravel 12+, Redis, MySQL。
+  2. **Verification**: 實作前必須先讀取相關代碼。
+  3. **Technical Debt**: 發現技術債時標記 `// TODO: [TECH_DEBT]` 但不主動修復。
 </prime_directives>
 
 <coding_standards>
@@ -30,40 +28,7 @@ prompt = """
 
 # 技術債判斷標準 (Technical Debt Criteria)
 
-當現有代碼違反以下規則時，視為技術債：
-
-## 多層架構違規
-
-| 層級 | 允許 | 禁止（視為技術債） |
-|-----|-----|------------------|
-| **Controller** | Request → Service → Response | 業務邏輯、狀態判斷、Repository/Model 直呼 |
-| **FormRequest** | 格式與型別驗證 | exists/unique 等 DB 查詢、業務判斷 |
-| **Service** | 業務規則、狀態檢核、交易 | 缺少 Interface 依賴 Repository、驗證失敗未拋 Exception |
-| **Repository** | CRUD 資料存取 | 業務邏輯 |
-
-## SOLID 原則違規
-
-### SRP（單一職責）
-- ❌ class 名稱含 And/Or/Manager/Handler 但職責不明確
-- ❌ method 超過 3 個主要動作
-- ❌ class 依賴超過 7 個其他 class
-
-### OCP（開放封閉）
-- ❌ switch/case 或 if-else 鏈處理類型判斷
-- ❌ 修改現有 class 以支援新功能（應擴展）
-
-### LSP（里氏替換）
-- ❌ 子類別覆寫方法拋出 NotImplementedException
-- ❌ 子類別改變父類別方法的預期行為
-
-### ISP（介面隔離）
-- ❌ 介面方法超過 5 個
-- ❌ 實作類別有空方法或拋出 NotSupported
-
-### DIP（依賴反轉）
-- ❌ 直接 new 具體類別（非 DTO/Entity）
-- ❌ 高層模組 import 低層模組具體類別
-- ❌ 未使用依賴注入
+當現有代碼違反 `GEMINI.md` 中定義的「多層架構規範」或「SOLID 原則」時，視為技術債。
 
 ---
 
@@ -125,4 +90,23 @@ Current Mission Orders:
 Target Task: "{{ args }}"
 
 現在開始執行，請先閱讀專案指引和規劃文檔。
+
+### 執行完成通知（LINE MCP）
+
+完成實作後，使用 `push_text_message` 發送摘要通知：
+
+**格式要求**（≤ 300 字，1 分鐘內可掌握）：
+📋 實作：{一句話摘要實作內容}
+💡 實作內容：{以條列式重點回答}
+⚠️ 注意：{若有重要提醒則列出，否則省略}
+
+**MCP 呼叫範例**：
+{
+  "tool": "push_text_message",
+  "arguments": {
+    "message": {
+      "text": "📋 實作：...\n💡 實作內容：...\n⚠️ 注意：..."
+    }
+  }
+}
 """

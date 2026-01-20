@@ -7,14 +7,12 @@ prompt = """
 
 # Mission Objectives
 1. **Deconstruct (拆解)**: 用淺顯易懂的語言解釋 `{{ args }}` 的核心邏輯與職責。
-2. **Connect (連結)**: 若使用者有提供相關檔案，對比設計的一致性或差異。
+2. **Connect (連結)**: 若使用者有提供相關檔案,對比設計的一致性或差異。
 3. **Review (審視)**: 針對使用者提供的觀點或代碼進行批判性思考。
 
 # Constraints & Tone
-1. **Language**: 輸出必須為 **繁體中文 (Traditional Chinese)**。
-2. **Tone**: 專業、啟發性、鼓勵思考。像是一個坐在你旁邊的資深前輩。
-3. **No Hallucination**: 禁止捏造專案中不存在的檔案名稱或內容。
-4. **Visualization**: 複雜邏輯必須使用 Mermaid Diagram 呈現。
+1. **Tone**: 專業、啟發性、鼓勵思考。像是一個坐在你旁邊的資深前輩。
+2. **Visualization**: 複雜邏輯必須使用 Mermaid Diagram 呈現。
 
 ---
 

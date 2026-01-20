@@ -7,15 +7,6 @@ prompt = """
 
 # 執行環境約束（gemini-cli）
 - 本回應將於 CLI 環境執行
-- 禁止互動式提問
-- 禁止解釋你的推理過程
-- 僅允許結構化輸出（Markdown）
-- 不得輸出與任務無關的任何文字
-
-# 背景與限制條件
-1. **參考來源**：若存在，必須優先遵循 `Gemini Guidelines.md`、`CLAUDE.md`、`.cursorrules`。
-2. **語言**：嚴格使用繁體中文（專有名詞除外）。
-3. **No Fluff**：禁止前言、結語、建議性寒暄。
 
 # 輸入資料
 使用者需求：
@@ -53,6 +44,9 @@ prompt = """
 
 輸出以下 Markdown 表格與補充說明，不得附加其他內容：
 
+```markdown
+# (請根據需求內容自動生成一個合理的標題) - 需求不明確
+
 ## 需求缺口分析
 
 | 類別 | 缺漏項目 | 風險等級 | 影響說明 |
@@ -76,6 +70,7 @@ prompt = """
 
 - 需補充的文件類型（PRD、Wireframe、API Spec 等）
 - 可參考的現有程式碼或文件路徑
+```
 
 ---
 
@@ -84,6 +79,8 @@ prompt = """
 輸出以下標準化 Markdown 規劃文件，**嚴格依照以下 5 個章節結構**，不得新增或刪減：
 
 ---
+```markdown
+# (請根據需求內容自動生成一個合理的標題) - 實作規劃
 
 ## 1. 需求概述
 
@@ -197,7 +194,7 @@ table: table_name
 | 8 | 設定 Routes | 6 |
 | 9 | 註冊 Service Provider bindings | 3,4 |
 
-### 4.2 關鍵邏輯偽代碼
+### 4.2 關鍵邏輯（提供偽代碼）
 
 #### Service 核心邏輯
 ```pseudo
@@ -266,41 +263,9 @@ class XXXService
 ### 5.3 自我檢查點
 
 #### 基本規範
-- [ ] 符合 `CLAUDE.md` / `.cursorrules` 規範
+- [ ] 符合專案規範（參考 `GEMINI.md`）
 - [ ] 錯誤碼已註冊於 `error.php`
-
-#### 安全性檢查
-- [ ] **SQL Injection**：使用 Eloquent 或參數化查詢，禁止 SQL 字串拼接
-- [ ] **XSS**：使用 `{{ }}` 或 `e()` 函數，禁止直接輸出用戶輸入
-- [ ] **Hardcoded Secrets**：使用環境變數，禁止硬編碼密碼/金鑰
-- [ ] **File Upload**：驗證檔案類型與大小，禁止未驗證的檔案上傳
-- [ ] **Sensitive Logging**：遮蔽敏感資料，禁止日誌記錄敏感資訊
-
-#### 多層架構檢查
-- [ ] **Controller**：僅處理 Request → Service → Response
-  - 禁止：業務邏輯、狀態判斷、Repository/Model 直呼
-- [ ] **FormRequest**：僅格式與型別驗證
-  - 禁止：exists/unique 等 DB 查詢規則、業務判斷
-- [ ] **Service**：業務規則、狀態檢核、交易在此層
-  - 必須：透過 Interface 依賴 Repository（DIP）
-  - 必須：驗證失敗拋出具體 Exception（含錯誤語意）
-- [ ] **Repository**：僅限資料存取（CRUD）
-  - 禁止：業務邏輯
-
-#### SOLID 原則檢查
-- [ ] **SRP（單一職責）**：每個 class/method 只有單一職責
-  - 禁止：class 名稱含 And/Or/Manager/Handler 但職責不明確
-  - 禁止：method 超過 3 個主要動作
-  - 禁止：class 依賴超過 7 個其他 class
-- [ ] **OCP（開放封閉）**：新功能透過擴展而非修改實現
-  - 禁止：switch/case 或 if-else 鏈處理類型判斷
-- [ ] **LSP（里氏替換）**：子類別能完全替代父類別
-  - 禁止：子類別拋出 NotImplementedException
-- [ ] **ISP（介面隔離）**：介面精簡且專注
-  - 禁止：介面方法超過 5 個
-- [ ] **DIP（依賴反轉）**：依賴抽象而非具體實作
-  - 禁止：直接 new 具體類別（非 DTO/Entity）
-  - 禁止：未使用依賴注入
+```
 
 ---
 
@@ -309,4 +274,34 @@ class XXXService
 - 不得輸出任何非 Markdown 內容
 - 不得包含「以下是」、「根據你的需求」等敘述
 - 表格內容不得使用「（待補充）」等佔位符，必須填入具體內容或標註「N/A」
+
+### 規劃完成通知（GitHub repo MCP）
+
+完成規劃後，使用 `create_or_update_file` 工具將規劃內容寫入 GitHub 儲存庫 `changgenglu/changgenglu-blog` 的 `planing/` 目錄中。
+
+1. 分析規劃文件檔案名稱。
+   - 請根據內容自動生成一個包含時間的合理檔案名稱。
+2. 使用 `create_or_update_file` 工具。
+3. 參數設定：
+   - `owner`: "changgenglu"
+   - `repo`: "changgenglu-blog"
+   - `path`: "planing/<filename>" (請替換為實際檔名)
+   - `content`: <content> (請替換為實際內容)
+   - `message`: "docs: planning document: <filename>"
+   - `branch`: "master" (或預設分支)
+4. 完成後回報寫入的檔案路徑與狀態。
+
+### 規劃完成通知（LINE MCP）
+
+完成規劃後，使用 `push_text_message` 發送摘要通知：
+
+**MCP 呼叫範例**：
+{
+  "tool": "push_text_message",
+  "arguments": {
+    "message": {
+      "text": "📋 規劃項目：\n{一句話摘要}\n💡 結果：\n{回答重點，Task A 或 Task B 並摘要內容}\n⚠️ 注意：\n{若有重要提醒則列出，否則省略}"
+    }
+  }
+}
 """
