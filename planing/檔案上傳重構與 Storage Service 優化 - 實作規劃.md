@@ -6,6 +6,7 @@
 |------|---------|----------|
 | v1.0 | 2026-01-20 14:30 | 初次規劃：根據批判報告與專案現狀修正，移除 UUID 命名，維持原有檔名共識，優化同步處理與 DI 結構。 |
 | v1.1 | 2026-01-20 14:40 | 修正規劃：針對資安風險（路徑遍歷）與實作細節（臨時檔案清理、Utils 返回值）進行補強。 |
+| v1.2 | 2026-01-21 11:30 | 更新規劃：補全受影響的 API 端點總覽，明確化 40+ 處調用的實際影響範圍。 |
 
 ---
 
@@ -63,11 +64,30 @@
 *API 對外合約維持不變，僅內部實作重構。*
 
 ### 3.1 端點總覽
-| Method | Path | 說明 | 權限 |
-|--------|------|-----|-----|
-| POST | `/api/activity_popup/upload` | 活動彈窗 JSON 上傳 | admin |
-| POST | `/api/activity_popup/image_upload` | 活動彈窗圖片上傳 (含同步備圖) | admin |
-| POST | `/api/sticker/image_upload` | 貼圖圖片上傳 (含同步備圖) | admin |
+
+本次重構將影響以下 40+ 處檔案上傳相關端點：
+
+| 模組 | Method | Path | 說明 | 權限 |
+|------|--------|------|-----|-----|
+| 活動彈窗 | POST | `/api/activity_popup/upload` | JSON 上傳 | admin |
+| 活動彈窗 | POST | `/api/activity_popup/image_upload` | 圖片上傳 (含備圖) | admin |
+| 貼圖管理 | POST | `/api/sticker/upload` | JSON 上傳 | admin |
+| 貼圖管理 | POST | `/api/sticker/image_upload` | 圖片上傳 (含備圖) | admin |
+| 禮包管理 | POST | `/api/gift_pack/upload` | JSON 上傳 | admin |
+| 禮包管理 | POST | `/api/gift_pack/image_upload` | 圖片上傳 | admin |
+| 精選管理 | POST | `/api/featured/upload` | JSON 上傳 | admin |
+| 精選管理 | POST | `/api/featured/image_upload` | 圖片上傳 | admin |
+| 精選管理 | POST | `/api/featured/cover_upload` | 封面上傳 | admin |
+| 庫存管理 | POST | `/api/inventory_items/upload` | JSON 上傳 | admin |
+| 庫存管理 | POST | `/api/inventory_items/image_upload` | 圖片上傳 | admin |
+| 音樂管理 | POST | `/api/bgm/upload` | 音訊 JSON 上傳 | admin |
+| 魚機管理 | POST | `/api/fish/upload` | JSON 上傳 | admin |
+| 遊戲管理 | POST | `/api/app_game/upload` | JSON 上傳 | admin |
+| 遊戲管理 | POST | `/api/game/image_upload` | 圖片上傳 | admin |
+| 大獎管理 | POST | `/api/grand_prize/upload` | JSON 上傳 | admin |
+| 代碼管理 | POST | `/api/platform/game_code/upload` | JSON 上傳 | admin |
+| 文字管理 | POST | `/api/literal_word/upload` | JSON 上傳 | admin |
+| 認證管理 | POST | `/api/client_auth/upload` | JSON 上傳 | admin |
 
 ### 3.2 詳細規格
 *無變更，略。*
@@ -179,10 +199,10 @@ class Storage
 |---------|---------|---------|
 | ControllerTest | 上傳貼圖 WebP | Storage 應出現 WebP 與轉檔後的 JPG，檔名與上傳時一致。 |
 | ControllerTest | 上傳惡意檔名 (e.g., `../../hack.jpg`) | 應儲存為 `hack.jpg`，且位於正確 bucket 路徑下，無路徑遍歷。 |
-| ServiceTest | DI 驗證 | `app(Storage::class)` 應能正確取得包含 GoogleStorage 的實例。 |
+| ServiceTest | DI 驗證 | `app(Storage::class)`應能正確取得包含 GoogleStorage 的實例。 |
 | ServiceTest | 臨時檔案清理 | 驗證 `uploadImageWithBackup` 執行後，`/tmp` 下無殘留圖片。 |
 
-### 5.3 自我檢查點
+### 5.3 自王檢查點
 - [ ] 檔名消毒邏輯是否正確實作（`sanitizeFilename`）？
 - [ ] 臨時檔案是否有 `try-finally` 確保清理？
 - [ ] `AppServiceProvider` 的綁定是否正確讀取 `config/storage.php`？
