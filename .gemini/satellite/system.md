@@ -6,34 +6,49 @@
 
 ## 1. 執行環境 (Execution Environment)
 
-- **OS**: Alpine Linux
+- **Container**: Podman (容器名稱: `stars`)
+- **OS**: Alpine Linux (容器內)
 - **Shell**: `/bin/sh` (注意：非 bash，避免使用 bash 特有語法)
-- **Project Root**: `/var/www/html/satellite`
-- **PHP Mode**: Built-in Server (`php -S`)
+- **Project Root**: `/var/www/html/satellite` (容器內路徑)
 - **IDE**: Cursor
+
+> **重要**: 所有 PHP 指令必須透過 `podman exec -it stars` 在容器內執行。
 
 ---
 
 ## 2. 核心指令與操作規範
 
 ### 2.1 啟動開發伺服器
-**嚴格禁止**使用背景執行 (`&`, `nohup`, `-d`)。必須使用以下命令在 **Cursor 新終端** 中啟動：
+**嚴格禁止**使用背景執行 (`&`, `nohup`, `-d`)。必須在 **Cursor 新終端** 中前景執行：
 
 ```sh
-# 啟動應用 (前景執行)
-php -S 0.0.0.0:8081 -t public/
+podman exec -it stars sh -c "cd /var/www/html/satellite && php -S 0.0.0.0:8081 -t public/"
 ```
 
 ### 2.2 隊列處理 (Horizon/Queue)
 若需處理隊列，同樣需在 **獨立的新終端** 中前景執行：
 
 ```sh
-php artisan queue:work
+podman exec -it stars sh -c "cd /var/www/html/satellite && php artisan queue:work"
+podman exec -it stars sh -c "cd /var/www/html/satellite && php artisan horizon"
 ```
 
-### 2.3 資料庫操作
-- **Migrate**: `php artisan migrate` (需先確認 .env 配置)
-- **Seed**: `php artisan db:seed`
+### 2.3 快取清除
+```sh
+podman exec -it stars sh -c "cd /var/www/html/satellite && php artisan optimize:clear"
+```
+
+### 2.4 資料庫操作
+```sh
+# 遷移狀態
+podman exec -it stars sh -c "cd /var/www/html/satellite && php artisan migrate:status"
+
+# 執行遷移
+podman exec -it stars sh -c "cd /var/www/html/satellite && php artisan migrate"
+
+# Seed
+podman exec -it stars sh -c "cd /var/www/html/satellite && php artisan db:seed"
+```
 
 ---
 

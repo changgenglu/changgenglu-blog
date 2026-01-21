@@ -1,4 +1,5 @@
 description = "調查並制定策略性計畫（適用於 gemini-cli 自動化分析）。"
+current_time = "date '+%Y-%m-%d %H:%M'"
 
 prompt = """
 # 角色定義
@@ -40,7 +41,7 @@ prompt = """
 
 ---
 
-# Task A: Gap Analysis（需求不明確）
+## Task A: Gap Analysis（需求不明確）
 
 輸出以下 Markdown 表格與補充說明，不得附加其他內容：
 
@@ -74,13 +75,22 @@ prompt = """
 
 ---
 
-# Task B: Implementation Plan（需求明確）
+## Task B: Implementation Plan（需求明確）
 
 輸出以下標準化 Markdown 規劃文件，**嚴格依照以下 5 個章節結構**，不得新增或刪減：
 
 ---
 ```markdown
 # (請根據需求內容自動生成一個合理的標題) - 實作規劃
+
+## 版本記錄（請填入合理的版本號和更新時間 {{current_time}}）
+
+| 版本 | 更新時間 | 變更摘要 |
+|------|---------|----------|
+| v1.0 | YYYY-MM-DD HH:MM | 初次規劃 |
+| v1.1 | YYYY-MM-DD HH:MM | （後續更新時新增記錄） |
+
+---
 
 ## 1. 需求概述
 
@@ -105,13 +115,12 @@ prompt = """
 | （表名） | 新增/修改/刪除 | （變更內容） |
 
 #### Schema 設計（Pseudo Migration）
-```
+
 // 僅描述結構，不包含具體 SQL
 table: table_name
   - column_name: type, constraints
   - foreign_key: references(table.column)
   - index: [columns]
-```
 
 ### 2.2 設定變更
 | 設定檔 | 變更內容 | 說明 |
@@ -145,11 +154,10 @@ table: table_name
 **說明**：（API 用途）
 
 **Request**
-```json
 {
   "field_name": "type | required | description"
 }
-```
+
 
 **Validation Rules**
 | 欄位 | 規則 | 說明 |
@@ -157,11 +165,10 @@ table: table_name
 | field_name | required, string, max:100 | （驗證說明） |
 
 **Response - Success (200)**
-```json
 {
   "data": { }
 }
-```
+
 
 **Response - Error**
 | HTTP Code | Error Code | 說明 |
@@ -197,7 +204,7 @@ table: table_name
 ### 4.2 關鍵邏輯（提供偽代碼）
 
 #### Service 核心邏輯
-```pseudo
+
 class XXXService
     constructor(IXXXRepository repository)
 
@@ -213,15 +220,15 @@ class XXXService
 
         // 3. 回傳結果
         return data
-```
+
 
 #### 狀態流轉（若適用）
-```pseudo
+
 狀態機：
   PENDING -> APPROVED (by admin)
   PENDING -> REJECTED (by admin)
   APPROVED -> COMPLETED (by system)
-```
+
 
 ### 4.3 錯誤處理設計
 | Exception | 錯誤碼 | 觸發條件 |
@@ -275,25 +282,37 @@ class XXXService
 - 不得包含「以下是」、「根據你的需求」等敘述
 - 表格內容不得使用「（待補充）」等佔位符，必須填入具體內容或標註「N/A」
 
-### 規劃完成通知（GitHub repo MCP）
+# 規劃完成通知
 
-完成規劃後，使用 `create_or_update_file` 工具將規劃內容寫入 GitHub 儲存庫 `changgenglu/changgenglu-blog` 的 `planing/` 目錄中。
+## 1. GitHub repo MCP
 
-1. 分析規劃文件檔案名稱。
-   - 請根據內容自動生成一個包含時間的合理檔案名稱。
+使用 `create_or_update_file` 工具將規劃內容寫入 GitHub 儲存庫 `changgenglu/changgenglu-blog` 的 `planing/` 目錄中。
+
+**filename 命名規則**：
+- 使用繁體中文
+- 使用文件標題作為 filename
+- 範例：文件標題 `# 檔案上傳重構與 Storage Service 優化 - 實作規劃` → `檔案上傳重構與 Storage Service 優化 - 實作規劃.md`
+
+**文件更新邏輯**：
+- 若已存在同名檔案，則更新該檔案內容，並在版本記錄區塊新增一筆記錄
+- 新建檔案時，版本記錄從 v1.0 開始；更新時遞增版本號（如 v1.1, v1.2...）
+
+**操作步驟**：
+1. 首先使用 `get_file_contents` 檢查 `planing/` 目錄下是否存在相同的檔案。
 2. 使用 `create_or_update_file` 工具。
 3. 參數設定：
    - `owner`: "changgenglu"
    - `repo`: "changgenglu-blog"
    - `path`: "planing/<filename>" (請替換為實際檔名)
    - `content`: <content> (請替換為實際內容)
-   - `message`: "docs: planning document: <filename>"
+   - `message`: "docs: planning document: <filename>" 或 "docs: update planning: <filename>"（若為更新）
    - `branch`: "master" (或預設分支)
+   - `sha`: 若為更新現有檔案，需提供原檔案的 SHA
 4. 完成後回報寫入的檔案路徑與狀態。
 
-### 規劃完成通知（LINE MCP）
+## 2. LINE MCP
 
-完成規劃後，使用 `push_text_message` 發送摘要通知：
+使用 `push_text_message` 發送摘要通知：
 
 **MCP 呼叫範例**：
 {
@@ -304,4 +323,5 @@ class XXXService
     }
   }
 }
+
 """

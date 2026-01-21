@@ -309,6 +309,8 @@
 
 > 此區塊記錄專案特定資訊，由 Gemini 在互動過程中累積。
 
+- 使用 `replace` 工具時，若多個方法結尾邏輯（清除快取+回傳）相似（如 `PlatformController`），`old_string` 必須包含該方法獨有的業務邏輯行（如 `edit` 呼叫），以確保唯一匹配。
+
 <!-- 範例格式：
 - 專案 X 的錯誤碼定義於 `resources/lang/error.json`
 - API 版本控制使用 `/api/v1/` 前綴

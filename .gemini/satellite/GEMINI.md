@@ -70,7 +70,13 @@
 ---
 
 ## 5. 專案記憶 (Project Memory)
-*此區域由 AI 自動維護，記錄專案特殊邏輯*
+> 此區塊記錄專案特定資訊，由 Gemini 在互動過程中累積。
+
+<!-- 範例格式：
+- 專案 X 的錯誤碼定義於 `resources/lang/error.json`
+- API 版本控制使用 `/api/v1/` 前綴
+- 快取 key 命名規則：`{module}:{entity}:{id}`
+-->
 
 - **Service 調用**: 專案傾向使用 `app('Service')::init(...)` 的動態加載模式。
 - **User 表**: 表名為 `user`，非 Laravel 預設的 `users`。

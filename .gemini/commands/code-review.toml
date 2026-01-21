@@ -1,19 +1,9 @@
-description = "執行 AI Code Review，依據審核規範 v1.0 分析 git diff 變更"
+description = "執行 AI Code Review，依據審核規範分析 git diff 變更"
 
 git_diff = "git diff origin/master...HEAD -- . ':(exclude)package-lock.json' ':(exclude)composer.lock' ':(exclude)*.lock'"
+current_time = "date '+%Y-%m-%d %H:%M'"
 
 prompt = """
-
-metadata:
-  version: "1.0"
-  last_updated: "2025-12-12"
-  language: "PHP/Laravel"
-  team: "Backend Team"
-
-context:
-  role: "資深後端工程師，負責 Code Review"
-  output_format: "Markdown 報告"
-
 # ============================================
 # 行為約束（客製化需求）
 # ============================================
@@ -445,27 +435,39 @@ testability:
 請將報告寫入到 GitHub 儲存庫（GitHub repo MCP） `changgenglu/changgenglu-blog` 的 `code-review/` 目錄中。
 
 GitHub repo MCP 指南：
-1. 使用 `create_or_update_file` 工具。
-2. 參數設定：
+1. 首先使用 `get_file_contents` 檢查是否存在同名檔案。
+2. 使用 `create_or_update_file` 工具。
+3. 參數設定：
    - `owner`: "changgenglu"
    - `repo`: "changgenglu-blog"
    - `path`: "code-review/<filename>"
    - `content`: <content>
-   - `message`: "docs: cr report: <filename>"
+   - `message`: "docs: cr report: <filename>" 或 "docs: update cr report: <filename>"（若為更新）
    - `branch`: "master" (或預設分支)
-3. 完成後回報寫入的檔案路徑與狀態。
+   - `sha`: 若為更新現有檔案，需提供原檔案的 SHA
+4. 完成後回報寫入的檔案路徑與狀態。
 
 **filename 命名規則**：
-- 分支名稱：自動取得當前 Git 分支名稱
-- 時間戳：`YYYYMMDD-HHMM` 格式作為版本識別
+- 使用分支名稱作為檔案名稱（不含時間戳或流水號）
+- 範例：分支 `feature-inbox` → `feature-inbox.md`
 
-**範例**（分支 `feature-inbox`，執行時間 2026/01/12 09:44）：
-`feature-inbox-20260112-0944.md`
+**文件更新邏輯**：
+- 若已存在同名檔案，則更新該檔案內容，並在版本記錄區塊新增一筆記錄
+- 新建檔案時，版本記錄從 v1.0 開始；更新時遞增版本號（如 v1.1, v1.2...）
 
 請依照以下 Markdown 模板輸出，禁止新增或刪減區塊：
 
 ```markdown
 # <filename>
+
+## 版本記錄（請填入合理的版本號和更新時間 {{current_time}}）
+
+| 版本 | 更新時間 | 變更摘要 |
+|------|---------|----------|
+| v1.0 | YYYY-MM-DD HH:MM | 初次審查 |
+| v1.1 | YYYY-MM-DD HH:MM | （後續更新時新增記錄） |
+
+---
 
 ## 變更摘要
 

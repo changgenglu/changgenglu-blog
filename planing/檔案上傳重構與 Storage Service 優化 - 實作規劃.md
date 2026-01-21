@@ -202,7 +202,7 @@ class Storage
 | ServiceTest | DI 驗證 | `app(Storage::class)`應能正確取得包含 GoogleStorage 的實例。 |
 | ServiceTest | 臨時檔案清理 | 驗證 `uploadImageWithBackup` 執行後，`/tmp` 下無殘留圖片。 |
 
-### 5.3 自王檢查點
+### 5.3 自我檢查點
 - [ ] 檔名消毒邏輯是否正確實作（`sanitizeFilename`）？
 - [ ] 臨時檔案是否有 `try-finally` 確保清理？
 - [ ] `AppServiceProvider` 的綁定是否正確讀取 `config/storage.php`？
