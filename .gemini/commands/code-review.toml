@@ -25,32 +25,12 @@ behavior_constraints:
       - "純語法錯誤"
 
 # ============================================
-# 多層架構檢查準則
+# 技能載入（按需激活）
 # ============================================
-architecture_rules:
-  Controller:
-    allowed: "Request → Service → Response"
-    forbidden:
-      - "業務邏輯"
-      - "狀態判斷"
-      - "Repository / Model 直呼"
-
-  FormRequest:
-    allowed: "格式與型別驗證"
-    forbidden:
-      - "exists、unique 等 DB 查詢規則"
-      - "任何業務判斷"
-
-  Service:
-    required:
-      - "所有業務規則、狀態檢核、交易必須在此層"
-      - "必須透過 Interface 依賴 Repository（DIP）"
-      - "驗證失敗需拋出具體 Exception（含錯誤語意）"
-
-  Repository:
-    allowed: "僅限資料存取（CRUD）"
-    forbidden:
-      - "業務邏輯"
+# 本指令需要以下 Skills 的專業知識：
+# - architecture-reviewer: SOLID 原則、多層架構、DDD
+# - security-auditor: OWASP Top 10、輸入驗證、敏感資料
+# - performance-analyst: N+1 查詢、快取策略、擴展性
 
 # ============================================
 # 審核流程
@@ -64,15 +44,29 @@ review_process:
       - "評估影響範圍"
 
   2_detailed_review:
-    description: "詳細審核各項目"
+    description: "詳細審核各項目（參考對應 Skill）"
     categories:
-      - solid_principles
-      - code_quality
-      - coding_style
-      - correctness
-      - security
-      - performance
-      - testability
+      - name: "SOLID 原則"
+        weight: 25
+        skill: "architecture-reviewer"
+      - name: "程式碼品質"
+        weight: 20
+        skill: null
+      - name: "Coding Style"
+        weight: 15
+        skill: null
+      - name: "功能正確性"
+        weight: 15
+        skill: null
+      - name: "安全性"
+        weight: 15
+        skill: "security-auditor"
+      - name: "效能"
+        weight: 5
+        skill: "performance-analyst"
+      - name: "可測試性"
+        weight: 5
+        skill: null
 
   3_scoring:
     description: "評分與產出報告"
@@ -80,69 +74,6 @@ review_process:
       - "計算各類別得分"
       - "產出問題清單"
       - "撰寫審查意見"
-
-# ============================================
-# SOLID 原則檢查 (權重 25%)
-# ============================================
-solid_principles:
-  weight: 25
-
-  srp:
-    name: "Single Responsibility Principle (單一職責原則)"
-    check: "每個 class/method 是否只有單一職責"
-    red_flags:
-      - "class 名稱包含 And、Or、Manager、Handler 但職責不明確"
-      - "method 超過 3 個主要動作"
-      - "一個 class 依賴超過 7 個其他 class"
-    examples:
-      bad: |
-        class UserService {
-            public function createUser() { ... }
-            public function sendEmail() { ... }      // 違反 SRP
-            public function generateReport() { ... } // 違反 SRP
-        }
-      good: |
-        class UserService { /* 只處理用戶邏輯 */ }
-        class EmailService { /* 只處理郵件 */ }
-        class ReportService { /* 只處理報表 */ }
-
-  ocp:
-    name: "Open/Closed Principle (開放封閉原則)"
-    check: "新功能是否透過擴展而非修改實現"
-    red_flags:
-      - "switch/case 或 if-else 鏈處理類型判斷"
-      - "修改現有 class 以支援新功能"
-    examples:
-      bad: |
-        if ($type == 'A') { ... }
-        elseif ($type == 'B') { ... }
-        elseif ($type == 'C') { ... }
-      good: |
-        interface IPaymentProcessor { public function process(): void; }
-        class CreditCardProcessor implements IPaymentProcessor { ... }
-        class PayPalProcessor implements IPaymentProcessor { ... }
-
-  lsp:
-    name: "Liskov Substitution Principle (里氏替換原則)"
-    check: "子類別是否能完全替代父類別"
-    red_flags:
-      - "子類別覆寫方法拋出 NotImplementedException"
-      - "子類別改變父類別方法的預期行為"
-
-  isp:
-    name: "Interface Segregation Principle (介面隔離原則)"
-    check: "介面是否精簡且專注"
-    red_flags:
-      - "介面方法超過 5 個"
-      - "實作類別有空方法或拋出 NotSupported"
-
-  dip:
-    name: "Dependency Inversion Principle (依賴反轉原則)"
-    check: "是否依賴抽象而非具體實作"
-    red_flags:
-      - "直接 new 具體類別（非 DTO/Entity）"
-      - "高層模組 import 低層模組具體類別"
-      - "未使用依賴注入"
 
 # ============================================
 # 程式碼品質檢查 (權重 20%)
@@ -195,107 +126,26 @@ coding_style:
       rule: "I 開頭"
       correct: "IGame"
       incorrect: "GameInterface"
-    enum:
-      rule: "大駝峰"
-      correct: "OrderStatus"
-      incorrect: "order_status"
-    single_data:
-      rule: "單數"
-      correct: "$user"
-      incorrect: "$users"
-    multiple_data:
-      rule: "複數"
-      correct: "$users"
-      incorrect: "$user"
 
   array_format:
     declaration:
       correct: "$array = [];"
       incorrect: "$array = array();"
-    single_line:
-      correct: "$colors = [ 'red', 'green' ];"
-      incorrect: "$colors = ['red','green'];"
-    multi_line:
-      correct: |
-        $users = [
-            'Test1',
-            'Test2',
-        ];
-      incorrect: |
-        $users = ['Test1',
-        'Test2'];
-    key_value:
-      correct: |
-        $user = [
-            'name' => 'Neil',
-            'email' => 'test@example.com',
-        ];
-      incorrect: "$user = ['name' => 'Neil', 'email' => 'test@example.com'];"
 
   braces:
     function:
       rule: "大括弧換行"
-      correct: |
-        function getName()
-        {
-            // code
-        }
-      incorrect: |
-        function getName() {
-            // code
-        }
     control_structure:
       rule: "大括弧不換行"
-      correct: |
-        if ($condition) {
-            // code
-        }
-      incorrect: |
-        if ($condition)
-        {
-            // code
-        }
-
-  use_order:
-    - "Vendor (Illuminate*)"
-    - "Exception"
-    - "自定義 Class"
-    - "Interface"
-
-  string:
-    pure_string:
-      rule: "單引號"
-      correct: "$name = 'Neil';"
-      incorrect: '$name = "Neil";'
-    concatenation:
-      rule: "點號前後空格"
-      correct: "$full = $first . ' ' . $last;"
-      incorrect: "$full = $first.' '.$last;"
-    with_variable:
-      rule: "雙引號"
-      correct: "$msg = 'Hello ' . $user['name'];"
 
   cache_key:
     format: "前綴_描述:變數"
     correct:
       - "user_profile:123"
       - "game_code:1:2345"
-    incorrect:
-      - "user-profile-123"
-      - "userProfile:123"
 
   validation:
     rule: "使用陣列格式"
-    correct: |
-      $request->validate([
-          'nickname' => [ 'required', 'string', 'max:50' ],
-          'phone' => [ 'required', 'string', 'max:20' ],
-      ]);
-    incorrect: |
-      $request->validate([
-          'nickname' => 'required|string|max:50',
-          'phone' => 'required|string|max:20',
-      ]);
 
   api_design:
     http_methods:
@@ -304,10 +154,6 @@ coding_style:
       PUT: "修改資料"
       DELETE: "刪除資料"
     parameter_rule: "參數在 Body，不在 URL"
-    correct: |
-      PUT /api/members
-      { "member_id": "uuid-here", "name": "Updated" }
-    incorrect: "PUT /api/members/{member_id}"
 
 # ============================================
 # 功能正確性檢查 (權重 15%)
@@ -315,96 +161,13 @@ coding_style:
 correctness:
   weight: 15
 
-  business_logic:
-    check: "是否符合需求規格"
-
-  boundary_conditions:
-    checks:
-      - "null 值處理"
-      - "空陣列處理"
-      - "空字串處理"
-      - "極端值處理"
-
-  error_handling:
-    checks:
-      - "例外是否適當捕獲"
-      - "錯誤訊息是否有意義"
-      - "是否有適當的 fallback"
-
-  concurrency:
-    checks:
-      - "競爭條件"
-      - "死鎖風險"
-      - "資源釋放"
-
-  transaction:
-    checks:
-      - "交易範圍是否正確"
-      - "回滾機制是否完整"
-
-# ============================================
-# 安全性檢查 (權重 15%)
-# ============================================
-security:
-  weight: 15
-
-  critical_checks:
-    sql_injection:
-      severity: "嚴重"
-      pattern: "SQL 字串拼接"
-      suggestion: "使用 Eloquent 或參數化查詢"
-      examples:
-        bad: '$query = "SELECT * FROM users WHERE id = " . $id;'
-        good: "User::where('id', $id)->first();"
-
-    xss:
-      severity: "嚴重"
-      pattern: "直接輸出用戶輸入"
-      suggestion: "使用 {{ }} 或 e() 函數"
-
-    hardcoded_secrets:
-      severity: "嚴重"
-      pattern: "硬編碼密碼/金鑰"
-      suggestion: "使用環境變數或密鑰管理服務"
-
-    file_upload:
-      severity: "嚴重"
-      pattern: "未驗證的檔案上傳"
-      suggestion: "驗證檔案類型與大小"
-
-    sensitive_logging:
-      severity: "高"
-      pattern: "日誌記錄敏感資訊"
-      suggestion: "遮蔽或移除敏感資料"
-
-# ============================================
-# 效能檢查 (權重 5%)
-# ============================================
-performance:
-  weight: 5
-
-  database:
-    checks:
-      - "N+1 查詢問題"
-      - "缺少索引"
-      - "過大查詢（未分頁）"
-      - "不必要的欄位選取"
-    suggestions:
-      n_plus_one: "使用 with() 預載入"
-      pagination: "使用 paginate() 或 cursor()"
-      select: "使用 select() 只選需要的欄位"
-
-  memory:
-    checks:
-      - "大集合是否使用 chunk 或 cursor"
-      - "資源是否正確關閉"
-      - "是否有記憶體洩漏風險"
-
-  caching:
-    checks:
-      - "是否適當使用快取"
-      - "快取 Key 格式是否正確"
-      - "快取過期時間是否合理"
+  checks:
+    - "業務邏輯是否符合需求規格"
+    - "null/空陣列/空字串/極端值處理"
+    - "例外是否適當捕獲"
+    - "錯誤訊息是否有意義"
+    - "競爭條件與死鎖風險"
+    - "交易範圍與回滾機制"
 
 # ============================================
 # 可測試性檢查 (權重 5%)
@@ -412,21 +175,11 @@ performance:
 testability:
   weight: 5
 
-  unit_tests:
-    checks:
-      - "是否有對應的單元測試"
-      - "測試覆蓋率是否足夠"
-
-  mockability:
-    checks:
-      - "依賴是否可被 mock"
-      - "是否使用介面"
-
-  test_quality:
-    checks:
-      - "測試是否有意義"
-      - "邊界條件是否覆蓋"
-      - "是否測試異常情況"
+  checks:
+    - "是否有對應的單元測試"
+    - "依賴是否可被 mock"
+    - "邊界條件是否覆蓋"
+    - "是否測試異常情況"
 
 # ============================================
 # 輸出格式（必須嚴格遵循）
@@ -483,17 +236,17 @@ GitHub repo MCP 指南：
 
 ### 🔴 嚴重（必須修復）
 | 檔案:行號 | 問題描述 | 建議修復 |
-|----------|---------|---------|
+|----------|---------|---------| 
 | `path/file.php:123` | SQL Injection 風險 | 使用 Eloquent 或參數化查詢 |
 
 ### 🟡 警告（建議修復）
 | 檔案:行號 | 問題描述 | 建議修復 |
-|----------|---------|---------|
+|----------|---------|---------| 
 | `path/file.php:45` | N+1 查詢問題 | 使用 with() 預載入 |
 
 ### 🔵 建議（可選修復）
 | 檔案:行號 | 問題描述 | 建議修復 |
-|----------|---------|---------|
+|----------|---------|---------| 
 | `path/file.php:78` | 變數命名不符規範 | $user_data 改為 $userData |
 
 ---

@@ -148,150 +148,29 @@
 
 ---
 
-## 5. 架構精神
+## 5. 架構精神（Skill 引用）
 
-執行任何程式碼生成或審查時，必須理解並遵循以下架構精神：
+> 詳細的架構知識已模組化至 Agent Skill，將根據任務自動載入。
+> 參考路徑：`.gemini/skills/architecture-reviewer/SKILL.md`
 
-### 5.1 領域驅動設計（DDD, Domain-Driven Design）
+執行程式碼生成或審查時，會自動激活以下專家知識：
 
-**核心理念**：以業務領域為核心，建立通用語言（Ubiquitous Language），確保程式碼反映業務概念。
+| Skill | 涵蓋內容 |
+|-------|---------|
+| **architecture-reviewer** | SOLID 原則、多層架構、DDD、Clean Architecture |
+| **security-auditor** | OWASP Top 10、輸入驗證、認證授權、敏感資料處理 |
+| **performance-analyst** | N+1 查詢、快取策略、複雜度分析、擴展性評估 |
+| **database-architect** | 資料庫設計、索引優化、分表分庫、多租戶隔離 |
+| **redis-architect** | Redis 資料結構、分散式鎖、Pub/Sub、高可用架構 |
+| **laravel-expert** | 版本差異、Service Container、Middleware、Eloquent 進階 |
+| **devops-engineer** | CI/CD、容器化、Kubernetes、監控告警 |
+| **qa-tester** | 測試策略、自動化測試、安全測試、效能測試 |
+| **ux-designer** | 設計系統、響應式設計、無障礙設計、用戶研究 |
+| **business-analyst** | 需求分析、業務流程設計、數據分析、KPI 定義 |
+| **api-designer** | RESTful 設計、請求回應規範、API 安全、文檔規範 |
+| **code-mentor** | 代碼解讀、設計模式教學、視覺化工具、學習指導 |
 
-#### 5.1.1 Bounded Context（限界上下文）
-**定義**：明確的業務邊界，每個上下文內部有獨立的模型與術語。
-
-**檢查要點**：
-- 上下文邊界是否明確定義
-- 不同上下文之間的溝通是否透過 Anti-Corruption Layer 或 Domain Event
-
-**紅旗標誌**：
-- ❌ 跨上下文直接引用 Entity 或 Value Object
-- ❌ 同一術語在不同上下文中有不同含義但未區分
-
-#### 5.1.2 Aggregate（聚合）
-**定義**：一組相關物件的集合，有一個 Aggregate Root 作為唯一入口。
-
-**檢查要點**：
-- 外部是否只透過 Aggregate Root 存取內部物件
-- 交易邊界是否等同於 Aggregate 邊界
-
-**紅旗標誌**：
-- ❌ 外部直接存取非 Root 的內部 Entity
-- ❌ 單一交易跨越多個 Aggregate
-- ❌ Aggregate 過大（超過 5 個 Entity）
-
-#### 5.1.3 Entity vs Value Object
-**定義**：
-- **Entity**：具有唯一識別（ID），生命週期內可變
-- **Value Object**：無識別，不可變，由其屬性值定義
-
-**檢查要點**：
-- 是否正確區分 Entity 與 Value Object
-- Value Object 是否為不可變（Immutable）
-
-**紅旗標誌**：
-- ❌ Value Object 有 setter 方法
-- ❌ 比較 Value Object 時使用 ID 而非屬性值
-
-#### 5.1.4 Domain Event（領域事件）
-**定義**：表達領域中已發生的重要事實。
-
-**檢查要點**：
-- 事件名稱是否使用過去式（e.g., `OrderPlaced`）
-- 事件是否為不可變
-
-**紅旗標誌**：
-- ❌ 事件名稱使用現在式或命令式（e.g., `PlaceOrder`）
-- ❌ 事件包含領域邏輯
-- ❌ 事件有 setter 方法
-
----
-
-### 5.2 Clean Architecture（整潔架構）
-
-**核心理念**：依賴方向由外向內，內層不知道外層的存在。
-
-#### 5.2.1 同心圓依賴規則
-
-| 層級 | 包含內容 | 可依賴 |
-|-----|---------|-------|
-| **Domain（核心）** | Entity, Value Object, Domain Event, Repository Interface | 無（最內層） |
-| **Application** | Use Case, Application Service, DTO | Domain |
-| **Infrastructure** | Repository Impl, External Service, Framework | Application, Domain |
-| **Presentation** | Controller, API, UI | Application, Domain |
-
-**檢查要點**：
-- 依賴方向是否由外向內
-- Domain 層是否有 Framework 依賴
-
-**紅旗標誌**：
-- ❌ Domain 層 import Framework 類別
-- ❌ Application 層直接依賴 Infrastructure 實作
-- ❌ Entity 繼承 Framework 的 Base Class
-
----
-
-### 5.3 CQRS（Command Query Responsibility Segregation）
-
-**核心理念**：將讀取（Query）與寫入（Command）操作分離，各自優化。
-
-#### 5.3.1 Command（命令）
-**定義**：表達意圖改變系統狀態的操作，無回傳值（或僅回傳 ID）。
-
-**檢查要點**：
-- Command 是否只表達意圖，不包含邏輯
-- Command Handler 是否只處理一個 Command
-
-**紅旗標誌**：
-- ❌ Command 方法回傳複雜查詢結果
-- ❌ 一個 Handler 處理多種 Command
-
-#### 5.3.2 Query（查詢）
-**定義**：讀取資料，不改變系統狀態。
-
-**檢查要點**：
-- Query 是否為純讀取，無副作用
-- Query 模型是否可針對讀取優化（可不同於寫入模型）
-
-**紅旗標誌**：
-- ❌ Query 方法改變系統狀態
-- ❌ 強制使用相同模型進行讀寫
-
----
-
-### 5.4 Event Sourcing（事件溯源）
-
-**核心理念**：不儲存當前狀態，而是儲存所有狀態變更事件，透過重播事件重建狀態。
-
-#### 5.4.1 Event Store（事件儲存）
-**定義**：以 append-only 方式儲存所有 Domain Event。
-
-**檢查要點**：
-- 事件是否為不可變
-- 是否支援事件版本控制
-- 是否有 Snapshot 機制優化重播效能
-
-**紅旗標誌**：
-- ❌ 修改或刪除已儲存的事件
-- ❌ 事件缺少時間戳或版本號
-- ❌ 事件缺少足夠資訊重建狀態
-
-#### 5.4.2 Aggregate 重建
-**定義**：透過重播事件序列重建 Aggregate 當前狀態。
-
-#### 5.4.3 Projection（投影）
-**定義**：根據事件建立的讀取模型，用於 Query 優化。
-
-**檢查要點**：
-- Projection 是否可從事件重建
-- 是否支援多種 Projection 滿足不同查詢需求
-
-**紅旗標誌**：
-- ❌ Projection 作為唯一資料來源（應以事件為主）
-- ❌ Projection 無法從事件重建
-
----
-
-### 5.5 架構選擇指南
+### 快速架構選擇指南
 
 | 場景 | 建議架構 |
 |-----|---------|
