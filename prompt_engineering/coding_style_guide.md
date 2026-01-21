@@ -49,8 +49,3 @@
 # Route Naming
 - Do not add "list" in method names if URL already contains "list".
 - Example: Route::get('/banner/type/list', [BannerController::class, 'getBannerTypeList']);
-
-# Project Notes
-- Container name: php8 (not stars)
-- jq is not installed in the container
-- Project path: /var/www/html/stars
