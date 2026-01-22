@@ -25,23 +25,37 @@ behavior_constraints:
       - "純語法錯誤"
 
 # ============================================
-# 技能載入（按需激活）
+# 技能載入（動態激活）
 # ============================================
-# 本指令需要以下 Skills 的專業知識：
+# 基礎技能（每次審查必載）：
+# - coding-standard-expert: 命名規範、陣列結構、Validation 寫法
 # - architecture-reviewer: SOLID 原則、多層架構、DDD
-# - security-auditor: OWASP Top 10、輸入驗證、敏感資料
-# - performance-analyst: N+1 查詢、快取策略、擴展性
+
+# 動態技能載入規則：
+# 在「初步掃描」階段完成後，根據變更內容判斷是否需要額外載入以下 Skills：
+#
+# | 偵測條件                                      | 載入 Skill             |
+# |----------------------------------------------|------------------------|
+# | 涉及 SQL/Eloquent/Repository/Migration       | database-architect     |
+# | 涉及 Redis/Cache/Session/Queue               | redis-architect        |
+# | 涉及認證/授權/Token/密碼/敏感資料             | security-auditor       |
+# | 涉及 Controller/Route/API 端點               | api-designer           |
+# | 涉及大量迴圈/批次處理/分頁/效能敏感操作       | performance-analyst    |
+# | 涉及 Laravel 特定功能 (Middleware/Event/Job) | laravel-expert         |
+# | 涉及 Test/PHPUnit/Feature Test               | qa-tester              |
 
 # ============================================
 # 審核流程
 # ============================================
 review_process:
   1_initial_scan:
-    description: "初步掃描變更內容"
+    description: "初步掃描變更內容並決定動態載入技能"
     actions:
       - "識別變更檔案類型與數量"
       - "判斷變更類型（新功能/修復/重構）"
       - "評估影響範圍"
+      - "根據上述動態技能載入規則，決定額外載入哪些 Skills"
+
 
   2_detailed_review:
     description: "詳細審核各項目（參考對應 Skill）"
@@ -54,7 +68,7 @@ review_process:
         skill: null
       - name: "Coding Style"
         weight: 15
-        skill: null
+        skill: "coding-standard-expert"
       - name: "功能正確性"
         weight: 15
         skill: null
@@ -213,12 +227,11 @@ GitHub repo MCP 指南：
 ```markdown
 # <filename>
 
-## 版本記錄（請填入合理的版本號和更新時間 {{current_time}}）
+## 版本記錄
 
 | 版本 | 更新時間 | 變更摘要 |
 |------|---------|----------|
-| v1.0 | YYYY-MM-DD HH:MM | 初次審查 |
-| v1.1 | YYYY-MM-DD HH:MM | （後續更新時新增記錄） |
+| v1.0 | {{current_time}} | 初次審查 |
 
 ---
 

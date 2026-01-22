@@ -163,6 +163,7 @@
 | **database-architect** | 資料庫設計、索引優化、分表分庫、多租戶隔離 |
 | **redis-architect** | Redis 資料結構、分散式鎖、Pub/Sub、高可用架構 |
 | **laravel-expert** | 版本差異、Service Container、Middleware、Eloquent 進階 |
+| **coding-standard-expert** | 命名規範、陣列結構、Validation 寫法、Enum 實作 |
 | **devops-engineer** | CI/CD、容器化、Kubernetes、監控告警 |
 | **qa-tester** | 測試策略、自動化測試、安全測試、效能測試 |
 | **ux-designer** | 設計系統、響應式設計、無障礙設計、用戶研究 |
@@ -180,7 +181,7 @@
 | 需要審計追蹤、時間旅行 | Event Sourcing |
 | 複雜領域 + 高效能需求 | DDD + CQRS + Event Sourcing |
 
-**注意**：架構複雜度應與業務複雜度相匹配，避免過度設計。
+> **注意**：架構複雜度應與業務複雜度相匹配，避免過度設計。
 
 ---
 

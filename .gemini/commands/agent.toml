@@ -4,6 +4,7 @@ prompt = """
 # 技能載入（按需激活）
 # 本指令需要以下 Skills 的專業知識：
 # - architecture-reviewer: SOLID 原則、多層架構、DDD
+# - coding-standard-expert: 命名規範、陣列結構、Validation 寫法
 # - performance-analyst: N+1 查詢、快取策略
 # - security-auditor: 輸入驗證、認證授權
 
