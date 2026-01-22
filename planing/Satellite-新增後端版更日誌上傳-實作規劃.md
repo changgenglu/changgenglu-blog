@@ -5,6 +5,7 @@
 | 版本 | 更新時間 | 變更摘要 |
 |------|---------|----------|
 | v1.0 | 2026-01-22 | 初次規劃 |
+| v1.1 | 2026-01-22 | 移除 Env/Config 設定，改採常數定義路徑 |
 
 ---
 
@@ -14,20 +15,20 @@
 - **需求背景**：現有版更日誌管理僅涵蓋「前台 (Client)」與「後台/宇宙 (Universe)」日誌。因應營運需求，需新增「後端 (Backend)」專用的版更日誌上傳與查詢功能。
 - **功能目標**：
   - 在現有 `VersionLogController` 中擴充支援後端日誌。
-  - 上傳路徑需保持彈性（目前未定），透過設定檔管理。
+  - 上傳路徑遵循專案慣例，於程式碼中定義。
   - 權限比照現有控端管理規範。
-- **影響範圍**：API 擴充、Feature Seeder 更新、環境變數新增。
+- **影響範圍**：API 擴充、Feature Seeder 更新。
 
 ### 1.2 範圍界定
 - **包含**：
   - 新增後端日誌的 Upload 與 Get URL API。
   - 新增對應的 Feature 權限（ID 255, 256）。
-  - 設定檔與環境變數整合。
 - **不包含**：
   - 前端介面開發。
   - 日誌內容驗證（僅驗證 JSON 格式）。
+  - `.env` 或 `config` 設定檔修改。
 - **假設條件**：
-  - 基礎路徑結構仍維持 `common/{client_id}/`，僅檔案名稱/子路徑可變動。
+  - 基礎路徑結構仍維持 `common/{client_id}/`。
   - 若 `Feature` ID 250~254 尚未建立，需一併補齊。
 
 ---
@@ -45,28 +46,13 @@
 | 256 | 上傳後端版更日誌檔案 | Function | 新增 |
 
 ### 2.2 設定變更
-#### .env
-新增以下環境變數，以支援未定的上傳路徑：
-
-```ini
-# Version Log Paths
-# Default: version/backend-release.json
-VERSION_LOG_BACKEND_FILENAME=version/backend-release.json
-```
-
-#### config/services.php (Optional)
-若需集中管理，可於 `services.php` 新增：
-```php
-'version_log' => [
-    'backend_filename' => env('VERSION_LOG_BACKEND_FILENAME', 'version/backend-release.json'),
-],
-```
+**N/A**
 
 ### 2.3 程式碼結構
 #### 修改檔案
 | 檔案路徑 | 修改內容摘要 |
 |---------|-------------|
-| `app/Http/Controllers/VersionLogController.php` | 新增 `backend` 相關常數與方法 |
+| `app/Http/Controllers/VersionLogController.php` | 新增 `BACKEND_FILENAME` 常數與相關方法 |
 | `routes/api.php` | 註冊 `backend` 路由 |
 | `database/seeders/Feature.php` | 註冊 Feature ID 255, 256 |
 
@@ -134,12 +120,11 @@ VERSION_LOG_BACKEND_FILENAME=version/backend-release.json
 ### 4.1 實作任務清單
 | # | 任務 | 依賴 |
 |---|-----|-----|
-| 1 | 設定 `.env` 與 Config：定義 `VERSION_LOG_BACKEND_FILENAME` | - |
-| 2 | 修改 Controller：`VersionLogController` 新增 Backend 方法 | 1 |
-| 3 | 設定 Routes：`api.php` 增加 Backend 路由 | 2 |
-| 4 | 修改 Seeder：`Feature.php` 新增 ID 255, 256 | - |
-| 5 | 執行 Seeder：`php artisan db:seed --class=Feature` | 4 |
-| 6 | 驗證測試：使用 Postman 測試上傳與下載 | 5 |
+| 1 | 修改 Controller：`VersionLogController` 新增 `BACKEND_FILENAME` 常數與方法 | - |
+| 2 | 設定 Routes：`api.php` 增加 Backend 路由 | 1 |
+| 3 | 修改 Seeder：`Feature.php` 新增 ID 255, 256 | - |
+| 4 | 執行 Seeder：`php artisan db:seed --class=Feature` | 3 |
+| 5 | 驗證測試：使用 Postman 測試上傳與下載 | 4 |
 
 ### 4.2 關鍵邏輯 (Pseudo Code)
 
@@ -148,11 +133,7 @@ VERSION_LOG_BACKEND_FILENAME=version/backend-release.json
 class VersionLogController extends Controller
 {
     // ... existing constants
-
-    // 讀取 Config 或 Env
-    private function getBackendFilename() {
-        return config('services.version_log.backend_filename', 'version/backend-release.json');
-    }
+    const BACKEND_FILENAME = 'version/backend-release.json';
 
     /**
      * @GET("/api/version_log/backend/file_url")
@@ -163,9 +144,8 @@ class VersionLogController extends Controller
         $this->validateCtlUser();
         // ... get provider ...
 
-        // 2. 取得路徑 (使用 Config)
-        $filename = $this->getBackendFilename();
-        $url = $storageService->getPath(self::GCS_PATH, $filename, ['client_id' => $clientId]);
+        // 2. 取得路徑 (使用常數)
+        $url = $storageService->getPath(self::GCS_PATH, self::BACKEND_FILENAME, ['client_id' => $clientId]);
 
         // ... return url ...
     }
@@ -177,9 +157,8 @@ class VersionLogController extends Controller
     {
         // 1. 驗證與權限 (同 existing)
         
-        // 2. 上傳 (使用 Config)
-        $filename = $this->getBackendFilename();
-        $storageUrl = $storageService->getPath(self::GCS_PATH, $filename, ['client_id' => $clientId]);
+        // 2. 上傳 (使用常數)
+        $storageUrl = $storageService->getPath(self::GCS_PATH, self::BACKEND_FILENAME, ['client_id' => $clientId]);
         
         $storageService->upload($file, $storageUrl);
         
@@ -195,9 +174,8 @@ class VersionLogController extends Controller
 ### 5.1 部署注意事項
 | 階段 | 項目 | 說明 |
 |-----|-----|-----|
-| 部署前 | Env | 確保生產環境 `.env` 設定 `VERSION_LOG_BACKEND_FILENAME` |
 | 部署後 | Seeder | 執行 `db:seed --class=Feature` |
-| 部署後 | Cache | 執行 `config:cache` 與 `route:cache` |
+| 部署後 | Cache | 執行 `route:cache` |
 
 ### 5.2 驗證項目
 | 測試類別 | 測試情境 | 預期結果 |
@@ -205,8 +183,7 @@ class VersionLogController extends Controller
 | 整合測試 | 呼叫 upload API (Backend) | 回傳 true，GCS 產生檔案 |
 | 整合測試 | 呼叫 file_url API (Backend) | 回傳正確 URL |
 | 權限測試 | 非控端帳號存取 | 回傳 403 |
-| 設定測試 | 修改 `.env` 路徑後上傳 | 檔案上傳至新路徑 |
 
 ### 5.3 自我檢查點
-- [ ] 確認 `.env.example` 已同步更新
+- [ ] 確認 `BACKEND_FILENAME` 常數定義正確
 - [ ] 確認 Feature ID 未與其他功能衝突
