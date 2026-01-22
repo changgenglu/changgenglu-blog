@@ -25,19 +25,23 @@ description: "Activates when user requests API design, RESTful conventions, inte
 
 ### 1.2 URL 設計規範
 
-```
-✅ 正確
-GET    /api/v1/users           # 取得用戶列表
-GET    /api/v1/users/123       # 取得單一用戶
-POST   /api/v1/users           # 新增用戶
-PUT    /api/v1/users/123       # 更新用戶
-DELETE /api/v1/users/123       # 刪除用戶
-GET    /api/v1/users/123/orders  # 取得用戶的訂單
+**團隊共識**：URL 不帶路徑變數，識別碼放在 Query Parameter。
 
-❌ 錯誤
-GET    /api/v1/getUsers        # 動詞不應在 URL
-POST   /api/v1/users/create    # 動詞不應在 URL
-GET    /api/v1/user/123        # 應使用複數
+```
+✅ 正確（識別碼放 Query）
+GET    /api/v1/users              # 取得用戶列表
+GET    /api/v1/users?id=123       # 取得單一用戶
+POST   /api/v1/users              # 新增用戶
+PUT    /api/v1/users?id=123       # 更新用戶
+DELETE /api/v1/users?id=123       # 刪除用戶
+GET    /api/v1/orders?user_id=123 # 取得用戶的訂單
+
+❌ 錯誤（識別碼在 Path）
+GET    /api/v1/users/123          # 應使用 ?id=123
+PUT    /api/v1/users/123          # 應使用 ?id=123
+GET    /api/v1/users/123/orders   # 應使用 ?user_id=123
+GET    /api/v1/getUsers           # 動詞不應在 URL
+POST   /api/v1/users/create       # 動詞不應在 URL
 ```
 
 ### 1.3 版本控制策略
@@ -58,7 +62,7 @@ GET    /api/v1/user/123        # 應使用複數
 
 | 參數類型 | 位置 | 使用場景 |
 |---------|------|---------|
-| **識別碼** | Path | `/users/{id}` |
+| **識別碼** | Query | `?id=123` |
 | **篩選條件** | Query | `?status=active&page=1` |
 | **資源資料** | Body | 新增/更新的完整資料 |
 | **認證資訊** | Header | `Authorization: Bearer xxx` |

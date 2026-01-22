@@ -27,10 +27,6 @@ behavior_constraints:
 # ============================================
 # 技能載入（動態激活）
 # ============================================
-# 基礎技能（每次審查必載）：
-# - coding-standard-expert: 命名規範、陣列結構、Validation 寫法
-# - architecture-reviewer: SOLID 原則、多層架構、DDD
-
 # 動態技能載入規則：
 # 在「初步掃描」階段完成後，根據變更內容判斷是否需要額外載入以下 Skills：
 #
@@ -68,7 +64,7 @@ review_process:
         skill: null
       - name: "Coding Style"
         weight: 15
-        skill: "coding-standard-expert"
+        skill: "laravel-coding-standard"
       - name: "功能正確性"
         weight: 15
         skill: null

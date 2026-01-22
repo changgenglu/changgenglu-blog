@@ -2,13 +2,6 @@ description = "調查並制定策略性計畫（適用於 gemini-cli 自動化�
 current_time = "date '+%Y-%m-%d %H:%M'"
 
 prompt = """
-# 技能載入（按需激活）
-# 本指令需要以下 Skills 的專業知識：
-# - architecture-reviewer: SOLID 原則、多層架構、DDD
-# - api-designer: RESTful 設計、請求回應規範
-# - database-architect: 資料庫設計、索引優化
-# - business-analyst: 需求分析、業務流程設計
-
 # 角色定義
 你是資深軟體架構師（10+ Years Exp），專精於 Laravel、DDD 與 Clean Code。
 你的唯一目標是將使用者需求轉換為「可實作、可驗證、可執行」的技術規格文件。

@@ -1,8 +1,23 @@
-## Gemini CLI Agent Skills 撰寫指南
+# Gemini CLI Agent Skills 撰寫指南
 
-本指南旨在協助開發者為 Agent 構建高精準度、低幻覺（Hallucination）的技能（Skills）。
+> 本指南說明如何為 Gemini CLI 設計高品質的 Agent Skills(高精準度、低幻覺（Hallucination）)，並確保與現有配置（GEMINI.md, Commands）無縫整合。
 
-### 1. 核心結構 (The Anatomy of a Skill)
+## 1. 核心機制：自動發現 (Auto-Discovery)
+
+Gemini CLI 具備「自動發現」機制，會掃描 `.gemini/skills/` 目錄，將所有 Skills 的 Metadata (Name, Description) 注入 System Prompt。
+
+- **觸發流程**：
+  1. Session 啟動：載入所有 Skills 的 `name` 與 `description`。
+  2. 任務識別：模型根據 User Task 比對 Skill Description。
+  3. 動態激發：模型主動呼叫 `activate_skill` 工具，載入完整 `SKILL.md` 內容。
+
+**⚠️ 重要觀念**：由於此機制全自動且基於語意匹配，我們**不需要**（也不建議）在其他地方手動強制載入 Skills。
+
+---
+
+## 2. 最佳實踐與設計規範
+
+### 2.0 核心結構 (The Anatomy of a Skill)
 
 一個標準的 Skill 通常包含三個關鍵部分，缺一不可：
 
@@ -10,34 +25,34 @@
 * **Description (功能描述)**：這是最重要的部分，AI 透過這段文字理解「這是什麼」以及「什麼時候該用」。
 * **Parameters Schema (參數定義)**：告訴 AI 需要提取哪些資訊來執行任務。
 
----
-
-## 🚀 最佳實踐與設計規範
-
 以下是用於撰寫高品質 Skill 的具體規範：
 
 ### 2.1 命名規範 (Naming Conventions)
 
-* **動詞開頭**：使用清晰的 `動詞_名詞` 格式。
-* ✅ `get_current_weather`, `execute_sql_query`, `search_knowledge_base`
-* ❌ `weather`, `sql`, `search`
-
-
-* **避免歧義**：名稱應能自解釋，避免重疊。
+- **目錄名稱** = **Skill Name** (使用 kebab-case，如 `laravel-coding-standard`)
+- **檔案路徑**：`.gemini/skills/<skill-name>/SKILL.md`
+- **動詞開頭**：使用清晰的 `動詞-名詞` 格式。
+    * ✅ `get-current-weather`, `execute-sql-query`, `search-knowledge-base`
+    * ❌ `weather`, `sql`, `search`
+- **避免歧義**：名稱應能自解釋，避免重疊。
 
 ### 2.2 描述撰寫 (Description Engineering)
 
-這是 AI 的「提示詞（Prompt）」。寫得越好，AI 調用越準確。
+Description 是模型判斷「何時使用此技能」的唯一依據。必須包含三個要素：
+1. **觸發場景 (Activates when...)**：明確列出適用情境。
+2. **負向約束 (Do NOT use for...)**：明確界定邊界，防止誤觸發。
+3. **具體範例 (Examples...)**：提供 User Prompt 範例。
 
-* **包含場景**：說明在什麼情況下應該使用此工具。
-* **包含限制**：說明此工具**不能**做什麼。
-* **範例說明**：如果是複雜格式，在描述中加入範例。
+**❌ 錯誤示範**：
+```yaml
+description: "Laravel coding standards and best practices."
+```
+*(太過籠統，可能在一般 PHP 問題時也被觸發)*
 
-> **範例對比：**
-> * *差勁的描述*："Get weather."
-> * *優秀的描述*："Retrieves the current weather conditions for a specific city. Use this when the user asks about temperature, rain, or forecast. Requires a city name and optional country code."
-> 
-> 
+**✅ 正確示範**：
+```yaml
+description: "Activates when user writes or reviews PHP/Laravel code, requiring Laravel-specific coding standards validation. Do NOT use for basic indentation/whitespace checks (handled by linter). Examples: 'Check naming conventions', 'Review validation format'."
+```
 
 ### 2.3 參數定義 (Parameter Constraints)
 
@@ -47,76 +62,44 @@
 * **必填 vs 選填**：明確標記 `Required` 欄位。
 * **詳細的參數描述**：每個參數都應有 `description`，解釋預期的格式（如："ISO 8601 date format" 或 "City name, not zip code"）。
 
----
-
-## 🛠️ 實作範例 (Implementation Pattern)
-
-如果你正在編寫 JavaScript/TypeScript (常見於 geminicli 擴充) 或 Python 技能，請參考以下範例結構。
-
-### ## 📌 指令內容 (Skill Definition Example)
-
-這是給開發者參考的標準 Skill 定義模板（以 JSON Schema/TypeScript 為例）：
-
-```typescript
-// 定義一個 "獲取股票價格" 的 Skill
-const getStockPriceSkill = {
-  name: "get_stock_price",
-  description: "Retrieves the real-time or closing price of a specific stock symbol. Use this when the user asks for 'current price', 'stock value', or market data. Do NOT use for cryptocurrency.",
-  parameters: {
-    type: "OBJECT",
-    properties: {
-      symbol: {
-        type: "STRING",
-        description: "The stock ticker symbol (e.g., AAPL, GOOGL, TSLA). Must be uppercase."
-      },
-      market: {
-        type: "STRING",
-        enum: ["US", "HK", "TW"],
-        description: "The stock market region. Defaults to 'US' if not specified."
-      }
-    },
-    required: ["symbol"]
-  }
-};
-
-```
-
-### ## 📖 設計原理
-
-1. **防禦性描述 (Defensive Description)**：
-* 加入了 "Do NOT use for cryptocurrency"（禁止用於加密貨幣）。這是一種**負向約束**，防止 AI 在遇到 "Bitcoin price" 時錯誤調用此工具，減少執行錯誤。
-
-
-2. **參數枚舉 (Enum Constraints)**：
-* `market` 參數被限制為 `["US", "HK", "TW"]`。這確保了後端 API 收到的區域代碼永遠是合法的，AI 不會產生 "United States" 這種無法解析的字串。
-
-
-3. **預設值邏輯**：
-* 在描述中暗示 "Defaults to 'US'"，引導 AI 在使用者未提供市場時，可以忽略此參數或填入預設值。
-
-
 
 ---
 
-## 💡 進階技巧：如何讓 AI 幫你寫 Skills？
+## 3. 配置整合策略：避免 Context 衝突
 
-你可以使用以下 Prompt 讓 Gemini 幫你將一般程式碼轉換為 Gemini CLI 可用的 Skill 定義。
+由於 Skills 是「按需加載 (On-Demand)」，應避免與「常駐 Context」發生衝突或冗餘。
 
-**Prompt 範本：**
+### 3.1 GEMINI.md (專案核心文檔)
+- **原則**：GEMINI.md 是常駐 Context，應保持精簡。
+- **做**：僅提示「詳細知識已模組化」，引導 AI 依賴 Skills。
+- **不做**：列出詳細的 Skill 表格或指令。CLI 已經自動將 Skill 列表注入 System Prompt，手動列出會造成 Token 浪費與潛在混淆。
 
-```markdown
-你是 Gemini CLI 的技能開發專家。請將我提供的以下功能需求，轉換為符合 Google Generative AI `FunctionDeclaration` (JSON Schema) 格式的 Skill 定義。
+### 3.2 Custom Commands (`config.toml`)
+- **原則**：Commands 定義特定任務流程，Skills 提供執行任務所需的知識。
+- **做**：在 Prompt 中使用「弱提示」來指引 AI 考慮特定領域知識。
+  ```toml
+  # 提示 AI 本任務可能需要某些領域知識
+  # - laravel-coding-standard
+  # - security-auditor
+  ```
+- **不做**：
+  - **不要使用路徑引用**：如 `.gemini/skills/xx/SKILL.md`（模型可能試圖讀取檔案而失敗）。
+  - **不要強制加載指令**：依賴模型的自動判斷能力通常更好。
 
-**需求：**
-[在此貼上你的功能，例如：寫一個可以查詢特定 IP 地址地理位置的工具]
+### 3.3 System.md (角色定義)
+- **原則**：定義 Agnet 的「核心人格」與「最高指導原則」。
+- **關係**：System.md 定義 "Who I am" (e.g., Senior Architect)，Skills 定義 "What I can do" (e.g., Audit Security)。兩者互補不衝突。
 
-**要求：**
-1. **Name**：使用 snake_case，動詞開頭。
-2. **Description**：詳細說明用途、使用時機以及輸入限制。
-3. **Parameters**：提供精確的類型、描述，並盡可能使用 Enum 來限制選項。
-4. **Output**：請以 JSON 格式輸出。
+---
 
-```
+## 4. 審查清單 (Checklist)
+
+新增或修改 Skill 時，請確認：
+
+- [ ] **命名一致**：目錄名與 `name` 欄位一致。
+- [ ] **精準描述**：Description 包含 `Activates when`, `Do NOT use`, `Examples`。
+- [ ] **獨立性**：Skill 內容是否足夠獨立，不依賴其他 Skill？
+- [ ] **無冗餘引用**：檢查 `commands/*.toml` 與 `GEMINI.md`，確保沒有過時或重複的強制引用。
 
 ---
 
@@ -125,3 +108,4 @@ const getStockPriceSkill = {
 * **Gemini CLI Skills Documentation**: [https://geminicli.com/docs/cli/skills/](https://geminicli.com/docs/cli/skills/)
 * **Google Gemini API - Function Calling**: [https://ai.google.dev/gemini-api/docs/function-calling](https://ai.google.dev/gemini-api/docs/function-calling) (官方底層原理)
 * **OpenAI Cookbook - Function Calling Best Practices**: 雖然是 OpenAI 文件，但在參數描述（Description Engineering）上的邏輯與 Gemini 高度通用。
+

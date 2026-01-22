@@ -148,28 +148,8 @@
 
 ---
 
-## 5. 架構精神（Skill 引用）
-
 > 詳細的架構知識已模組化至 Agent Skill，將根據任務自動載入。
-> 參考路徑：`.gemini/skills/architecture-reviewer/SKILL.md`
 
-執行程式碼生成或審查時，會自動激活以下專家知識：
-
-| Skill | 涵蓋內容 |
-|-------|---------|
-| **architecture-reviewer** | SOLID 原則、多層架構、DDD、Clean Architecture |
-| **security-auditor** | OWASP Top 10、輸入驗證、認證授權、敏感資料處理 |
-| **performance-analyst** | N+1 查詢、快取策略、複雜度分析、擴展性評估 |
-| **database-architect** | 資料庫設計、索引優化、分表分庫、多租戶隔離 |
-| **redis-architect** | Redis 資料結構、分散式鎖、Pub/Sub、高可用架構 |
-| **laravel-expert** | 版本差異、Service Container、Middleware、Eloquent 進階 |
-| **coding-standard-expert** | 命名規範、陣列結構、Validation 寫法、Enum 實作 |
-| **devops-engineer** | CI/CD、容器化、Kubernetes、監控告警 |
-| **qa-tester** | 測試策略、自動化測試、安全測試、效能測試 |
-| **ux-designer** | 設計系統、響應式設計、無障礙設計、用戶研究 |
-| **business-analyst** | 需求分析、業務流程設計、數據分析、KPI 定義 |
-| **api-designer** | RESTful 設計、請求回應規範、API 安全、文檔規範 |
-| **code-mentor** | 代碼解讀、設計模式教學、視覺化工具、學習指導 |
 
 ### 快速架構選擇指南
 
