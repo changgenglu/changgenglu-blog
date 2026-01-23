@@ -2,6 +2,7 @@ description = "執行 AI Code Review，依據審核規範分析 git diff 變更"
 
 git_diff = "git diff origin/master...HEAD -- . ':(exclude)package-lock.json' ':(exclude)composer.lock' ':(exclude)*.lock'"
 current_time = "date '+%Y-%m-%d %H:%M'"
+project_name = "basename $PWD"
 
 prompt = """
 # ============================================
@@ -194,8 +195,10 @@ testability:
 # ============================================
 # 輸出格式（必須嚴格遵循）
 # ============================================
+# 以下 MCP 操作為可選，若 MCP 不可用或發生錯誤，直接將報告輸出至對話中。
 
-請將報告寫入到 GitHub 儲存庫（GitHub repo MCP） `changgenglu/changgenglu-blog` 的 `code-review/` 目錄中。
+請嘗試將報告寫入到 GitHub 儲存庫（GitHub repo MCP） `changgenglu/changgenglu-blog` 的 `code-review/` 目錄中。
+**若 MCP 不可用或發生錯誤，跳過儲存庫寫入，直接在對話中輸出完整報告。**
 
 GitHub repo MCP 指南：
 1. 首先使用 `get_file_contents` 檢查是否存在同名檔案。
@@ -211,8 +214,8 @@ GitHub repo MCP 指南：
 4. 完成後回報寫入的檔案路徑與狀態。
 
 **filename 命名規則**：
-- 使用分支名稱作為檔案名稱（不含時間戳或流水號）
-- 範例：分支 `feature-inbox` → `feature-inbox.md`
+- 使用 {{project_name}} + 分支名稱作為檔案名稱（不含時間戳或流水號）
+- 範例：`{{project_name}}` + 分支 `feature-inbox` → `{{project_name}}-feature-inbox.md`
 
 **文件更新邏輯**：
 - 若已存在同名檔案，則更新該檔案內容，並在版本記錄區塊新增一筆記錄
@@ -291,17 +294,18 @@ GitHub repo MCP 指南：
 ```
 
 # ============================================
-# 審查完成通知（LINE MCP）
+# 審查完成通知（LINE MCP - 可選）
 # ============================================
 
-完成 code review 後，使用 `push_text_message` 發送摘要通知：
+完成 code review 後，嘗試使用 `push_text_message` 發送摘要通知。
+**若 MCP 不可用或發生錯誤，跳過通知並完成任務。**
 
 **MCP 呼叫範例**：
 {
   "tool": "push_text_message",
   "arguments": {
     "message": {
-      "text": "📋 審查內容：\n{ git branch name }\n⚒️ 功能說明：\n{回答重點，2-3 句}\n💡 審查結果：\n{回答重點，2-3 句}\n⚠️ 注意：\n{若有重要提醒則列出，否則省略}"
+      "text": "🏷️ 專案：{{project_name}}\n📋 審查內容：\n{ git branch name }\n⚒️ 功能說明：\n{回答重點，2-3 句}\n💡 審查結果：\n{回答重點，2-3 句}\n⚠️ 注意：\n{若有重要提醒則列出，否則省略}"
     }
   }
 }
