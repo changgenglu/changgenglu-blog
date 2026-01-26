@@ -1,0 +1,220 @@
+# Kubectl 學習筆記
+
+> 本文件記錄 Kubernetes kubectl 命令的使用方法與 Pod 網路連線測試技巧
+
+<!-- TOC -->
+
+- [Kubectl 學習筆記](#kubectl-學習筆記)
+  - [基礎概念](#基礎概念)
+  - [curl 效能測試命令](#curl-效能測試命令)
+    - [基本命令結構](#基本命令結構)
+    - [參數說明](#參數說明)
+    - [時間測量指標](#時間測量指標)
+  - [Kubernetes 環境中的 Pod 間連線測試](#kubernetes-環境中的-pod-間連線測試)
+    - [準備工作](#準備工作)
+      - [確認 Pod 和 Service 資訊](#確認-pod-和-service-資訊)
+      - [查看 Pod 分佈和節點資訊](#查看-pod-分佈和節點資訊)
+    - [測試方法](#測試方法)
+      - [使用 Service 名稱測試（推薦）](#使用-service-名稱測試推薦)
+      - [使用 Pod IP 直接測試](#使用-pod-ip-直接測試)
+      - [使用 Service IP 測試](#使用-service-ip-測試)
+    - [效能比較測試](#效能比較測試)
+      - [簡化版本（只顯示總時間）](#簡化版本只顯示總時間)
+      - [批次測試](#批次測試)
+      - [跨節點 vs 同節點效能比較](#跨節點-vs-同節點效能比較)
+    - [故障排除](#故障排除)
+      - [DNS 解析問題](#dns-解析問題)
+      - [檢查 Pod 工具可用性](#檢查-pod-工具可用性)
+      - [檢查網路政策](#檢查網路政策)
+    - [最佳實踐](#最佳實踐)
+  - [常見問題](#常見問題)
+    - [Q1: 出現 "Could not resolve host" 錯誤](#q1-出現-could-not-resolve-host-錯誤)
+    - [Q2: 連線被拒絕](#q2-連線被拒絕)
+    - [Q3: 時間測量都是 0](#q3-時間測量都是-0)
+    - [Q4: 效能差異很大](#q4-效能差異很大)
+
+<!-- /TOC -->
+
+## 基礎概念
+
+本文件說明如何使用 `curl` 命令測試 Kubernetes 環境中 Pod 間的網路連線效能和延遲。透過系統性的測試方法，可以有效診斷和分析 Pod 間的網路狀況。
+
+## curl 效能測試命令
+
+### 基本命令結構
+
+```bash
+curl -v -w "\n=== Timing Analysis ===\nDNS Lookup: %{time_namelookup}s\nTCP Connect: %{time_connect}s\nSSL Handshake: %{time_appconnect}s\nTime to First Byte: %{time_starttransfer}s\nTotal Time: %{time_total}s\n" https://example.com/api/endpoint
+```
+
+### 參數說明
+
+| 參數 | 功能 | 描述 |
+|------|------|------|
+| `-v` | Verbose | 顯示詳細的請求和回應資訊，包括標頭、SSL 憑證等 |
+| `-w` | Write-out | 自訂輸出格式，顯示指定的測量數據 |
+
+### 時間測量指標
+
+| 指標 | 變數 | 說明 |
+|------|------|------|
+| DNS Lookup | `%{time_namelookup}` | 域名解析為 IP 位址所需時間 |
+| TCP Connect | `%{time_connect}` | TCP 連線建立時間（三次握手） |
+| SSL Handshake | `%{time_appconnect}` | SSL/TLS 握手時間（HTTPS 時） |
+| Time to First Byte | `%{time_starttransfer}` | 從請求開始到接收第一個位元組的時間 |
+| Total Time | `%{time_total}` | 整個請求過程的總時間 |
+
+## Kubernetes 環境中的 Pod 間連線測試
+
+### 準備工作
+
+#### 確認 Pod 和 Service 資訊
+
+```bash
+# 查看所有 namespace
+kubectl get namespaces
+
+# 查看指定 namespace 中的 pods
+kubectl get pods -n <namespace> -o wide
+
+# 查看指定 namespace 中的 services
+kubectl get svc -n <namespace>
+```
+
+#### 查看 Pod 分佈和節點資訊
+
+```bash
+# 查看 Pod 在不同節點的分佈情況
+kubectl get pods -n <namespace> -o wide --sort-by=.spec.nodeName
+```
+
+### 測試方法
+
+#### 使用 Service 名稱測試（推薦）
+
+```bash
+# 基本語法
+kubectl exec -n <namespace> <source-pod> -- curl -v -w "\n=== Timing Analysis ===\nDNS Lookup: %{time_namelookup}s\nTCP Connect: %{time_connect}s\nSSL Handshake: %{time_appconnect}s\nTime to First Byte: %{time_starttransfer}s\nTotal Time: %{time_total}s\n" http://<target-service>:<port>/
+
+# 範例
+kubectl exec -n backend stars-cron-backend-78c97498b8-7v62k -- curl -v -w "\n=== Timing Analysis ===\nDNS Lookup: %{time_namelookup}s\nTCP Connect: %{time_connect}s\nSSL Handshake: %{time_appconnect}s\nTime to First Byte: %{time_starttransfer}s\nTotal Time: %{time_total}s\n" http://stars-backend:80/
+```
+
+#### 使用 Pod IP 直接測試
+
+```bash
+# 直接使用 Pod IP 測試（跳過 DNS 解析和 LoadBalancer）
+kubectl exec -n <namespace> <source-pod> -- curl -v -w "\n=== Timing Analysis ===\nDNS Lookup: %{time_namelookup}s\nTCP Connect: %{time_connect}s\nSSL Handshake: %{time_appconnect}s\nTime to First Byte: %{time_starttransfer}s\nTotal Time: %{time_total}s\n" http://<target-pod-ip>:<port>/
+```
+
+#### 使用 Service IP 測試
+
+```bash
+# 使用 Service 的 Cluster IP 測試（跳過 DNS 解析）
+kubectl exec -n <namespace> <source-pod> -- curl -v -w "\n=== Timing Analysis ===\nDNS Lookup: %{time_namelookup}s\nTCP Connect: %{time_connect}s\nSSL Handshake: %{time_appconnect}s\nTime to First Byte: %{time_starttransfer}s\nTotal Time: %{time_total}s\n" http://<service-cluster-ip>:<port>/
+```
+
+### 效能比較測試
+
+#### 簡化版本（只顯示總時間）
+
+```bash
+# 測試 Service 名稱
+kubectl exec -n <namespace> <source-pod> -- curl -s -w "Service DNS: %{time_total}s\n" -o /dev/null http://<service-name>:<port>/
+
+# 測試 Service IP
+kubectl exec -n <namespace> <source-pod> -- curl -s -w "Service IP: %{time_total}s\n" -o /dev/null http://<service-ip>:<port>/
+
+# 測試 Pod IP
+kubectl exec -n <namespace> <source-pod> -- curl -s -w "Pod IP: %{time_total}s\n" -o /dev/null http://<pod-ip>:<port>/
+```
+
+#### 批次測試
+
+```bash
+# 執行多次測試取平均值
+for i in {1..10}; do
+  kubectl exec -n <namespace> <source-pod> -- curl -s -w "%{time_total}\n" -o /dev/null http://<target>:<port>/
+done
+```
+
+#### 跨節點 vs 同節點效能比較
+
+```bash
+# 測試跨節點連線
+kubectl exec -n <namespace> <source-pod> -- curl -s -w "跨節點: %{time_total}s\n" -o /dev/null http://<cross-node-pod-ip>:<port>/
+
+# 測試同節點連線
+kubectl exec -n <namespace> <source-pod> -- curl -s -w "同節點: %{time_total}s\n" -o /dev/null http://<same-node-pod-ip>:<port>/
+```
+
+### 故障排除
+
+#### DNS 解析問題
+
+```bash
+# 檢查 DNS 解析
+kubectl exec -n <namespace> <pod-name> -- nslookup <service-name>
+
+# 檢查 DNS 設定
+kubectl exec -n <namespace> <pod-name> -- cat /etc/resolv.conf
+
+# 使用完整 FQDN
+kubectl exec -n <namespace> <pod-name> -- curl http://<service-name>.<namespace>.svc.cluster.local:<port>/
+```
+
+#### 檢查 Pod 工具可用性
+
+```bash
+# 檢查 curl 是否可用
+kubectl exec -n <namespace> <pod-name> -- which curl
+
+# 如果沒有 curl，使用 wget
+kubectl exec -n <namespace> <pod-name> -- wget -O- --server-response http://<target>:<port>/
+```
+
+#### 檢查網路政策
+
+```bash
+# 檢查 NetworkPolicy
+kubectl get networkpolicy -n <namespace>
+
+# 檢查 Pod 標籤
+kubectl get pods -n <namespace> --show-labels
+```
+
+### 最佳實踐
+
+1. **測試順序建議**：
+   - 先測試 Service 名稱（完整路徑）
+   - 再測試 Service IP（跳過 DNS）
+   - 最後測試 Pod IP（跳過 LoadBalancer）
+
+2. **效能基準**：
+   - 同節點 Pod 間通訊：< 5ms
+   - 跨節點 Pod 間通訊：< 10ms
+   - DNS 解析：< 5ms
+
+3. **測試建議**：
+   - 執行多次測試取平均值
+   - 測試不同時間點的效能
+   - 記錄測試環境和條件
+
+## 常見問題
+
+### Q1: 出現 "Could not resolve host" 錯誤
+
+**A**: 檢查 Service 名稱是否正確，或嘗試使用完整 FQDN 格式
+
+### Q2: 連線被拒絕
+
+**A**: 檢查目標 Pod 是否正在運行，端口是否正確
+
+### Q3: 時間測量都是 0
+
+**A**: 可能是連線失敗，檢查網路政策和防火牆設定
+
+### Q4: 效能差異很大
+
+**A**: 考慮網路負載、Pod 資源使用情況和節點間網路狀況
+
