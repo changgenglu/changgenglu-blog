@@ -15,6 +15,11 @@ const routes = [
     component: HomeView,
   },
   {
+    path: "/category/:categoryName",
+    name: "CategoryList",
+    component: () => import("../views/CategoryListView.vue"),
+  },
+  {
     path: "/:title",
     name: "Markdown",
     // route level code-splitting

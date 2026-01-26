@@ -34,6 +34,7 @@
 import ScrollToTopButton from '@/components/ScrollToTopButton.vue';
 import Markdown from 'vue3-markdown-it';
 import { parseMarkdown } from '@/utils/markdownParser';
+import fileList from '@/assets/fileNames.json';
 
 export default {
   components: { Markdown, ScrollToTopButton },
@@ -54,9 +55,20 @@ export default {
       this.isLoading = true;
       this.error = null;
       try {
-        // Cache Busting: 使用當前時間戳 (若有真實更新時間更佳，此處先用 Timestamp)
+        // 查找檔案路徑
+        const targetFile = fileList.find(f => f.name === this.fileName);
+        let filePath = this.fileName;
+        
+        if (targetFile && targetFile.path) {
+          filePath = targetFile.path;
+        }
+
+        // Cache Busting: 使用當前時間戳
         const version = new Date().getTime(); 
-        const url = `${process.env.BASE_URL}markdownFiles/${encodeURIComponent(this.fileName)}?v=${version}`;
+        
+        // 處理 URL 編碼，保留路徑分隔符
+        const encodedPath = filePath.split('/').map(segment => encodeURIComponent(segment)).join('/');
+        const url = `${process.env.BASE_URL}markdownFiles/${encodedPath}?v=${version}`;
         
         const response = await fetch(url);
         

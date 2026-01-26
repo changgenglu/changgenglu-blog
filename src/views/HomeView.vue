@@ -9,59 +9,70 @@
             </path>
           </svg>
         </span>
-        <input type="text" v-model="searchText" placeholder="搜尋筆記" class="col-10">
+        <input type="text" v-model="searchText" placeholder="搜尋筆記 (跨分類)" class="col-10">
       </div>
     </div>
-    <div class="row">
-      <div v-for="(item, index) in markdownCards" :key="index" :class="{ 'col-6': !isMobile }">
-        <router-link :to="`/${item.name}`">
-          <div class="card mb-3 bg-transparent" :class="{ 'border-light': isMobile }">
-            <div class="card-header d-flex"
-              :class="{ 'justify-content-between': isMobile, 'justify-content-around': !isMobile }">
-              <span style="width: 65px;" v-show="!isMobile"></span>
-              <p class="h6 pt-1">{{ item.name.split('.md')[0] }}</p>
-              <span class="fs-6 fst-italic fw-lighter">{{ countDate(item.date) }} ago</span>
-            </div>
-            <div class="card-body text-center" v-show="!isMobile">
-              <div v-for="title, index in item.matchingLines" :key="index">
-                <span>{{ title }}</span>
+
+    <!-- Categories View -->
+    <div v-show="!searchText">
+      <h4 class="text-light mb-4 px-3 border-start border-4 border-danger">文章分類</h4>
+      <div class="row">
+        <div v-for="(category, index) in categories" :key="index" :class="{ 'col-4': !isMobile, 'col-12': isMobile }">
+          <router-link :to="`/category/${category}`" class="text-decoration-none">
+            <div class="card mb-4 bg-dark border-secondary h-100 category-card">
+              <div class="card-body d-flex flex-column justify-content-center align-items-center">
+                <h3 class="card-title text-light mb-3">{{ category }}</h3>
+                <span class="badge rounded-pill bg-danger">{{ getCategoryCount(category) }} 篇筆記</span>
               </div>
             </div>
-          </div>
-        </router-link>
-      </div>
-      <div v-show="searchResults.length === 0">
-        <div class="h2 text-center m-5">
-          查無資料
+          </router-link>
         </div>
       </div>
     </div>
-    <!-- pagination -->
-    <ul class="pagination" v-show="searchResults.length !== 0 && paginationPageNum.length !== 1">
-      <li class="page-item" @click.prevent="setPage(currentPage - 1)">
-        <a class="page-link" href="#" aria-label="Previous">
-          <span aria-hidden="true">&laquo;</span>
-        </a>
-      </li>
-      <li class="page-item" :class="{ 'active': (currentPage === (n)) }" v-for="(n, index) in paginationPageNum"
-        :key="index" @click.prevent="setPage(n)">
-        <a class="page-link" href="#">{{ n }}</a>
-      </li>
-      <li class="page-item" @click.prevent="setPage(currentPage + 1)">
-        <a class="page-link" href="#" aria-label="Next">
-          <span aria-hidden="true">&raquo;</span>
-        </a>
-      </li>
-    </ul>
+
+    <!-- Search Results View -->
+    <div v-show="searchText">
+      <h4 class="text-light mb-4 px-3 border-start border-4 border-warning">搜尋結果</h4>
+      <div class="row">
+        <div v-for="(item, index) in markdownCards" :key="index" :class="{ 'col-6': !isMobile }">
+          <ArticleCard :item="item" :isMobile="isMobile" :showCategory="true" />
+        </div>
+        <div v-show="searchResults.length === 0">
+          <div class="h2 text-center m-5 text-light">
+            查無資料
+          </div>
+        </div>
+      </div>
+
+      <!-- pagination -->
+      <ul class="pagination" v-show="searchResults.length !== 0 && paginationPageNum.length !== 1">
+        <li class="page-item" @click.prevent="setPage(currentPage - 1)">
+          <a class="page-link" href="#" aria-label="Previous">
+            <span aria-hidden="true">&laquo;</span>
+          </a>
+        </li>
+        <li class="page-item" :class="{ 'active': (currentPage === (n)) }" v-for="(n, index) in paginationPageNum"
+          :key="index" @click.prevent="setPage(n)">
+          <a class="page-link" href="#">{{ n }}</a>
+        </li>
+        <li class="page-item" @click.prevent="setPage(currentPage + 1)">
+          <a class="page-link" href="#" aria-label="Next">
+            <span aria-hidden="true">&raquo;</span>
+          </a>
+        </li>
+      </ul>
+    </div>
+
   </div>
 </template>
 
 <script>
 import AllMyArticle from '../assets/fileNames.json';
+import ArticleCard from '@/components/ArticleCard.vue';
 
 export default {
   name: 'HomeView',
-  components: {},
+  components: { ArticleCard },
   data() {
     return {
       files: [],
@@ -75,10 +86,15 @@ export default {
   },
   watch: {
     searchText() {
+      this.currentPage = 1; // Reset page on search
       this.search();
     },
   },
   computed: {
+    categories() {
+        const cats = new Set(this.files.map(f => f.category));
+        return Array.from(cats).sort();
+    },
     paginationPageNum() {
       let pageCount = [];
       let totalPage = this.totalPage;
@@ -92,27 +108,16 @@ export default {
       return pageCount.filter(i => i > 0);
     },
     totalPage() {
-      if (this.searchResults.length === 0) {
-        return Math.ceil(this.files.length / this.CardNum)
-      } else {
-        return Math.ceil(this.searchResults.length / this.CardNum)
-      }
+      return Math.ceil(this.searchResults.length / this.CardNum)
     },
     pageStart() {
       return (this.currentPage - 1) * this.CardNum
     },
     pageEnd() {
       return this.currentPage * this.CardNum
-      //取得該頁最後一個值的 index
     },
     markdownCards() {
-      const { searchResults, files, pageStart, pageEnd } = this;
-
-      if (searchResults.length === files.length) {
-        return files.slice(pageStart, pageEnd);
-      } else {
-        return searchResults.slice(pageStart, pageEnd);
-      }
+      return this.searchResults.slice(this.pageStart, this.pageEnd);
     }
   },
   methods: {
@@ -132,46 +137,22 @@ export default {
         {
           date: item.date,
           name: item.name,
-          matchingLines: item.matchingLines
+          matchingLines: item.matchingLines,
+          category: item.category
         }
       ))
+    },
+    getCategoryCount(category) {
+        return this.files.filter(f => f.category === category).length;
     },
     setPage(page) {
       if (page <= 0 || page > this.totalPage) { return }
       this.currentPage = page
-    },
-    countDate(fileDate) {
-      var now = new Date();
-      var specifiedDate = new Date(fileDate);
-      var differenceMilliseconds = now.getTime() - specifiedDate.getTime();
-      var seconds = Math.floor(differenceMilliseconds / 1000) % 60;
-      var minutes = Math.floor(differenceMilliseconds / (1000 * 60)) % 60;
-      var hours = Math.floor(differenceMilliseconds / (1000 * 60 * 60)) % 24;
-      var days = Math.floor(differenceMilliseconds / (1000 * 60 * 60 * 24));
-      var months = Math.floor(differenceMilliseconds / (1000 * 60 * 60 * 24 * 30)) % 12;
-      var years = Math.floor(differenceMilliseconds / (1000 * 60 * 60 * 24 * 30 * 12));
-
-      function addS(value, unit) {
-        return value !== 1 ? unit + "s" : unit;
-      }
-      if (years > 0) {
-        return years + ` ${addS(years, "year")} `;
-      } else if (months > 0) {
-        return months + ` ${addS(months, "month")} `;
-      } else if (days > 0) {
-        return days + ` ${addS(days, "day")} `;
-      } else if (hours > 0) {
-        return hours + ` ${addS(hours, "hour")} `;
-      } else if (minutes > 0) {
-        return minutes + ` ${addS(minutes, "minute")} `;
-      } else if (seconds > 0) {
-        return seconds + ` ${addS(seconds, "second")} `;
-      }
     }
   },
   mounted() {
     this.getFilesInFolder();
-    this.searchResults = this.files;
+    this.searchResults = this.files; // Initially all files, but we hide them if searchText is empty
     this.checkDevice();
     addEventListener('resize', this.checkDevice);
   },
@@ -201,9 +182,19 @@ export default {
   text-align: center;
   color: white;
 }
+
+.category-card {
+    transition: transform 0.2s;
+    cursor: pointer;
+}
+.category-card:hover {
+    transform: translateY(-5px);
+    border-color: #dc3545 !important;
+}
 </style>
 
 <style>
+/* ... global styles ... */
 .card span {
   color: #888888;
 }
