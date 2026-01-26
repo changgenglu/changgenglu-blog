@@ -1,18 +1,31 @@
 <template>
   <div class="container-lg mt-3 mb-5">
-    <div id="toggle-menu-btn" class="col-12 mb-3" v-show="isMobile && markdownMenu !== ''">
-      <button class="btn btn-outline-light w-100" @click="toggleMenu">
-        <i class="fa-solid fa-bars"></i>
-      </button>
-    </div>
-    <div :class="{ 'd-flex': !isMobile }">
-      <div v-show="showMenu && markdownMenu" :class="{ 'col-3': !isMobile, 'col-12': isMobile }">
-        <Markdown class="sticky-sm-top" id="menu" :source="markdownMenu" v-show="showMenu" />
-      </div>
-      <div class='markdown-content px-3  position-sticky-end' :class="{ 'col-9': markdownMenu && !isMobile, 'col-12': markdownMenu && isMobile, 'w-100': !markdownMenu }">
-        <Markdown :source="markdownContent" />
+    <div v-if="isLoading" class="text-center my-5">
+      <div class="spinner-border text-light" role="status">
+        <span class="visually-hidden">Loading...</span>
       </div>
     </div>
+    <div v-else-if="error" class="alert alert-danger text-center my-5" role="alert">
+      {{ error }}
+      <div class="mt-3">
+        <router-link to="/" class="btn btn-outline-danger">回首頁</router-link>
+      </div>
+    </div>
+    <template v-else>
+      <div id="toggle-menu-btn" class="col-12 mb-3" v-show="isMobile && markdownMenu !== ''">
+        <button class="btn btn-outline-light w-100" @click="toggleMenu">
+          <i class="fa-solid fa-bars"></i>
+        </button>
+      </div>
+      <div :class="{ 'd-flex': !isMobile }">
+        <div v-show="showMenu && markdownMenu" :class="{ 'col-3': !isMobile, 'col-12': isMobile }">
+          <Markdown class="sticky-sm-top" id="menu" :source="markdownMenu" v-show="showMenu" />
+        </div>
+        <div class='markdown-content px-3  position-sticky-end' :class="{ 'col-9': markdownMenu && !isMobile, 'col-12': markdownMenu && isMobile, 'w-100': !markdownMenu }">
+          <Markdown :source="markdownContent" />
+        </div>
+      </div>
+    </template>
   </div>
   <scroll-to-top-button v-show="isMobile" />
 </template>
@@ -20,6 +33,7 @@
 <script>
 import ScrollToTopButton from '@/components/ScrollToTopButton.vue';
 import Markdown from 'vue3-markdown-it';
+import { parseMarkdown } from '@/utils/markdownParser';
 
 export default {
   components: { Markdown, ScrollToTopButton },
@@ -31,20 +45,46 @@ export default {
       fileName: this.$route.params.title,
       showMenu: false,
       isMobile: false,
-      htmlContent: '',
+      isLoading: false,
+      error: null,
     }
   },
   methods: {
     async loadMarkdown() {
-      // 使用絕對路徑來引入 JSON 檔案
-      const file = require(`@/assets/jsonFiles/${this.fileName.split('.')[0]}.json`);
-
-      const markdown_file = await file;
-      if (markdown_file.tocContent) {
-        this.markdownMenu = markdown_file.tocContent
-        this.showMenu = true;
+      this.isLoading = true;
+      this.error = null;
+      try {
+        // Cache Busting: 使用當前時間戳 (若有真實更新時間更佳，此處先用 Timestamp)
+        const version = new Date().getTime(); 
+        const url = `${process.env.BASE_URL}markdownFiles/${encodeURIComponent(this.fileName)}?v=${version}`;
+        
+        const response = await fetch(url);
+        
+        if (!response.ok) {
+          throw new Error(`HTTP ${response.status}`);
+        }
+        
+        const text = await response.text();
+        const { content, tocContent } = parseMarkdown(text);
+        
+        if (tocContent) {
+          this.markdownMenu = tocContent;
+          this.showMenu = true;
+        } else {
+          this.markdownMenu = '';
+          this.showMenu = false;
+        }
+        
+        this.markdownContent = content;
+      } catch (error) {
+        console.error('Failed to load markdown:', error);
+        this.error = '文章載入失敗，請稍後再試。';
+        this.markdownContent = '';
+      } finally {
+        this.isLoading = false;
+        // 確保行動裝置狀態正確
+        this.checkDevice();
       }
-      this.markdownContent = markdown_file.content;
     },
     scrollToFooter() {
       window.scrollTo(0, 0);
@@ -59,18 +99,23 @@ export default {
     checkDevice() {
       if (window.innerWidth <= 768) {
         this.isMobile = true;
-        this.showMenu = false
+        // Mobile 預設不顯示選單
+        this.showMenu = false; 
       } else {
         this.isMobile = false;
-        this.showMenu = true;
+        // Desktop 若有選單內容則顯示
+        this.showMenu = !!this.markdownMenu;
       }
     },
   },
   mounted() {
     this.loadMarkdown();
     this.checkDevice();
-    addEventListener('resize', this.checkDevice);
+    window.addEventListener('resize', this.checkDevice);
   },
+  unmounted() {
+    window.removeEventListener('resize', this.checkDevice);
+  }
 }
 </script>
 

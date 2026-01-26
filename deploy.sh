@@ -6,8 +6,6 @@ set -e
 npm run test
 # 製作目錄
 node makeDirectory.js
-# 編譯 markdown
-node markdownCompiler.js
 # 打包
 npm run build
 # 移動至到打包後的 dist 目錄
