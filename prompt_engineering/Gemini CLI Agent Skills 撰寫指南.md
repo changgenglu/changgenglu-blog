@@ -42,6 +42,8 @@ Description 是模型判斷「何時使用此技能」的唯一依據。必須�
 1. **觸發場景 (Activates when...)**：明確列出適用情境。
 2. **負向約束 (Do NOT use for...)**：明確界定邊界，防止誤觸發。
 3. **具體範例 (Examples...)**：提供 User Prompt 範例。
+4. **格式規範 (Format Specification)**：確保描述格式正確，避免語法錯誤。
+5. **語言規範 (Language Specification)**：使用英文進行描述。
 
 **❌ 錯誤示範**：
 ```yaml
@@ -100,6 +102,37 @@ description: "Activates when user writes or reviews PHP/Laravel code, requiring 
 - [ ] **精準描述**：Description 包含 `Activates when`, `Do NOT use`, `Examples`。
 - [ ] **獨立性**：Skill 內容是否足夠獨立，不依賴其他 Skill？
 - [ ] **無冗餘引用**：檢查 `commands/*.toml` 與 `GEMINI.md`，確保沒有過時或重複的強制引用。
+
+---
+
+## 5. 格式規範與限制 (Format Specification)
+
+> **資料來源**: `cli/skills.md`, `cli/tutorials/skills-getting-started.md` (via `cli_help` agent)
+
+Gemini CLI 的 Skill 索引機制依賴 **YAML Frontmatter**。請務必遵守以下規範：
+
+### 5.1 必須使用 YAML Frontmatter
+系統**僅**解析檔案開頭的 Frontmatter 區塊。`Description` 必須定義在此處。
+
+**❌ 錯誤寫法** (寫在 Markdown 引用區塊，無法被索引)：
+```markdown
+> **Description**: ...
+> **Activates when**: ...
+```
+
+**✅ 正確寫法**：
+```yaml
+---
+name: my-skill
+description: 這裡寫完整的描述。當使用者需要...時啟用。不要用於...
+---
+```
+
+### 5.2 不支援結構化欄位
+CLI **不支援**解析 `Activates when`, `Do NOT use for`, `Examples` 作為獨立的 YAML 鍵值。
+
+*   **做法**：將這些資訊融入 `description` 欄位中，或是放在 Markdown 的內文 Body 區塊供 AI 激活後閱讀。
+*   **建議**：`description` 應簡潔有力地包含「何時使用」與「何時不用」的關鍵字，以利語意檢索。
 
 ---
 
