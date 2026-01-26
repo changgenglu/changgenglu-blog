@@ -6,5 +6,7 @@ import "bootstrap/dist/css/bootstrap.min.css";
 import "bootstrap";
 import Markdown from "vue3-markdown-it";
 import "highlight.js/styles/monokai.css";
+import "./assets/styles/theme.css";
+import "./assets/styles/patterns.css";
 
 createApp(App).use(store).use(router).use(Markdown).mount("#app");

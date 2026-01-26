@@ -1,4 +1,5 @@
 <template>
+  <div class="ai-grid-bg"></div>
   <div class="content">
     <logo-component></logo-component>
     <router-view />
@@ -19,18 +20,19 @@ export default {
 <style>
 html,
 body {
-  background-color: rgb(17, 28, 29);
+  background-color: var(--bg-main);
+  margin: 0;
+  padding: 0;
 }
 
 
 #app {
-  font-family: Supreme, sans-serif;
+  font-family: var(--font-sans);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  background-color: rgb(17, 28, 29);
   color: #dddddd;
   position: relative;
-  min-height: 92.85vh;
+  min-height: 100vh;
 }
 
 .content {
@@ -38,9 +40,11 @@ body {
 }
 
 .footer {
-  background-color: rgb(14, 20, 20);
+  background-color: rgba(14, 20, 20, 0.8);
+  backdrop-filter: var(--glass-blur);
   position: absolute;
   bottom: -70px;
+  width: 100%;
   z-index: 999;
 }
 

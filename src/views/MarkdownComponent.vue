@@ -1,28 +1,37 @@
 <template>
-  <div class="container-lg mt-3 mb-5">
-    <div v-if="isLoading" class="text-center my-5">
-      <div class="spinner-border text-light" role="status">
-        <span class="visually-hidden">Loading...</span>
-      </div>
+  <div class="container-lg py-5">
+    <div v-if="isLoading" class="text-center my-5 py-5">
+      <div class="cyber-spinner"></div>
+      <p class="mt-3 text-cyan font-mono">LOADING ARTICLE...</p>
     </div>
-    <div v-else-if="error" class="alert alert-danger text-center my-5" role="alert">
-      {{ error }}
-      <div class="mt-3">
-        <router-link to="/" class="btn btn-outline-danger">回首頁</router-link>
+    <div v-else-if="error" class="card card-glass border-danger text-center my-5 p-5" role="alert">
+      <h3 class="text-danger mb-4">{{ error }}</h3>
+      <div>
+        <router-link to="/" class="btn btn-outline-cyan">回首頁</router-link>
       </div>
     </div>
     <template v-else>
-      <div id="toggle-menu-btn" class="col-12 mb-3" v-show="isMobile && markdownMenu !== ''">
-        <button class="btn btn-outline-light w-100" @click="toggleMenu">
-          <i class="fa-solid fa-bars"></i>
+      <!-- Mobile Menu Toggle -->
+      <div id="toggle-menu-btn" class="mb-4" v-show="isMobile && markdownMenu !== ''">
+        <button class="btn btn-glass-cyan w-100" @click="toggleMenu">
+          <i class="fa-solid fa-bars me-2"></i> 目錄
         </button>
       </div>
-      <div :class="{ 'd-flex': !isMobile }">
-        <div v-show="showMenu && markdownMenu" :class="{ 'col-3': !isMobile, 'col-12': isMobile }">
-          <Markdown class="sticky-sm-top" id="menu" :source="markdownMenu" v-show="showMenu" />
+
+      <div class="row g-4">
+        <!-- Sidebar Menu -->
+        <div v-show="showMenu && markdownMenu" :class="{ 'col-md-3': !isMobile, 'col-12': isMobile }">
+          <div class="card card-glass sticky-top toc-container p-3">
+            <h6 class="text-cyan font-mono mb-3 px-2">CONTENTS</h6>
+            <Markdown id="menu" :source="markdownMenu" />
+          </div>
         </div>
-        <div class='markdown-content px-3  position-sticky-end' :class="{ 'col-9': markdownMenu && !isMobile, 'col-12': markdownMenu && isMobile, 'w-100': !markdownMenu }">
-          <Markdown :source="markdownContent" />
+
+        <!-- Main Content -->
+        <div class="col" :class="{ 'col-md-9': markdownMenu && !isMobile, 'col-12': !markdownMenu || isMobile }">
+          <div class="card card-glass markdown-wrapper p-4 p-md-5">
+            <Markdown class="markdown-content" :source="markdownContent" />
+          </div>
         </div>
       </div>
     </template>
@@ -55,7 +64,6 @@ export default {
       this.isLoading = true;
       this.error = null;
       try {
-        // 查找檔案路徑
         const targetFile = fileList.find(f => f.name === this.fileName);
         let filePath = this.fileName;
         
@@ -63,59 +71,35 @@ export default {
           filePath = targetFile.path;
         }
 
-        // Cache Busting: 使用當前時間戳
         const version = new Date().getTime(); 
-        
-        // 處理 URL 編碼，保留路徑分隔符
         const encodedPath = filePath.split('/').map(segment => encodeURIComponent(segment)).join('/');
         const url = `${process.env.BASE_URL}markdownFiles/${encodedPath}?v=${version}`;
         
         const response = await fetch(url);
-        
-        if (!response.ok) {
-          throw new Error(`HTTP ${response.status}`);
-        }
+        if (!response.ok) throw new Error(`HTTP ${response.status}`);
         
         const text = await response.text();
         const { content, tocContent } = parseMarkdown(text);
         
-        if (tocContent) {
-          this.markdownMenu = tocContent;
-          this.showMenu = true;
-        } else {
-          this.markdownMenu = '';
-          this.showMenu = false;
-        }
-        
+        this.markdownMenu = tocContent || '';
         this.markdownContent = content;
+        this.showMenu = !!tocContent;
       } catch (error) {
         console.error('Failed to load markdown:', error);
         this.error = '文章載入失敗，請稍後再試。';
-        this.markdownContent = '';
       } finally {
         this.isLoading = false;
-        // 確保行動裝置狀態正確
         this.checkDevice();
       }
     },
-    scrollToFooter() {
-      window.scrollTo(0, 0);
-    },
     toggleMenu() {
-      if (this.markdownMenu === '') {
-        this.showMenu = false;
-      } else {
-        this.showMenu = !this.showMenu;
-      }
+      this.showMenu = !this.showMenu;
     },
     checkDevice() {
-      if (window.innerWidth <= 768) {
-        this.isMobile = true;
-        // Mobile 預設不顯示選單
+      this.isMobile = window.innerWidth <= 768;
+      if (this.isMobile) {
         this.showMenu = false; 
       } else {
-        this.isMobile = false;
-        // Desktop 若有選單內容則顯示
         this.showMenu = !!this.markdownMenu;
       }
     },
@@ -131,143 +115,130 @@ export default {
 }
 </script>
 
-<style>
-#menu {
-  height: 100vh;
+<style scoped>
+.toc-container {
+  top: 100px;
+  max-height: calc(100vh - 150px);
   overflow-y: auto;
 }
 
-#menu a {
-  color: #888888;
+.markdown-wrapper {
+  min-height: 60vh;
 }
 
-#menu ul {
-  padding-left: 1rem;
-  font-size: 0.9rem;
+.text-cyan { color: var(--accent-cyan); }
+.font-mono { font-family: var(--font-mono); }
+
+.cyber-spinner {
+  width: 50px;
+  height: 50px;
+  border: 3px solid rgba(0, 242, 255, 0.1);
+  border-top-color: var(--accent-cyan);
+  border-radius: 50%;
+  margin: 0 auto;
+  animation: spin 1s linear infinite;
+  box-shadow: 0 0 15px rgba(0, 242, 255, 0.2);
 }
 
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.btn-glass-cyan {
+  background: rgba(0, 242, 255, 0.1);
+  border: 1px solid var(--accent-cyan);
+  color: var(--accent-cyan);
+  backdrop-filter: var(--glass-blur);
+  border-radius: 12px;
+}
+
+.card-glass {
+  background: var(--bg-surface);
+  backdrop-filter: var(--glass-blur);
+  border: 1px solid var(--glass-border);
+  border-radius: 20px !important;
+}
+</style>
+
+<style>
+/* Global Markdown Styles */
 .markdown-content {
-  color: #888888;
+  color: #ccc;
+  line-height: 1.8;
+  font-size: 1.05rem;
 }
 
-.markdown-content td {
-  border: #888888 1px solid;
-  padding: 3px;
+.markdown-content h1, .markdown-content h2, .markdown-content h3 {
+  color: #fff;
+  margin-top: 2rem;
+  margin-bottom: 1rem;
+  font-weight: 700;
 }
 
-.markdown-content li code {
-  padding: 20px;
-  padding-top: 40px;
-  padding-right: 10px;
-
+.markdown-content h2 {
+  border-left: 4px solid var(--accent-cyan);
+  padding-left: 1rem;
 }
 
-.markdown-content pre code::-webkit-scrollbar {
-  height: 8px;
+.markdown-content a {
+  color: var(--accent-cyan);
+  text-decoration: none;
+  border-bottom: 1px dashed var(--accent-cyan);
+  transition: opacity 0.3s;
 }
 
-.markdown-content pre code::-webkit-scrollbar-track {
-  /* -webkit-box-shadow: inset 0 0 6px rgba(0, 0, 0, 0.5); */
-  border-radius: 10px;
+.markdown-content a:hover {
+  opacity: 0.7;
 }
 
-.markdown-content pre code::-webkit-scrollbar-thumb {
-  border-radius: 10px;
-  -webkit-box-shadow: inset 0 0 9999px rgba(80, 80, 80, 0.7);
+.markdown-content pre {
+  margin: 2rem 0;
+  border-radius: 12px;
+  overflow: hidden;
+  border: 1px solid var(--glass-border);
+  background: #0d0d0d !important;
 }
-
 
 .markdown-content pre code {
-  position: relative;
-  background-color: #282827;
-  border-radius: 8px !important;
-  padding: 20px;
-  padding-top: 40px;
-  margin: 30px 30px;
-  box-shadow: inset 0px 12px 39px -25px #ABABAB, 1px 1px 35px 0px #000000;
-  -webkit-box-shadow: inset 0px 12px 39px -25px #ABABAB, 1px 1px 35px 0px #000000;
-  -moz-box-shadow: inset 0px 12px 39px -25px #ABABAB, 1px 1px 35px 0px #000000;
-  -o-box-shadow: inset 0px 12px 39px -25px #ABABAB, 1px 1px 35px 0px #000000;
+  padding: 1.5rem !important;
+  display: block;
+  font-family: var(--font-mono) !important;
+  font-size: 0.9rem;
+  background: transparent !important;
+  box-shadow: none !important;
 }
 
-.markdown-content pre code::before {
-  color: rgb(197, 197, 197);
-  content: attr(data-rel);
-  border-radius: 8px 8px 0 0;
-  height: 45px;
-  line-height: 30px;
-  background: #3c3c3b;
-  font-size: 16px;
-  position: absolute;
-  top: -20px;
-  left: 0;
+/* Customizing TOC */
+#menu ul {
+  list-style: none;
+  padding-left: 1rem;
+}
+
+#menu a {
+  color: #888;
+  font-size: 0.9rem;
+  display: block;
+  padding: 4px 0;
+  transition: color 0.3s;
+}
+
+#menu a:hover {
+  color: var(--accent-cyan);
+}
+
+.markdown-content table {
   width: 100%;
-  font-family: 'Source Sans Pro', sans-serif;
-  font-weight: bold;
-  padding: 0 65px;
-  text-indent: 15px;
-  float: left;
+  border-collapse: collapse;
+  margin: 1.5rem 0;
 }
 
-.markdown-content pre code::after {
-  content: '';
-  position: absolute;
-  -webkit-border-radius: 50%;
-  border-radius: 50%;
-  background: #fc625d;
-  width: 12px;
-  height: 12px;
-  top: 3px;
-  left: 10px;
-  margin-top: 4px;
-  -webkit-box-shadow: 20px 0px #fdbc40, 40px 0px #35cd4b;
-  box-shadow: 20px 0px #fdbc40, 40px 0px #35cd4b;
-  z-index: 3;
+.markdown-content th, .markdown-content td {
+  border: 1px solid var(--glass-border);
+  padding: 12px;
 }
 
-.markdown-content tbody {
-  border: rgb(17, 28, 29) 2px solid;
-}
-
-.markdown-content h1,
-h2,
-h3,
-h4,
-h5,
-h6 {
-  font-family: Gambarino, serif;
-  color: #e4ece4;
-  font-weight: bolder;
-}
-
-#toggle-menu-btn {
-  width: 70%;
-  margin: auto
-}
-
-/* //捲軸底色 */
-#menu::-webkit-scrollbar-track {
-  -webkit-box-shadow: inset 0 0 6px rgba(0, 0, 0, 0.3);
-  border-radius: 10px;
-  /* background-color: #c7c7c7; */
-}
-
-/* //捲軸寬度 */
-#menu::-webkit-scrollbar {
-  width: 6px;
-}
-
-/* //捲軸本體顏色 */
-#menu::-webkit-scrollbar-thumb {
-  border-radius: 10px;
-  background-color: #383838;
-}
-
-@media (max-width: 768px) {
-  .markdown-content pre code {
-    padding: 20px;
-    padding-top: 40px;
-    margin: 0;
-  }
+.markdown-content th {
+  background: rgba(255, 255, 255, 0.05);
+  color: var(--accent-cyan);
 }
 </style>

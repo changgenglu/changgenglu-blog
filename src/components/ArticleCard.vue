@@ -1,19 +1,23 @@
 <template>
-  <router-link :to="`/${item.name}`">
-    <div class="card mb-3 bg-transparent" :class="{ 'border-light': isMobile }">
-      <div class="card-header d-flex"
-        :class="{ 'justify-content-between': isMobile, 'justify-content-around': !isMobile }">
-        <span style="width: 65px;" v-show="!isMobile"></span>
-        <p class="h6 pt-1">{{ item.name.replace('.md', '') }}</p>
-        <span class="fs-6 fst-italic fw-lighter">{{ formattedDate }} ago</span>
-      </div>
-      <div class="card-body text-center" v-show="!isMobile">
-        <div v-for="(title, index) in item.matchingLines" :key="index">
-          <span>{{ title }}</span>
+  <router-link :to="`/${item.name}`" class="article-card-link">
+    <div class="card mb-4 article-card card-glass" :class="{ 'mobile-card': isMobile }">
+      <div class="card-body">
+        <div class="d-flex justify-content-between align-items-start mb-3">
+          <h5 class="card-title text-light mb-0">{{ item.name.replace('.md', '') }}</h5>
+          <span class="date-tag">{{ formattedDate }} ago</span>
         </div>
-      </div>
-      <div class="card-footer text-muted text-center" style="background-color: #282827; border-top: 0;" v-if="showCategory">
-          <small>{{ item.category }}</small>
+        
+        <div class="article-metadata mb-3" v-show="!isMobile">
+          <div v-for="(title, index) in item.matchingLines" :key="index" class="metadata-line">
+            <span class="bullet"></span>
+            <span class="title-text">{{ title }}</span>
+          </div>
+        </div>
+
+        <div class="card-footer-info d-flex justify-content-between align-items-center mt-auto" v-if="showCategory">
+          <span class="category-badge">{{ item.category }}</span>
+          <span class="read-more">Read More →</span>
+        </div>
       </div>
     </div>
   </router-link>
@@ -76,62 +80,85 @@ export default {
 </script>
 
 <style scoped>
-/* Scoped styles for the card */
-.card span {
-  color: #888888;
-}
-
-.card p {
-  color: #dddddd;
-  font-weight: bolder;
-  margin: 0;
-}
-
-a {
+.article-card-link {
   text-decoration: none;
 }
 
-@media screen and (min-width: 768px) {
-  .card {
-    min-height: 190px;
-    position: relative;
-    border-radius: 8px !important;
-    box-shadow: inset 0px 12px 39px -25px #ABABAB, 1px 1px 35px 0px #000000;
-    -webkit-box-shadow: inset 0px 12px 39px -25px #ABABAB, 1px 1px 35px 0px #000000;
-    -moz-box-shadow: inset 0px 12px 39px -25px #ABABAB, 1px 1px 35px 0px #000000;
-    -o-box-shadow: inset 0px 12px 39px -25px #ABABAB, 1px 1px 35px 0px #000000;
-  }
+.article-card {
+  min-height: 200px;
+  border-radius: 16px !important;
+  border: 1px solid var(--glass-border);
+  background: var(--bg-surface);
+  backdrop-filter: var(--glass-blur);
+  transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  display: flex;
+  flex-direction: column;
+}
 
-  .card .card-header {
-    color: rgb(197, 197, 197);
-    content: attr(data-rel);
-    height: 30px;
-    line-height: 30px;
-    background-color: #3c3c3b;
-    width: 100%;
-    padding: 0;
-    float: left;
-  }
+.article-card:hover {
+  transform: translateY(-8px);
+  border-color: var(--accent-cyan);
+  box-shadow: 0 10px 30px -10px rgba(0, 242, 255, 0.3);
+}
 
-  .card .card-body {
-    background-color: #282827;
-    border-radius: 8px !important;
-  }
+.card-title {
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
 
-  .card .card-header::after {
-    content: '';
-    position: absolute;
-    -webkit-border-radius: 50%;
-    border-radius: 50%;
-    background: #fc625d;
-    width: 12px;
-    height: 12px;
-    top: 3px;
-    left: 10px;
-    margin-top: 5px;
-    -webkit-box-shadow: 20px 0px #fdbc40, 40px 0px #35cd4b;
-    box-shadow: 20px 0px #fdbc40, 40px 0px #35cd4b;
-    z-index: 3;
-  }
+.date-tag {
+  font-size: 0.8rem;
+  color: #888;
+  font-family: var(--font-mono);
+}
+
+.article-metadata {
+  flex-grow: 1;
+}
+
+.metadata-line {
+  display: flex;
+  align-items: center;
+  margin-bottom: 4px;
+}
+
+.bullet {
+  width: 6px;
+  height: 6px;
+  background-color: var(--accent-purple);
+  border-radius: 50%;
+  margin-right: 10px;
+  box-shadow: 0 0 8px var(--accent-purple);
+}
+
+.title-text {
+  font-size: 0.9rem;
+  color: #bbb;
+}
+
+.category-badge {
+  background: rgba(0, 242, 255, 0.1);
+  color: var(--accent-cyan);
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 0.75rem;
+  border: 1px solid rgba(0, 242, 255, 0.2);
+  font-family: var(--font-mono);
+}
+
+.read-more {
+  font-size: 0.85rem;
+  color: var(--accent-cyan);
+  font-weight: 600;
+  opacity: 0;
+  transition: opacity 0.3s;
+}
+
+.article-card:hover .read-more {
+  opacity: 1;
+}
+
+.mobile-card {
+  min-height: auto;
 }
 </style>
