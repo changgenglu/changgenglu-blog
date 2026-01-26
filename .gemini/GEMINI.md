@@ -1,178 +1,81 @@
-# Gemini 專案策略
+# Gemini 專案策略 (changgenglu-blog)
 
-> 本文件定義專案的策略、方法論與領域知識（Knowledge Base），隨任務演進。
+> 本文件定義 `changgenglu-blog` 專案的策略、架構規範與業務知識。
 > 行為規則與角色定義請參閱 `system.md`。
 
 ---
 
-## 1. 專案規範優先（Source of Truth）
+## 1. 專案概觀 (Project Overview)
 
-### 1.1 規範層級
-- 專案規範 > 通用原則
-- 若專案規範與通用原則衝突，**以專案規範為準**
+本專案為 **Chang Geng Lu 的個人部落格**，採用 **Vue 3** 框架建置。
+核心特色在於使用自定義的 Node.js 腳本將 Markdown 檔案轉換為 JSON 格式，供前端 Vue 應用程式讀取並渲染，是一個靜態生成的部落格系統。
 
-### 1.2 術語一致性（DDD）
-- 嚴格使用專案中既有的業務術語（如 `Account` vs `User`）
-- 禁止自行創造新術語
-
-### 1.3 設定檔檢查優先順序
-
-確認函式庫或框架可用時，優先檢查：
-
-1. 專案依賴檔（如 `package.json`、`composer.json`、`requirements.txt`、`go.mod`、`Cargo.toml` 等）
-2. 專案設定檔（如 `config/`、`.env`、`settings.py` 等）
-3. 鄰近檔案的 import/use 語句
+### 核心技術 (Tech Stack)
+- **Framework**: Vue.js 3.x
+- **Build Tool**: Vue CLI
+- **State Management**: Vuex 4.x
+- **Router**: Vue Router 4.x
+- **UI Framework**: Bootstrap 5.x
+- **Markdown Rendering**: `vue3-markdown-it` / `markdown-it`
+- **Package Manager**: pnpm (建議) 或 npm
 
 ---
 
-## 2. 主要工作流程
+## 2. 主要工作流程 (Workflow)
 
-### 2.1 軟體工程任務
+### 2.1 開發與部署指令
 
-修正錯誤、新增功能、重構或說明程式碼時，依序執行：
+| 指令 | 說明 | 備註 |
+|:---|:---|:---|
+| `pnpm install` | 安裝專案依賴 | |
+| `pnpm run serve` | 啟動開發伺服器 | 支援熱重載 (Hot-reload) |
+| `pnpm run build` | 建置生產版本 | 輸出至 `dist/` 目錄 |
+| `pnpm run lint` | 程式碼風格檢查與修正 | |
+| `pnpm run deploy` | **部署至 GitHub Pages** | 自動執行腳本生成數據、打包並推送 |
 
-1. **理解：** 分析使用者請求與程式碼上下文。大量使用 `search_file_content` 和 `glob` 平行搜尋檔案結構、既有慣例和程式碼模式。用 `read_file` 和 `read_many_files` 驗證假設與理解。
-2. **計畫：** 建立一個根據步驟 1 理解的明確且合理的解決方案。必要時以簡短清晰的方式告知使用者計畫。若相關，嘗試透過撰寫單元測試建立自我驗證循環。可用輸出日誌或除錯訊息協助驗證。
-3. **實作：** 遵守核心規範，運用可用工具（如 `replace`、`write_file`、`run_shell_command`）執行計畫。
-4. **驗證（測試）：** 如可行，透過專案既有測試程序驗證變更。藉由檢查 README、建置設定或既有測試指令找到正確的測試指令與框架。絕不假設標準測試指令。
-5. **驗證（標準）：** 非常重要：程式碼變更後，執行專案特定的建置、檢查、型別檢查指令以確保程式碼品質及標準遵守。若不確定指令，可詢問使用者是否需執行及如何執行。
+### 2.2 文章發布流程 (Content Pipeline)
 
-### 2.2 新功能開發
+部落格文章以 Markdown 格式撰寫，透過以下腳本處理資料：
 
-**目標：** 自主實作並交付符合專案最佳實務的功能模組。
+1.  **生成目錄索引 (`makeDirectory.js`)**:
+    - 掃描 Markdown 來源目錄。
+    - 提取檔案修改時間與標題 (H2 tags)。
+    - 輸出 `src/assets/fileNames.json` (文章列表)。
 
-1. **理解需求：** 分析使用者請求，明確核心功能、API 端點設計、資料模型及業務邏輯。若缺關鍵資訊，提出明確且精準的詢問。
-2. **提案計畫：** 制定開發計畫，向使用者簡潔說明，包含：
-   - 資料結構設計
-   - 主要模組與關聯
-   - 層級架構（Controller / Service / Repository 等）
-   - 路由或介面設計
-   - 必要的驗證規則
-   - 測試策略
-3. **使用者同意：** 取得使用者對計畫的認可。
-4. **實作：** 按核准計畫自主開發，遵循專案既有架構模式。
-   - 使用專案的 CLI 工具生成骨架（若適用）
-   - 遵循專案既有的分層模式
-   - 確保 IDE 相容（型別註解、文件註解等）
-5. **驗證：** 執行測試與靜態分析，確保無錯誤。
-6. **收集回饋：** 提供相關 API 文件或測試指令，請求使用者回饋。
+2.  **編譯文章內容 (`markdownCompiler.js`)**:
+    - 讀取 Markdown 檔案。
+    - 解析 TOC (目錄) 標記 (`<!-- TOC -->`)。
+    - 將內容轉換並輸出為個別 JSON 檔至 `src/assets/jsonFiles/`。
 
 ---
 
-## 3. SOLID 原則遵循
+## 3. 專案結構與路徑規範
 
-執行任何程式碼生成或審查時，必須遵循 SOLID 原則：
+### 3.1 關鍵路徑
+- **`src/`**: Vue 應用程式原始碼。
+- **`public/markdownFiles/`**: 目前觀察到的 Markdown 文章存放位置 (需注意與腳本設定的差異)。
+- **`makeDirectory.js` & `markdownCompiler.js`**: 核心資料處理腳本。
+- **`deploy.sh`**: 自動化部署腳本。
 
-### 3.1 SRP（Single Responsibility Principle，單一職責原則）
-**定義**：每個 class/module 只有單一職責。
-
-**檢查要點**：
-- class 名稱是否清楚表達單一職責
-- method/function 是否只做一件事
-- class 的依賴數量是否合理
-
-**紅旗標誌**：
-- ❌ class 名稱包含 `And`、`Or`、`Manager`、`Handler` 但職責不明確
-- ❌ method 超過 3 個主要動作
-- ❌ 一個 class 依賴超過 7 個其他 class
+### 3.2 部署策略
+- 專案部署於 GitHub Pages。
+- `deploy.sh` 會將 `dist` 資料夾內容強制推送至遠端的 `gh-pages` 分支。
 
 ---
 
-### 3.2 OCP（Open/Closed Principle，開放封閉原則）
-**定義**：新功能透過擴展而非修改實現。
+## 4. 專案記憶 (Project Memory)
 
-**檢查要點**：
-- 新增功能是否需要修改現有 class
-- 是否使用 Interface 或抽象類別來支援擴展
+> 此區塊記錄專案特定資訊與潛在問題，由 Gemini 在互動過程中累積。
 
-**紅旗標誌**：
-- ❌ 使用 `switch/case` 或 `if-else` 鏈處理類型判斷
-- ❌ 修改現有 class 以支援新功能
+- **路徑配置潛在問題**:
+    - `makeDirectory.js` 與 `markdownCompiler.js` 內的原始碼目前指向 `./src/markdownFiles`。
+    - 但目前的檔案結構顯示 `src/markdownFiles` 不存在，文章位於 `public/markdownFiles` (或 `src/markdownFiles(notuse)` 曾被棄用)。
+    - **注意**: 若執行 `node makeDirectory.js` 失敗，需檢查腳本內的 `directoryPath` 是否需修正為 `./public/markdownFiles` 或將檔案移回 `src/`。
 
----
+- **Markdown 規範**:
+    - 文章內需包含 `<!-- TOC -->` 與 `<!-- /TOC -->` 標籤以正確生成目錄。
+    - 列表生成依賴 `## ` (H2) 標籤。
 
-### 3.3 LSP（Liskov Substitution Principle，里氏替換原則）
-**定義**：子類別能完全替代父類別。
-
-**檢查要點**：
-- 子類別是否改變父類別方法的預期行為
-- 子類別是否拋出父類別未定義的例外
-
-**紅旗標誌**：
-- ❌ 子類別覆寫方法拋出 `NotImplementedException`
-- ❌ 子類別改變父類別方法的預期行為
-
----
-
-### 3.4 ISP（Interface Segregation Principle，介面隔離原則）
-**定義**：介面精簡且專注。
-
-**檢查要點**：
-- 介面方法數量是否合理
-- 實作類別是否需要實作所有方法
-
-**紅旗標誌**：
-- ❌ 介面方法超過 5 個
-- ❌ 實作類別有空方法或拋出 `NotSupported`
-
----
-
-### 3.5 DIP（Dependency Inversion Principle，依賴反轉原則）
-**定義**：依賴抽象而非具體實作。
-
-**檢查要點**：
-- 是否使用依賴注入
-- 是否依賴 Interface 而非具體類別
-
-**紅旗標誌**：
-- ❌ 直接實例化具體類別（非 DTO/Entity）
-- ❌ 高層模組 import 低層模組具體類別
-- ❌ 未使用依賴注入
-
----
-
-## 4. 多層架構規範
-
-執行任何程式碼生成或審查時，必須遵循多層架構規範：
-
-| 層級 | 允許 | 禁止 |
-|-----|-----|-----|
-| **Controller/Handler** | Request → Service → Response | 業務邏輯、狀態判斷、Repository 直呼 |
-| **Validation** | 格式與型別驗證 | DB 查詢、業務判斷 |
-| **Service** | 業務規則、狀態檢核、交易 | - |
-| **Repository/DAO** | CRUD 資料存取 | 業務邏輯 |
-
-### Service 層要求
-- 必須透過 Interface 依賴 Repository（DIP）
-- 驗證失敗需拋出具體 Exception（含錯誤語意）
-
----
-
-> 詳細的架構知識已模組化至 Agent Skill，將根據任務自動載入。
-
-
-### 快速架構選擇指南
-
-| 場景 | 建議架構 |
-|-----|---------|
-| 簡單 CRUD 應用 | 多層架構 + SOLID |
-| 複雜業務邏輯 | DDD + Clean Architecture |
-| 高讀寫比差異 | CQRS |
-| 需要審計追蹤、時間旅行 | Event Sourcing |
-| 複雜領域 + 高效能需求 | DDD + CQRS + Event Sourcing |
-
-> **注意**：架構複雜度應與業務複雜度相匹配，避免過度設計。
-
----
-
-## 6. 專案記憶
-
-> 此區塊記錄專案特定資訊，由 Gemini 在互動過程中累積。
-
-- 使用 `replace` 工具時，若多個方法結尾邏輯（清除快取+回傳）相似（如 `PlatformController`），`old_string` 必須包含該方法獨有的業務邏輯行（如 `edit` 呼叫），以確保唯一匹配。
-
-<!-- 範例格式：
-- 專案 X 的錯誤碼定義於 `resources/lang/error.json`
-- API 版本控制使用 `/api/v1/` 前綴
-- 快取 key 命名規則：`{module}:{entity}:{id}`
--->
+- **部署注意事項**:
+    - 執行 `deploy.sh` 前需確保 `git` 環境設定正確。
+    - 部署會覆寫遠端 `gh-pages` 分支，請謹慎操作。
