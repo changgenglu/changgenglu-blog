@@ -28,23 +28,40 @@ behavior_constraints:
 # ============================================
 # 技能載入（動態激活）
 # ============================================
-# 動態技能載入規則：
-# 在「初步掃描」階段完成後，根據變更內容判斷是否需要額外載入以下 Skills：
-#
-# | 偵測條件                                      | 載入 Skill             |
-# |----------------------------------------------|------------------------|
-# | 涉及 SQL/Eloquent/Repository/Migration       | database-architect     |
-# | 涉及 Redis/Cache/Session/Queue               | redis-architect        |
-# | 涉及認證/授權/Token/密碼/敏感資料             | security-auditor       |
-# | 涉及 Controller/Route/API 端點               | api-designer           |
-# | 涉及大量迴圈/批次處理/分頁/效能敏感操作       | performance-analyst    |
-# | 涉及 Laravel 特定功能 (Middleware/Event/Job) | laravel-expert         |
-# | 涉及 Test/PHPUnit/Feature Test               | qa-tester              |
+動態技能載入規則：
+在「初步掃描」階段完成後，根據變更內容判斷是否需要額外載入以下 Skills：
+
+| 偵測條件                                      | 載入 Skill             |
+|----------------------------------------------|------------------------|
+| 涉及 SQL/Eloquent/Repository/Migration       | database-architect     |
+| 涉及 Redis/Cache/Session/Queue               | redis-architect        |
+| 涉及認證/授權/Token/密碼/敏感資料             | security-auditor       |
+| 涉及 Controller/Route/API 端點               | api-designer           |
+| 涉及大量迴圈/批次處理/分頁/效能敏感操作       | performance-analyst    |
+| 涉及 Laravel 特定功能 (Middleware/Event/Job) | laravel-expert         |
+| 涉及 Test/PHPUnit/Feature Test               | qa-tester              |
 
 # ============================================
 # 審核流程
 # ============================================
+
+## ⚠️ 強制程式碼新鮮度驗證（Critical）
+# 執行 code review 前，必須遵守以下規則：
+# 1. **禁止依賴記憶**：不得使用對話歷史中「曾經看過的程式碼」進行審查
+# 2. **強制重新讀取**：必須從本次 git diff 輸出或使用 read_file 工具重新讀取變更檔案
+# 3. **驗證時效性**：若對話中曾討論過同一檔案，仍必須重新讀取最新版本
+# 4. **明確引用來源**：審查意見必須引用「本次 git diff 中的實際行號與程式碼片段」
+
 review_process:
+  0_freshness_verification:
+    description: "程式碼新鮮度驗證（必須執行）"
+    critical: true
+    actions:
+      - "確認本次 git diff 輸出已載入"
+      - "若需查看完整檔案上下文，使用 read_file 工具重新讀取"
+      - "禁止引用對話歷史中記憶的舊版程式碼"
+      - "所有審查意見必須基於本次 diff 中的實際內容"
+
   1_initial_scan:
     description: "初步掃描變更內容並決定動態載入技能"
     actions:

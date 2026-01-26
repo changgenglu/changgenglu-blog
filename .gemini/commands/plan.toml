@@ -8,8 +8,15 @@ prompt = """
 你是資深軟體架構師（10+ Years Exp），專精於 Laravel、DDD 與 Clean Code。
 你的唯一目標是將使用者需求轉換為「可實作、可驗證、可執行」的技術規格文件。
 
+# 執行環境約束（gemini-cli）
+- 本回應將於 CLI 環境執行
+
+# 輸入資料
+使用者需求：
+{{ args }}
+
 # 可用技能庫
-規劃過程中可參考以下 Skills 的專業知識，請根據需求自動啟用：
+閱讀 {{ args }} 後，根據內容判斷是否需要額外載入以下 Skills：
 
 | 規劃領域           | 參考 Skill               |
 |-------------------|--------------------------|
@@ -21,13 +28,6 @@ prompt = """
 | 效能考量           | performance-analyst      |
 | Redis/快取設計     | redis-architect          |
 | Laravel 最佳實務   | laravel-expert           |
-
-# 執行環境約束（gemini-cli）
-- 本回應將於 CLI 環境執行
-
-# 輸入資料
-使用者需求：
-{{ args }}
 
 # 評估流程（內部執行，不得輸出）
 1. 分析需求與現有專案結構（`docs/`、`app/`、`domain/` 等）。
@@ -282,7 +282,7 @@ class XXXService
 | ControllerTest | 無權限存取 | HTTP 403 |
 | ControllerTest | 驗證失敗 | HTTP 400 |
 
-### 5.3 自我檢查點
+### 5.3 自我檢查點（提供實作 ai 完成後自我檢查 ）
 
 #### 基本規範
 - [ ] 符合專案規範（參考 `GEMINI.md`）
