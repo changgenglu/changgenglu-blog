@@ -27,7 +27,7 @@
 
 | 指令 | 說明 | 備註 |
 |:---|:---|:---|
-| `pnpm install` | 安裝專案依賴 | |
+| `pnpm install` | 安裝專案依賴 | 若無 `pnpm`，請改用 `npm install` |
 | `pnpm run serve` | 啟動開發伺服器 | 支援熱重載 (Hot-reload) |
 | `pnpm run build` | 建置生產版本 | 輸出至 `dist/` 目錄 |
 | `pnpm run lint` | 程式碼風格檢查與修正 | |

@@ -1,11 +1,37 @@
 const fs = require("fs");
 const path = require("path");
+const { execSync } = require("child_process");
 
 // 指定目錄路徑
-const directoryPath = "./src/markdownFiles";
+const directoryPath = "./public/markdownFiles";
 
 // 指定目標 json 的路徑
 const outputPath = "./src/assets/fileNames.json";
+
+/**
+ * 獲取檔案的 Git 最後提交時間
+ * @param {string} filePath 
+ * @returns {Date}
+ */
+function getFileGitDate(filePath) {
+  try {
+    // %cI: committer date, strict ISO 8601 format
+    const stdout = execSync(`git log -1 --format=%cI "${filePath}"`, {
+      encoding: "utf8",
+      stdio: ["pipe", "pipe", "ignore"],
+    });
+
+    const dateStr = stdout.trim();
+    if (dateStr) {
+      return new Date(dateStr);
+    }
+  } catch (e) {
+    // 發生錯誤時忽略，交由 fallback 處理
+  }
+
+  // Fallback: 使用檔案系統修改時間
+  return fs.statSync(filePath).mtime;
+}
 
 // 讀取資料夾底下所有檔案
 fs.readdir(directoryPath, (err, files) => {
@@ -18,10 +44,9 @@ fs.readdir(directoryPath, (err, files) => {
 
   files.forEach((file) => {
     const filePath = path.join(directoryPath, file);
-    const fileStats = fs.statSync(filePath);
     const fileContent = fs.readFileSync(filePath, "utf8");
 
-    const fileDate = fileStats.mtime; // 取得檔案修改日期
+    const fileDate = getFileGitDate(filePath);
     const lines = fileContent.split("\n");
     const matchingLines = lines.filter((line) => line.startsWith("## "));
     const fileInfo = {

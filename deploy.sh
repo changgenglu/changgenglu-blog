@@ -14,8 +14,8 @@ cd dist
 git init
 git add -A
 git commit -m "Deploy: $(date +'%Y-%m-%d %H:%M:%S')"
-# 將 dist 資料夾中的 main 分支，強制推送至 gh-pages 分支中，取代原始內容
-git push -f $GITHUB_URL main:gh-pages
+# 將 dist 資料夾中的當前分支 (HEAD)，強制推送至 remote 的 gh-pages 分支中，取代原始內容
+git push -f $GITHUB_URL HEAD:gh-pages
 # 判斷是否部署成功
 if [ $? -eq 0 ]; then
   clear
