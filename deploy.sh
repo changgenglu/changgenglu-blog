@@ -2,6 +2,8 @@
 GITHUB_URL="https://github.com/changgenglu/changgenglu-blog.git"
 # 當發生錯誤時終止腳本運行
 set -e
+# 執行測試
+npm run test
 # 製作目錄
 node makeDirectory.js
 # 編譯 markdown
