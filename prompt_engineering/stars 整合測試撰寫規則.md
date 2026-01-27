@@ -12,16 +12,18 @@
 
 1. **檔案結構**：每個 API 方法獨立檔案，命名 `{MethodName}Test.php`
 2. **檔案命名**：使用 `Test.php`（非 `IntegrationTest.php`）
-3. **方法命名**：snake_case（非 camelCase）
-4. **常數定義**：定義 `METHOD`、`URL`，使用 Laravel HTTP 狀態碼常數
+3. **方法命名**：snake_case（非 camelCase），且必須宣告 `: void` 返回類型
+4. **常數定義**：定義 `private const METHOD`、`private const URL`，使用 Laravel HTTP 狀態碼常數（如 `Response::HTTP_OK`）
 5. **錯誤處理**：使用 `resources/lang/en/error.php` 定義的錯誤碼
-6. **屬性類型**：使用 PHP 8 屬性類型聲明
+6. **屬性類型**：使用 PHP 8 屬性類型聲明（如 `private Games $game;`）
 7. **Mock 初始化**：在 `setUp()` 中初始化 Mock 服務實例
 8. **測試行為設定**：在測試方法中設定 Mock 行為和斷言
 9. **Redis 清理**：僅在測試實際使用 Redis 時操作
 10. **測試覆蓋**：確保 input/output 正確，涵蓋所有商業邏輯
-11. **測試資料**：優先使用 factory 建立
-12. **資料修改**：優先修改現有資料而非新建
+11. **測試資料**：優先使用 factory 建立，且**若 Factory 已定義狀態方法（如 `enabled()`），禁止在 `create()` 中重複帶入相同參數**
+12. **Interface 優先**：**若有 Interface 定義（如 `ILanguage`），禁止硬編碼字串（如 `'en'`），必須使用 Interface 常數**
+13. **資料修改**：優先修改現有資料而非新建
+14. **結構分隔**：使用 `// ============================================================================` 分隔不同類型的測試區塊（如測試生命週期、參數驗證、業務邏輯等）
 
 #### 測試覆蓋範圍
 
