@@ -177,7 +177,7 @@ class ExampleTest extends TestCase {
         $response->assertStatus(200)->assertJsonStructure($structure);
     }
 }
-```**
+```
 
 #### 測試原則
 
