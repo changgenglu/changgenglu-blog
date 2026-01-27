@@ -2,8 +2,8 @@
 active: true
 iteration: 1
 max_iterations: 5
-completion_promise: "自我檢查全部通過，且測試全數通過"
-started_at: "2026-01-26T08:35:57Z"
+completion_promise: "需通過測試"
+started_at: "2026-01-26T08:53:10Z"
 ---
 
-依據 planing/changgenglu-blog-通用型的 AI 科技感深色主題優化-實作規劃.md 實作 UI 優化
+在瀏覽文章頁面中實作文章與程式碼區塊的複製功能

@@ -1,5 +1,5 @@
 <template>
-  <div class="container-lg py-5">
+  <div class="container-lg py-5" ref="container">
     <div v-if="isLoading" class="text-center my-5 py-5">
       <div class="cyber-spinner"></div>
       <p class="mt-3 text-cyan font-mono">LOADING ARTICLE...</p>
@@ -30,7 +30,13 @@
         <!-- Main Content -->
         <div class="col" :class="{ 'col-md-9': markdownMenu && !isMobile, 'col-12': !markdownMenu || isMobile }">
           <div class="card card-glass markdown-wrapper p-4 p-md-5">
-            <Markdown class="markdown-content" :source="markdownContent" />
+            <div class="d-flex justify-content-between align-items-center mb-4">
+              <h2 class="text-light m-0">{{ fileName.replace('.md', '') }}</h2>
+              <button class="btn btn-outline-cyan btn-sm" @click="copyArticle" title="複製文章 Markdown">
+                <i class="fa-regular fa-copy me-1"></i> 複製文章
+              </button>
+            </div>
+            <Markdown class="markdown-content" :source="markdownContent" @rendered="addCopyButtons" />
           </div>
         </div>
       </div>
@@ -59,6 +65,13 @@ export default {
       error: null,
     }
   },
+  watch: {
+    markdownContent() {
+      this.$nextTick(() => {
+        this.addCopyButtons();
+      });
+    }
+  },
   methods: {
     async loadMarkdown() {
       this.isLoading = true;
@@ -85,12 +98,53 @@ export default {
         this.markdownContent = content;
         this.showMenu = !!tocContent;
       } catch (error) {
-        console.error('Failed to load markdown:', error);
         this.error = '文章載入失敗，請稍後再試。';
       } finally {
         this.isLoading = false;
         this.checkDevice();
       }
+    },
+    async copyArticle() {
+      try {
+        await navigator.clipboard.writeText(this.markdownContent);
+        alert('文章已複製到剪貼簿！');
+      } catch (err) {
+        // Silently fail or use a UI notification
+      }
+    },
+    addCopyButtons() {
+      const container = this.$refs.container;
+      if (!container) return;
+      
+      const codeBlocks = container.querySelectorAll('pre');
+      codeBlocks.forEach((block) => {
+        // Check if button already exists
+        if (block.querySelector('.btn-copy-code')) return;
+
+        const button = document.createElement('button');
+        button.className = 'btn-copy-code';
+        button.innerHTML = '<i class="fa-regular fa-copy"></i>';
+        button.title = '複製程式碼';
+        
+        button.addEventListener('click', async () => {
+          const codeElement = block.querySelector('code');
+          if (!codeElement) return;
+          
+          const code = codeElement.innerText || codeElement.textContent;
+          try {
+            await navigator.clipboard.writeText(code);
+            button.innerHTML = '<i class="fa-solid fa-check text-success"></i>';
+            setTimeout(() => {
+              button.innerHTML = '<i class="fa-regular fa-copy"></i>';
+            }, 2000);
+          } catch (err) {
+            // Silently fail
+          }
+        });
+
+        block.style.position = 'relative';
+        block.appendChild(button);
+      });
     },
     toggleMenu() {
       this.showMenu = !this.showMenu;
@@ -175,6 +229,12 @@ export default {
   font-weight: 700;
 }
 
+/* Override title added by copy button area if needed */
+.markdown-wrapper > div > h2 {
+  border-left: 4px solid var(--accent-cyan);
+  padding-left: 1rem;
+}
+
 .markdown-content h2 {
   border-left: 4px solid var(--accent-cyan);
   padding-left: 1rem;
@@ -197,6 +257,7 @@ export default {
   overflow: hidden;
   border: 1px solid var(--glass-border);
   background: #0d0d0d !important;
+  position: relative;
 }
 
 .markdown-content pre code {
@@ -206,6 +267,27 @@ export default {
   font-size: 0.9rem;
   background: transparent !important;
   box-shadow: none !important;
+}
+
+.btn-copy-code {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: #ccc;
+  border-radius: 6px;
+  padding: 4px 8px;
+  font-size: 0.8rem;
+  cursor: pointer;
+  transition: all 0.3s;
+  z-index: 10;
+}
+
+.btn-copy-code:hover {
+  background: rgba(0, 242, 255, 0.2);
+  border-color: var(--accent-cyan);
+  color: var(--accent-cyan);
 }
 
 /* Customizing TOC */
