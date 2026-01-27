@@ -1,144 +1,188 @@
 # Gemini CLI Agent Skills 撰寫指南
 
-> 本指南說明如何為 Gemini CLI 設計高品質的 Agent Skills(高精準度、低幻覺（Hallucination）)，並確保與現有配置（GEMINI.md, Commands）無縫整合。
+## ⚙️ 前置作業：啟用 Agent Skills
 
-## 1. 核心機制：自動發現 (Auto-Discovery)
+在開始撰寫之前，請確保你的 Gemini CLI 已啟用此功能（預設可能是關閉的）。
 
-Gemini CLI 具備「自動發現」機制，會掃描 `.gemini/skills/` 目錄，將所有 Skills 的 Metadata (Name, Description) 注入 System Prompt。
+1. 執行指令開啟設定介面：`gemini settings`
+2. 將 **Agent Skills** 選項設為 `true`。
+3. 或者直接編輯設定檔 `~/.gemini/settings.json`：
 
-- **觸發流程**：
-  1. Session 啟動：載入所有 Skills 的 `name` 與 `description`。
-  2. 任務識別：模型根據 User Task 比對 Skill Description。
-  3. 動態激發：模型主動呼叫 `activate_skill` 工具，載入完整 `SKILL.md` 內容。
-
-**⚠️ 重要觀念**：由於此機制全自動且基於語意匹配，我們**不需要**（也不建議）在其他地方手動強制載入 Skills。
-
----
-
-## 2. 最佳實踐與設計規範
-
-### 2.0 核心結構 (The Anatomy of a Skill)
-
-一個標準的 Skill 通常包含三個關鍵部分，缺一不可：
-
-* **Skill Name (函數名稱)**：AI 識別工具的唯一 ID。
-* **Description (功能描述)**：這是最重要的部分，AI 透過這段文字理解「這是什麼」以及「什麼時候該用」。
-* **Parameters Schema (參數定義)**：告訴 AI 需要提取哪些資訊來執行任務。
-
-以下是用於撰寫高品質 Skill 的具體規範：
-
-### 2.1 命名規範 (Naming Conventions)
-
-- **目錄名稱** = **Skill Name** (使用 kebab-case，如 `laravel-coding-standard`)
-- **檔案路徑**：`.gemini/skills/<skill-name>/SKILL.md`
-- **動詞開頭**：使用清晰的 `動詞-名詞` 格式。
-    * ✅ `get-current-weather`, `execute-sql-query`, `search-knowledge-base`
-    * ❌ `weather`, `sql`, `search`
-- **避免歧義**：名稱應能自解釋，避免重疊。
-
-### 2.2 描述撰寫 (Description Engineering)
-
-Description 是模型判斷「何時使用此技能」的唯一依據。必須包含三個要素：
-1. **觸發場景 (Activates when...)**：明確列出適用情境。
-2. **負向約束 (Do NOT use for...)**：明確界定邊界，防止誤觸發。
-3. **具體範例 (Examples...)**：提供 User Prompt 範例。
-4. **格式規範 (Format Specification)**：確保描述格式正確，避免語法錯誤。
-5. **語言規範 (Language Specification)**：使用英文進行描述。
-
-**❌ 錯誤示範**：
-```yaml
-description: "Laravel coding standards and best practices."
-```
-*(太過籠統，可能在一般 PHP 問題時也被觸發)*
-
-**✅ 正確示範**：
-```yaml
-description: "Activates when user writes or reviews PHP/Laravel code, requiring Laravel-specific coding standards validation. Do NOT use for basic indentation/whitespace checks (handled by linter). Examples: 'Check naming conventions', 'Review validation format'."
+```json
+{
+  "agentSkills": true
+}
 ```
 
-### 2.3 參數定義 (Parameter Constraints)
+---
 
-不要相信 AI 會自動猜對格式，必須透過 Schema 強制約束。
+## 📂 Agent Skills 核心結構說明
 
-* **使用 Enum (枚舉)**：若參數只有固定幾個選項（如 `units`: 'celsius' | 'fahrenheit'），務必使用 Enum 鎖定，防止 AI 創造不存在的選項。
-* **必填 vs 選填**：明確標記 `Required` 欄位。
-* **詳細的參數描述**：每個參數都應有 `description`，解釋預期的格式（如："ISO 8601 date format" 或 "City name, not zip code"）。
+一個標準的 Skill 是一個資料夾，必須包含 `SKILL.md`，並可選包含三個支援資料夾。
 
+- **`SKILL.md` (必須)**：技能的「大腦」。包含中繼資料（Metadata）與核心指令（System Instructions）。
+- **`scripts/` (進階)**：技能的「手」。AI 可以執行的具體工具（Bash, Python, Node.js）。
+- **`references/` (進階)**：技能的「知識庫」。AI 執行任務時參考的靜態文件、規範或 schema。
+- **`assets/` (進階)**：技能的「資產」。AI 用來生成的模板、範例程式碼或二進位資源。
 
 ---
 
-## 3. 配置整合策略：避免 Context 衝突
+## 1. 基礎設定範例 (Basic Configuration)
 
-由於 Skills 是「按需加載 (On-Demand)」，應避免與「常駐 Context」發生衝突或冗餘。
+**情境**：建立一個「資深 Code Reviewer」技能。
+**特點**：純文字指令驅動，不涉及外部腳本執行，依靠模型本身的知識庫與邏輯。
 
-### 3.1 GEMINI.md (專案核心文檔)
-- **原則**：GEMINI.md 是常駐 Context，應保持精簡。
-- **做**：僅提示「詳細知識已模組化」，引導 AI 依賴 Skills。
-- **不做**：列出詳細的 Skill 表格或指令。CLI 已經自動將 Skill 列表注入 System Prompt，手動列出會造成 Token 浪費與潛在混淆。
+### 📌 撰寫範例：`code-reviewer/SKILL.md`
 
-### 3.2 Custom Commands (`config.toml`)
-- **原則**：Commands 定義特定任務流程，Skills 提供執行任務所需的知識。
-- **做**：在 Prompt 中使用「弱提示」來指引 AI 考慮特定領域知識。
-  ```toml
-  # 提示 AI 本任務可能需要某些領域知識
-  # - laravel-coding-standard
-  # - security-auditor
-  ```
-- **不做**：
-  - **不要使用路徑引用**：如 `.gemini/skills/xx/SKILL.md`（模型可能試圖讀取檔案而失敗）。
-  - **不要強制加載指令**：依賴模型的自動判斷能力通常更好。
+請在 `.gemini/skills/code-reviewer/` 目錄下建立 `SKILL.md`：
 
-### 3.3 System.md (角色定義)
-- **原則**：定義 Agnet 的「核心人格」與「最高指導原則」。
-- **關係**：System.md 定義 "Who I am" (e.g., Senior Architect)，Skills 定義 "What I can do" (e.g., Audit Security)。兩者互補不衝突。
-
----
-
-## 4. 審查清單 (Checklist)
-
-新增或修改 Skill 時，請確認：
-
-- [ ] **命名一致**：目錄名與 `name` 欄位一致。
-- [ ] **精準描述**：Description 包含 `Activates when`, `Do NOT use`, `Examples`。
-- [ ] **獨立性**：Skill 內容是否足夠獨立，不依賴其他 Skill？
-- [ ] **無冗餘引用**：檢查 `commands/*.toml` 與 `GEMINI.md`，確保沒有過時或重複的強制引用。
-
----
-
-## 5. 格式規範與限制 (Format Specification)
-
-> **資料來源**: `cli/skills.md`, `cli/tutorials/skills-getting-started.md` (via `cli_help` agent)
-
-Gemini CLI 的 Skill 索引機制依賴 **YAML Frontmatter**。請務必遵守以下規範：
-
-### 5.1 必須使用 YAML Frontmatter
-系統**僅**解析檔案開頭的 Frontmatter 區塊。`Description` 必須定義在此處。
-
-**❌ 錯誤寫法** (寫在 Markdown 引用區塊，無法被索引)：
 ```markdown
-> **Description**: ...
-> **Activates when**: ...
+---
+name: code-reviewer
+description: 專門用於 Python 與 TypeScript 的程式碼審查專家，提供安全性與效能優化建議。
+version: 1.0.0
+---
+
+# Role Definition
+
+你是一位擁有 10 年經驗的資深軟體架構師，專精於 Python 與 TypeScript。你的目標是透過嚴格的標準提升程式碼品質。
+
+# Instructions
+
+當使用者要求 review 程式碼時，請遵循以下步驟：
+
+1.  **安全性檢查**：優先掃描 SQL Injection、XSS 或機敏資料外洩風險。
+2.  **效能評估**：指出時間複雜度過高 (O(n^2) 以上) 的邏輯。
+3.  **風格一致性**：確保程式碼符合 PEP8 (Python) 或 Google Style Guide (TS)。
+4.  **重構建議**：提供具體的程式碼重構片段，而不僅是口頭建議。
+
+# Constraints
+
+- 回應必須使用繁體中文。
+- 若發現安全性漏洞，請以「🚨 高風險」標示。
+- 嚴禁修改程式碼的商業邏輯，僅針對實作細節優化。
 ```
 
-**✅ 正確寫法**：
-```yaml
+### 📖 設計原理
+
+- **YAML Frontmatter**：`name` 與 `description` 是為了讓 Agent 在「Discovery（探索）」階段能識別此技能的存在。說明越精確，觸發越準確。
+- **Role Definition**：透過角色設定（Persona）鎖定輸出的專業度。
+- **結構化指令**：將審查過程標準化，確保每次輸出的一致性。
+
 ---
-name: my-skill
-description: 這裡寫完整的描述。當使用者需要...時啟用。不要用於...
----
+
+## 2. 進階設定範例 (Advanced Configuration)
+
+**情境**：建立一個「自動化 API 測試與文件生成器」技能。
+**特點**：整合 **Python 腳本** 執行測試，參考 **API 規範文件**，並使用 **Markdown 模板** 輸出報告。
+
+### 📂 目錄結構
+
+```text
+api-tester/
+├── SKILL.md
+├── scripts/
+│   └── curl_test.py      # 實際執行測試的 Python 腳本
+├── references/
+│   └── status_codes.md   # 參考用的 HTTP 狀態碼定義
+└── assets/
+    └── report_template.md # 測試報告的輸出格式模板
+
 ```
 
-### 5.2 不支援結構化欄位
-CLI **不支援**解析 `Activates when`, `Do NOT use for`, `Examples` 作為獨立的 YAML 鍵值。
+### 📌 撰寫範例 1：`api-tester/SKILL.md`
 
-*   **做法**：將這些資訊融入 `description` 欄位中，或是放在 Markdown 的內文 Body 區塊供 AI 激活後閱讀。
-*   **建議**：`description` 應簡潔有力地包含「何時使用」與「何時不用」的關鍵字，以利語意檢索。
+```markdown
+---
+name: api-tester
+description: 自動化 API 測試代理人。能執行連線測試、驗證回傳格式，並依據標準模板生成測試報告。
+version: 1.0.0
+tools:
+  - scripts/curl_test.py
+---
+
+# Role Definition
+
+你是一個 QA 自動化工程師 Agent。你的任務是驗證使用者提供的 API Endpoint，並產出專業報告。
+
+# Capabilities & Workflow
+
+1.  **執行測試**：
+    - 當需要測試 API 時，**必須**使用 `scripts/curl_test.py`。
+    - 指令格式：`python scripts/curl_test.py <url>`
+    - _注意：不要自行模擬測試結果，必須依據腳本的實際 Stdout 輸出。_
+
+2.  **結果分析**：
+    - 參考 `references/status_codes.md` 來解釋回傳的 HTTP Status Code 含義。
+    - 若 Status Code 為 2xx，視為成功；4xx/5xx 視為失敗。
+
+3.  **報告生成**：
+    - 讀取 `assets/report_template.md` 的內容。
+    - 將測試結果填入模板中，生成最終回應。
+
+# Constraints
+
+- 測試腳本僅支援 GET 請求。
+- 若腳本執行失敗（Exit code != 0），請直接回報錯誤訊息。
+```
+
+### 📌 撰寫範例 2：支援檔案內容
+
+**`scripts/curl_test.py` (簡化版)**
+
+```python
+import sys
+import urllib.request
+import time
+
+# 這是一個 Agent 可呼叫的實體工具
+url = sys.argv[1]
+start = time.time()
+try:
+    with urllib.request.urlopen(url) as response:
+        code = response.getcode()
+        duration = time.time() - start
+        print(f"SUCCESS: {code}, Latency: {duration:.2f}s")
+except Exception as e:
+    print(f"FAILED: {e}")
+
+```
+
+**`references/status_codes.md`**
+
+```markdown
+# HTTP Status Code Reference
+
+- 200: OK - 請求成功。
+- 404: Not Found - 資源不存在，請檢查 URL 路徑。
+- 500: Internal Server Error - 伺服器端錯誤，建議檢查後端 Log。
+```
+
+**`assets/report_template.md`**
+
+```markdown
+## 📝 API 測試報告
+
+- **目標 URL**: {{url}}
+- **測試時間**: {{timestamp}}
+- **狀態**: {{status}}
+- **響應時間**: {{latency}}
+
+## 分析建議
+
+{{analysis}}
+```
+
+### 📖 設計原理
+
+- **Tool Binding (Scripts)**：將 AI 無法憑空完成的任務（真實的網路請求）交給 `scripts/` 中的程式碼執行。這是 Agent "Grounding"（接地）的關鍵。
+- **Knowledge Retrieval (References)**：將靜態知識（如 HTTP 定義）從 Prompt 中移出，放入 `references/`，減少 Context Window 的消耗，並讓知識維護更容易。
+- **Standardization (Assets)**：透過 `assets/` 中的模板強制規範輸出格式，避免 AI 自由發揮導致格式混亂，特別適合需要機器二次讀取（Machine Readable）的產出。
 
 ---
 
 ## 🔗 參考來源
 
-* **Gemini CLI Skills Documentation**: [https://geminicli.com/docs/cli/skills/](https://geminicli.com/docs/cli/skills/)
-* **Google Gemini API - Function Calling**: [https://ai.google.dev/gemini-api/docs/function-calling](https://ai.google.dev/gemini-api/docs/function-calling) (官方底層原理)
-* **OpenAI Cookbook - Function Calling Best Practices**: 雖然是 OpenAI 文件，但在參數描述（Description Engineering）上的邏輯與 Gemini 高度通用。
-
+- [Gemini CLI GitHub Repository - Agent Skills](https://github.com/google-gemini/gemini-cli)
+- [Gemini CLI Documentation - Skills Configuration](https://geminicli.com/docs/cli/skills/)
+- [Gemini CLI Skills Feature Demo](https://www.youtube.com/watch?v=EmmOcrwNX74)
