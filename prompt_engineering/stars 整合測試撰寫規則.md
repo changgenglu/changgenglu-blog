@@ -187,3 +187,20 @@ class ExampleTest extends TestCase {
 4. **測試資料**：優先修改現有資料而非新建，測試後恢復原狀
 5. **錯誤處理**：使用專案定義錯誤碼驗證
 6. **資源清理**：測試結束清理 Mock，避免記憶體洩漏
+
+### Service Mock 注意事項
+
+由於專案歷史因素，Service 的實作與呼叫方式並非全面採用依賴注入 (Dependency Injection)。
+
+- **ServiceFactory 模式**：
+  多數 Controller 與 Service 使用 `app('Service')->init('ServiceName')` 取得實例。此方式底層是直接 `new ServiceName`，**不經過 Laravel Container**。
+  因此，單純使用 `Mockery::mock(Service::class)` 並 `$this->app->instance(Service::class, $mock)` **無法** 成功 Mock 該 Service。
+
+- **撰寫策略**：
+  1. **檢查呼叫方式**：撰寫測試前，務必查看 Controller 及 Service 程式碼。
+     - 若使用 `app('Service')->init(...)`，則無法直接 Mock 目標 Service。
+     - 若使用 `__construct` 注入，則可正常 Mock。
+  2. **Mock ServiceFactory (高難度/不建議)**：
+     若必須 Mock，需 Mock `Service` (ServiceFactory) 本身，並在 `init` 方法中針對特定字串回傳 Mock 物件。這會增加測試複雜度。
+  3. **整合測試優先**：
+     針對無法 Mock 的 Service，建議採用**真實資料庫/Redis** 的整合測試策略，而非單元測試。確保 `setUp` 時資料庫與快取是乾淨的，並建立必要的測試資料。
