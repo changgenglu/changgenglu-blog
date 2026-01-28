@@ -1,0 +1,27 @@
+# GitHub Repository Writer - Planning
+
+將規劃文件寫入遠端 GitHub 儲存庫。
+
+## 任務
+
+將使用者提供的內容寫入或更新到 GitHub 儲存庫 `changgenglu/changgenglu-blog` 的 `planing/` 目錄中。
+
+## 輸入參數
+
+使用者輸入：`{{ args }}`
+
+## 執行步驟
+
+1. 分析使用者的輸入 `{{ args }}`
+   - 嘗試從輸入中識別目標檔案名稱（應位於 `planing/` 下）
+   - 識別要寫入的內容
+   - 若無法確定檔案名稱，詢問使用者或自動生成合理名稱（如 `planning_update_YYYYMMDD.md`）
+2. 使用 `create_or_update_file` 工具
+3. 參數設定：
+   - `owner`: `changgenglu`
+   - `repo`: `changgenglu-blog`
+   - `path`: `planing/<filename>`
+   - `content`: 文件內容
+   - `message`: `Update planning document: <filename>`
+   - `branch`: `master`（或預設分支）
+4. 完成後回報寫入的檔案路徑與狀態
