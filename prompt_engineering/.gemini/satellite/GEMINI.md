@@ -4,6 +4,16 @@
 
 ---
 
+## 0. 執行環境 (Execution Environment)
+
+- **Container**: Podman (容器名稱: `stars`)
+- **OS**: Alpine Linux (容器內)
+- **Shell**: `/bin/sh` (注意：非 bash，避免使用 bash 特有語法)
+- **Project Root**: `/var/www/html/satellite` (容器內路徑)
+- **IDE**: Cursor
+
+> **重要**: 所有 PHP 指令必須透過 `podman exec -it stars` 在容器內執行。
+
 ## 1. 專案技術棧 (Tech Stack)
 
 ### 核心框架
