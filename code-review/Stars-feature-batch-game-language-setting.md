@@ -4,6 +4,7 @@
 
 | 版本 | 更新時間 | 變更摘要 |
 |------|---------|----------|
+| v1.1 | 2026-01-30 16:50 | 實作邏輯審查與 API 路由補全 |
 | v1.0 | 2026-01-28 17:35 | 初次審查 |
 
 ---
@@ -12,25 +13,32 @@
 
 | 項目 | 內容 |
 |-----|-----|
-| 變更檔案數 | 3 個 (含新檔案) |
-| 變更類型 | 新功能 / 測試 |
-| 影響範圍 | 遊戲管理模組 (GameController, SetMultiVipIntegrationTest, GameSupportLanguageTest) |
+| 變更檔案數 | 4 個 |
+| 變更類型 | 新功能 / 重構 |
+| 影響範圍 | 遊戲語系批次管理 (GameController, GamesService, Models\Games, routes/api) |
 
 ---
 
 ## 問題清單
 
 ### 🔴 嚴重（必須修復）
-無
+
+| 檔案:行號 | 問題描述 | 建議修復 |
+|----------|---------|---------|
+| `app/Http/Controllers/GameController.php:1120-1127` | **Redis 效能風險 (N*M 刪除)**：在迴圈中對所有啟用的 Provider 進行快取刪除。若 `game_ids` 為 100 且 `providers` 為 50，會產生 10,000 次 Redis 通訊。 | 應將清除快取的邏輯封裝至 Service，並使用 Redis Pipeline 批次執行，或根據遊戲實際關聯的 Provider 進行精確清除。 |
 
 ### 🟡 警告（建議修復）
-無
+
+| 檔案:行號 | 問題描述 | 建議修復 |
+|----------|---------|---------|
+| `app/Http/Controllers/GameController.php:1082` | `setMultiLanguages` 中的快取清除邏輯過於厚重，不符合 Controller 職責。 | 建議將快取清除邏輯封裝進 `Games` 或 `ProviderGames` Service 中。 |
+| `app/Http/Controllers/GameController.php:1018` | `getLanguageLists` 缺少 `game_ids.*` 的 `distinct` 驗證。 | 補上 `distinct` 以避免重複處理。 |
 
 ### 🔵 建議（可選修復）
+
 | 檔案:行號 | 問題描述 | 建議修復 |
-|----------|---------|---------| 
-| `tests/Integration/GameController/SetMultiVipIntegrationTest.php:260` | 測試方法命名過長且包含下劃線，與專案其他部分不一致 | 建議縮短或改為 camelCase，例如 `testDuplicateGameIds` |
-| `tests/Unit/Services/GameSupportLanguageTest.php:33` | 測試中使用 `sqlite :memory:` 可能與真實環境 MySQL 行為有細微差異 | 若專案允許，建議盡量使用與生產環境相同的資料庫類型進行測試，或確保不依賴特定資料庫行為 |
+|----------|---------|---------|
+| `app/Services/Games.php:732` | `getLanguageLists` 方法僅回傳資料，若傳入不存在的 ID 列表會回傳空列表，與 Controller 的 Count 校驗邏輯不對稱。 | 可考慮在 Service 層統一處理「資源不存在」的異常。 |
 
 ---
 
@@ -40,17 +48,17 @@
 
 | 類別 | 權重 | 得分 | 狀態 | 說明 |
 |-----|-----|-----|-----|-----|
-| SOLID 原則 | 25% | 90 | ✅ | 測試程式碼結構良好，職責分明 |
-| 程式碼品質 | 20% | 85 | ✅ | 命名清晰，邏輯易懂 |
-| 功能正確性 | 15% | 95 | ✅ | 測試覆蓋了預期情境與邊界條件 |
-| 安全性 | 15% | 100 | ✅ | 無明顯安全漏洞 |
-| 多層架構 | 15% | 90 | ✅ | 測試正確地隔離了 Service 與 Controller 層 |
-| 效能 | 5% | 100 | ✅ | 測試執行效率佳 |
-| 可測試性 | 5% | 95 | ✅ | 測試案例具備高度可重複性與獨立性 |
+| SOLID 原則 | 25% | 75 | ⚠️ | Controller 職責略嫌過重（處理過多快取清除細節） |
+| 程式碼品質 | 20% | 80 | ✅ | 邏輯清晰，使用 Transaction 保證資料一致性 |
+| 功能正確性 | 15% | 90 | ✅ | 成功補齊 API 路由與實作邏輯 |
+| 安全性 | 15% | 100 | ✅ | 使用 Eloquent 參數化查詢，無 SQLi 風險 |
+| 多層架構 | 15% | 70 | ⚠️ | 業務邏輯（快取清理）滲透至 Controller 層 |
+| 效能 | 5% | 40 | ❌ | 批次更新時的快取清除效率有嚴重隱憂 |
+| 可測試性 | 5% | 90 | ✅ | 結構化回傳值易於進行整合測試 |
 
 ### 總分計算
 
-**加權總分**：91 / 100
+**加權總分**：78 / 100
 
 ### 合併判定
 
@@ -61,4 +69,4 @@
 | 50-69 | ⚠️ 待改善 | 必須修復問題 |
 | 0-49 | ❌ 拒絕 | 需重大修改 |
 
-**最終結論**：✅ 可合併
+**最終結論**：⚠️ 修復後可合併 (特別是 Redis 效能問題)
