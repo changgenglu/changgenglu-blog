@@ -206,3 +206,24 @@ class ExampleTest extends TestCase {
      若必須 Mock，需 Mock `Service` (ServiceFactory) 本身，並在 `init` 方法中針對特定字串回傳 Mock 物件。這會增加測試複雜度。
   3. **整合測試優先**：
      針對無法 Mock 的 Service，建議採用**真實資料庫/Redis** 的整合測試策略，而非單元測試。確保 `setUp` 時資料庫與快取是乾淨的，並建立必要的測試資料。
+
+### 常見陷阱與解決方案 (Common Pitfalls)
+
+**1. Middleware 驗證依賴**
+後台 API (`/api/backend/*`) 會驗證 `x-pid` 標頭。測試前**必須**在 `setUp()` 建立基礎資料，否則會拋出 500 錯誤：
+```php
+Providers::factory()->create(['id' => PROVIDER_CTL_ID, 'enable' => 1]);
+```
+
+**2. 錯誤狀態碼慣例**
+專案 API 在驗證失敗時回傳 **200 OK** 搭配 `error_code`。請斷言 200 而非 422：
+```php
+$response->assertStatus(Response::HTTP_OK)
+         ->assertJson(['error_code' => 20001]);
+```
+
+**3. Logging 隔離與除錯**
+確保 `phpunit.xml` 設定 `LOG_CHANNEL` 為 `null` 避免連接 GCP。若測試時需要排查錯誤，請使用 `Log::channel('')` 指令指定頻道（如 `single` 或 `daily`）將 Log 寫到本地：
+```php
+\Log::channel('single')->info('Debug message');
+```
