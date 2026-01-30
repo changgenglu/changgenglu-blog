@@ -17,8 +17,12 @@ version: "1.0.0"
     2. 取得 `page_id` 後，使用 `API-patch-block-children` 追加內容。
 
 ## 2. 繞過工具 Schema 限制
-- **屬性黑名單**：若工具回報 `additional properties` 錯誤，應立即移除 `annotations` (如 `code: true`, `bold: true`) 或 `object: "block"` 等欄位。
-- **類型降級**：若 `code` 或其他 Block 類型引發錯誤，應降級為 `paragraph` 類型以確保資料成功寫入。
+- **工具定義優先**：當 Notion 官方 API 文件與 MCP 工具報錯衝突時，以工具報錯為準。若報錯 `additional properties`，應立即移除所有樣式屬性 (`annotations`)。
+- **類型降級**：若 `code` 或 `to_do` Block 類型引發錯誤，應降級為 `paragraph` 並使用 Markdown 符號 (`[ ]`, `###`) 模擬視覺結構。
+
+## 3. 複雜結構重構策略
+- **標題層級映射**：針對 Excel 中的合併儲存格，應轉換為標題結構（## 模組 / ### 子功能）。
+- **混和模式**：在標題下使用小型 Markdown 表格或條列清單，以解決大型表格在行動端或小螢幕難以閱讀的問題。
 
 ## 3. 內容切分策略 (Chunking)
 - **安全閾值**：Notion 單一 Block 限制為 2000 字元。

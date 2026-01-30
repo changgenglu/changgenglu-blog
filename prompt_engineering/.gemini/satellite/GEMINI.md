@@ -63,6 +63,12 @@
 ### 3.3 權限控制
 - 透過 `Feature` Service 控制 Menu 的顯示與隱藏。
 - 區分 `Admin` (控端) 與 `Provider` (管端) 權限範圍。
+- **Feature 定義**：`Feature` 代表後台的「功能選單」與「操作權限」，定義於 `database/seeders/Feature.php`，透過 `is_menu` 與 `is_ctl` 進行細項控制。
+
+### 3.4 BFF / Proxy 模式
+- **角色**：`satellite` 主要作為 Backend for Frontend (後台管理介面) 的 API Gateway。
+- **資料權責**：核心業務資料（如 Game, Tag, Platform）通常位於外部核心系統，`satellite` 透過 `App\Services\Internal` 呼叫外部 API 進行 CRUD，而不直接操作本地 DB。
+- **實作慣例**：Controller 負責 `Request Validation`，並使用 `HttpClient` 轉發請求，直接透傳外部服務的 Response。
 
 ---
 
@@ -91,3 +97,5 @@
 - **Service 調用**: 專案傾向使用 `app('Service')::init(...)` 的動態加載模式。
 - **User 表**: 表名為 `user`，非 Laravel 預設的 `users`。
 - **權限關聯**: 建立 Feature 時會自動綁定 Admin 權限 (`addAdminPermission`)。
+- **Proxy 實作**: 轉發請求時慣例於 Controller 進行驗證，再透過 `HttpClient` 調用 `Internal` Service 生成的路徑。
+- **Feature 管理**: 新增後台功能選單需修改 `database/seeders/Feature.php` 並執行 seeder。

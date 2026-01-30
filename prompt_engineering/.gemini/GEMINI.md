@@ -1,7 +1,6 @@
 # Gemini 專案策略
 
 > 本文件定義專案的策略、方法論與領域知識（Knowledge Base），隨任務演進。
-> 行為規則與角色定義請參閱 `system.md`。
 
 ---
 
@@ -165,14 +164,64 @@
 
 ---
 
+## 5. 代碼修改與工具使用規範 (Tool Safety Protocol)
+
+### 5.1 原子化替換原則 (Atomic Replacement)
+
+使用 `replace` 工具時，必須遵循「最小作用域」原則：
+
+- **禁止**：將多個 Method 包在同一個 `old_string` 中進行一次性替換（除非目標是重構整個區塊）
+- **禁止**：使用「上一個函數的結尾」到「下一個函數的開頭」之間的巨大區塊作為錨點，這極易導致中間的函數被誤刪
+- **強制**：若要「修改 A」並「新增 B」，必須拆分為兩個獨立步驟：
+  1. 使用 `replace` 修改 A
+  2. 使用 `replace` 在 A 的結束括號 `}` 後面新增 B
+
+### 5.2 錨點選擇規範 (Anchoring Strategy)
+
+新增程式碼（如新增 API 方法）時，`old_string` 應只包含「定位點」本身，而非包含定位點的整個函式。
+
+**❌ 危險範例 (High Risk):**
+```php
+// old_string: 包含整個 list 方法來定位，若 list 方法很長或中間有其他變更，極易失敗或誤刪
+public function list() {
+    ... 50 lines ...
+}
+```
+
+**✅ 安全範例 (Safe):**
+```php
+// old_string: 僅使用前一個函式的結束括號與換行
+    return $data;
+}
+
+// new_string: 重建結束括號並附加新函式
+    return $data;
+}
+
+public function newFunction() {
+    // ...
+}
+```
+
+### 5.3 消失檢查 (Vanishing Check)
+
+在執行 `replace` 前，必須在腦中執行 Diff 檢查：
+
+- 檢查 `old_string` 中包含的 `function` 關鍵字數量
+- 檢查 `new_string` 中包含的 `function` 關鍵字數量
+- 若 `new` 的數量少於 `old`，且指令並非明確要求刪除，**立即停止並重新規劃錨點**
+
+### 5.4 專案經驗記錄
+
+> 以下為過往專案中累積的工具使用經驗，供參考避免重複錯誤。
+
+- 若多個方法結尾邏輯相似（如清除快取+回傳），`old_string` 必須包含該方法獨有的業務邏輯行（如特定的方法呼叫），以確保唯一匹配
+- 進行大規模程式碼替換時，若多個方法結構相似，`old_string` 必須包含該方法獨有的標誌（如特定的 Apidoc 標題或業務變數），或將變更拆分為更精確的區塊（Apidoc、驗證、邏輯）分別替換，以確保唯一匹配並提高成功率
+
+---
+
 ## 6. 專案記憶
 
 > 此區塊記錄專案特定資訊，由 Gemini 在互動過程中累積。
 
-- 使用 `replace` 工具時，若多個方法結尾邏輯（清除快取+回傳）相似（如 `PlatformController`），`old_string` 必須包含該方法獨有的業務邏輯行（如 `edit` 呼叫），以確保唯一匹配。
-
-<!-- 範例格式：
-- 專案 X 的錯誤碼定義於 `resources/lang/error.json`
-- API 版本控制使用 `/api/v1/` 前綴
-- 快取 key 命名規則：`{module}:{entity}:{id}`
--->
+<!-- 目前無記錄 -->

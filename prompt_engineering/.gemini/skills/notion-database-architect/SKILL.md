@@ -12,12 +12,11 @@ version: "1.0.0"
 ---
 
 ## 1. 資料庫建立規範 (POST /v1/databases)
-- **內嵌設定**：務必包含 `"is_inline": true`，使資料庫能作為頁面中的一個區塊，而非佔用整頁。
-- **標題定義**：`title` 屬性必須是 `rich_text` 陣列格式。
-- **屬性映射 (Properties)**：
-    - **Checkbox** (適用於「已完成/狀態」): `{ "checkbox": {} }`
-    - **Title** (主欄位): `{ "title": {} }`
-    - **Number** (ID/序號): `{ "number": { "format": "number" } }`
+- **版本差異注意**：2025-09-03 後版本區分 Database 與 Data Source。若 `API-create-a-data-source` 建立失敗，改用「混合協作模式」。
+
+## 2. 混合協作協議 (Hybrid Implementation)
+- **手動框架**：若自動建立失敗，引導使用者手動在 Notion 建立資料庫並設定屬性（如：名稱、Checkbox、ID）。
+- **自動填充**：使用者提供 `database_id` 後，AI 負責執行全量資料解析、格式轉換與批次寫入（POST /v1/pages）。
 
 ## 2. 資料導入規範 (POST /v1/pages)
 - **父層指向**：`parent` 必須設定為 `{ "database_id": "DATABASE_ID" }`。
