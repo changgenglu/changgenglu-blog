@@ -12,16 +12,18 @@
 
 1. **檔案結構**：每個 API 方法獨立檔案，命名 `{MethodName}Test.php`
 2. **檔案命名**：使用 `Test.php`（非 `IntegrationTest.php`）
-3. **方法命名**：snake_case（非 camelCase）
-4. **常數定義**：定義 `METHOD`、`URL`，使用 Laravel HTTP 狀態碼常數
+3. **方法命名**：snake_case（非 camelCase），且必須宣告 `: void` 返回類型
+4. **常數定義**：定義 `private const METHOD`、`private const URL`，使用 Laravel HTTP 狀態碼常數（如 `Response::HTTP_OK`）
 5. **錯誤處理**：使用 `resources/lang/en/error.php` 定義的錯誤碼
-6. **屬性類型**：使用 PHP 8 屬性類型聲明
+6. **屬性類型**：使用 PHP 8 屬性類型聲明（如 `private Games $game;`）
 7. **Mock 初始化**：在 `setUp()` 中初始化 Mock 服務實例
 8. **測試行為設定**：在測試方法中設定 Mock 行為和斷言
 9. **Redis 清理**：僅在測試實際使用 Redis 時操作
 10. **測試覆蓋**：確保 input/output 正確，涵蓋所有商業邏輯
-11. **測試資料**：優先使用 factory 建立
-12. **資料修改**：優先修改現有資料而非新建
+11. **測試資料**：優先使用 factory 建立，且**若 Factory 已定義狀態方法（如 `enabled()`），禁止在 `create()` 中重複帶入相同參數**
+12. **Interface 優先**：**若有 Interface 定義（如 `ILanguage`），禁止硬編碼字串（如 `'en'`），必須使用 Interface 常數**
+13. **資料修改**：優先修改現有資料而非新建
+14. **結構分隔**：使用 `// ============================================================================` 分隔不同類型的測試區塊（如測試生命週期、參數驗證、業務邏輯等）
 
 #### 測試覆蓋範圍
 
@@ -177,7 +179,7 @@ class ExampleTest extends TestCase {
         $response->assertStatus(200)->assertJsonStructure($structure);
     }
 }
-```**
+```
 
 #### 測試原則
 
@@ -187,3 +189,41 @@ class ExampleTest extends TestCase {
 4. **測試資料**：優先修改現有資料而非新建，測試後恢復原狀
 5. **錯誤處理**：使用專案定義錯誤碼驗證
 6. **資源清理**：測試結束清理 Mock，避免記憶體洩漏
+
+### Service Mock 注意事項
+
+由於專案歷史因素，Service 的實作與呼叫方式並非全面採用依賴注入 (Dependency Injection)。
+
+- **ServiceFactory 模式**：
+  多數 Controller 與 Service 使用 `app('Service')->init('ServiceName')` 取得實例。此方式底層是直接 `new ServiceName`，**不經過 Laravel Container**。
+  因此，單純使用 `Mockery::mock(Service::class)` 並 `$this->app->instance(Service::class, $mock)` **無法** 成功 Mock 該 Service。
+
+- **撰寫策略**：
+  1. **檢查呼叫方式**：撰寫測試前，務必查看 Controller 及 Service 程式碼。
+     - 若使用 `app('Service')->init(...)`，則無法直接 Mock 目標 Service。
+     - 若使用 `__construct` 注入，則可正常 Mock。
+  2. **Mock ServiceFactory (高難度/不建議)**：
+     若必須 Mock，需 Mock `Service` (ServiceFactory) 本身，並在 `init` 方法中針對特定字串回傳 Mock 物件。這會增加測試複雜度。
+  3. **整合測試優先**：
+     針對無法 Mock 的 Service，建議採用**真實資料庫/Redis** 的整合測試策略，而非單元測試。確保 `setUp` 時資料庫與快取是乾淨的，並建立必要的測試資料。
+
+### 常見陷阱與解決方案 (Common Pitfalls)
+
+**1. Middleware 驗證依賴**
+後台 API (`/api/backend/*`) 會驗證 `x-pid` 標頭。測試前**必須**在 `setUp()` 建立基礎資料，否則會拋出 500 錯誤：
+```php
+Providers::factory()->create(['id' => PROVIDER_CTL_ID, 'enable' => 1]);
+```
+
+**2. 錯誤狀態碼慣例**
+專案 API 在驗證失敗時回傳 **200 OK** 搭配 `error_code`。請斷言 200 而非 422：
+```php
+$response->assertStatus(Response::HTTP_OK)
+         ->assertJson(['error_code' => 20001]);
+```
+
+**3. Logging 隔離與除錯**
+確保 `phpunit.xml` 設定 `LOG_CHANNEL` 為 `null` 避免連接 GCP。若測試時需要排查錯誤，請使用 `Log::channel('')` 指令指定頻道（如 `single` 或 `daily`）將 Log 寫到本地：
+```php
+\Log::channel('single')->info('Debug message');
+```
