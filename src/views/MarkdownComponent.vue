@@ -85,7 +85,7 @@ export default {
       }
 
       try {
-        const targetFile = fileList.find(f => f.name === this.fileName);
+        const targetFile = fileList.find(f => f.name === this.fileName || f.path === this.fileName);
         let filePath = this.fileName;
         
         if (targetFile && targetFile.path) {

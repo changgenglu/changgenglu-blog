@@ -20,7 +20,7 @@ const routes = [
     component: () => import("../views/CategoryListView.vue"),
   },
   {
-    path: "/:title",
+    path: "/:title(.*)",
     name: "Markdown",
     // route level code-splitting
     // this generates a separate chunk (about.[hash].js) for this route
