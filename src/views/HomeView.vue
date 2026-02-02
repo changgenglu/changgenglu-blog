@@ -8,7 +8,7 @@
             <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
           </svg>
         </div>
-        <input type="text" v-model="searchText" placeholder="搜尋全站 AI 筆記..." class="search-input">
+        <input type="text" v-model="searchText" placeholder="搜尋全站筆記..." class="search-input">
         <div class="search-glow"></div>
       </div>
     </div>
