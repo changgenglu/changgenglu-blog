@@ -76,6 +76,14 @@ export default {
     async loadMarkdown() {
       this.isLoading = true;
       this.error = null;
+
+      // 防止無效的 fileName 導致 fetch 錯誤 (e.g. /undefined)
+      if (!this.fileName || this.fileName === 'undefined' || this.fileName === 'null') {
+        this.error = '無法找到此文章 (Invalid Filename)';
+        this.isLoading = false;
+        return;
+      }
+
       try {
         const targetFile = fileList.find(f => f.name === this.fileName);
         let filePath = this.fileName;

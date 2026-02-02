@@ -1,5 +1,10 @@
 <template>
-  <router-link :to="`/${item.path}`" class="article-card-link">
+  <component 
+    :is="item.path ? 'router-link' : 'div'" 
+    :to="item.path ? `/${item.path}` : null" 
+    class="article-card-link"
+    :class="{ 'cursor-default': !item.path }"
+  >
     <div class="card mb-4 article-card card-glass" :class="{ 'mobile-card': isMobile }">
       <div class="card-body">
         <div class="d-flex justify-content-between align-items-start mb-3">
@@ -28,7 +33,7 @@
         </div>
       </div>
     </div>
-  </router-link>
+  </component>
 </template>
 
 <script>
