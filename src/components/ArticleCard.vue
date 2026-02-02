@@ -1,16 +1,24 @@
 <template>
-  <router-link :to="`/${item.name}`" class="article-card-link">
+  <router-link :to="`/${item.path}`" class="article-card-link">
     <div class="card mb-4 article-card card-glass" :class="{ 'mobile-card': isMobile }">
       <div class="card-body">
         <div class="d-flex justify-content-between align-items-start mb-3">
-          <h5 class="card-title text-light mb-0">{{ item.name.replace('.md', '') }}</h5>
+          <h5 class="card-title text-light mb-0" v-html="displayTitle"></h5>
           <span class="date-tag">{{ formattedDate }} ago</span>
         </div>
         
         <div class="article-metadata mb-3" v-show="!isMobile">
-          <div v-for="(title, index) in item.matchingLines" :key="index" class="metadata-line">
+          <div v-if="displaySnippet" class="metadata-line">
+            <span class="bullet"></span>
+            <span class="title-text" v-html="displaySnippet"></span>
+          </div>
+          <div v-else-if="item.matchingLines && item.matchingLines.length > 0" v-for="(title, index) in item.matchingLines" :key="index" class="metadata-line">
             <span class="bullet"></span>
             <span class="title-text">{{ title }}</span>
+          </div>
+          <div v-else class="metadata-line">
+            <span class="bullet"></span>
+            <span class="title-text">文章內容...</span>
           </div>
         </div>
 
@@ -24,6 +32,8 @@
 </template>
 
 <script>
+import { highlightMatch } from '@/utils/textFormatter'; // New import
+
 export default {
   name: 'ArticleCard',
   props: {
@@ -43,6 +53,28 @@ export default {
   computed: {
     formattedDate() {
       return this.countDate(this.item.date);
+    },
+    displayTitle() {
+      const title = this.item.name ? this.item.name.replace('.md', '') : '';
+      return this.item.query ? highlightMatch(title, this.item.query) : title;
+    },
+    displaySnippet() {
+        if (!this.item.query) return '';
+
+        let snippetText = '';
+        // 優先顯示從內容中提取並高亮過的片段（如果 HomeView 傳遞過來）
+        if (this.item.highlightedSnippet) {
+            snippetText = this.item.highlightedSnippet;
+        } 
+        // 否則，如果在 H2 標題中找到匹配，則高亮該 H2
+        else if (this.item.matchingLines && this.item.matchingLines.length > 0) {
+            const lowerQuery = this.item.query.toLowerCase();
+            const matchedLine = this.item.matchingLines.find(line => line.toLowerCase().includes(lowerQuery));
+            if (matchedLine) {
+                snippetText = highlightMatch(matchedLine, this.item.query);
+            }
+        }
+        return snippetText;
     }
   },
   methods: {
@@ -160,5 +192,12 @@ export default {
 
 .mobile-card {
   min-height: auto;
+}
+
+.search-highlight {
+  background-color: var(--accent-orange);
+  color: black;
+  padding: 2px 4px;
+  border-radius: 4px;
 }
 </style>

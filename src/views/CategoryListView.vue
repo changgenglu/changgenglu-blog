@@ -1,5 +1,8 @@
 <template>
   <div class="container-lg">
+    <div class="search-section mb-5">
+      <SearchInput v-model:modelValue="searchText" @search="handleSearch" placeholder="在此分類中搜尋..." ></SearchInput>
+    </div>
     <h2 class="text-center my-4 text-light">{{ categoryName }}</h2>
     <div class="row">
       <div v-for="(item, index) in markdownCards" :key="index" :class="{ 'col-6': !isMobile }">
@@ -38,10 +41,11 @@
 <script>
 import AllMyArticle from '../assets/fileNames.json';
 import ArticleCard from '@/components/ArticleCard.vue';
+import SearchInput from '@/components/SearchInput.vue'; // New import
 
 export default {
   name: 'CategoryListView',
-  components: { ArticleCard },
+  components: { ArticleCard, SearchInput }, // Updated components
   data() {
     return {
       files: [],
@@ -49,21 +53,34 @@ export default {
       currentPage: 1,
       isMobile: false,
       paginationLength: 5,
-      categoryName: this.$route.params.categoryName
+      categoryName: this.$route.params.categoryName,
+      searchText: '' // New data property
     }
   },
   computed: {
     paginationPageNum() {
       let pageCount = [];
       let totalPage = this.totalPage;
-      for (let i = 0; i < this.paginationLength; i++) {
-        if (this.currentPage >= totalPage - (this.paginationLength - 1)) {
-          pageCount.push(i + totalPage - (this.paginationLength - 1));
-        } else {
-          pageCount.push(i + this.currentPage);
+      const paginationLength = this.paginationLength;
+
+      if (totalPage <= paginationLength) { // If total pages is small, show all pages
+        for (let i = 1; i <= totalPage; i++) {
+          pageCount.push(i);
+        }
+      } else { // Otherwise, calculate a window
+        let startPage = Math.max(1, this.currentPage - Math.floor(paginationLength / 2));
+        let endPage = startPage + paginationLength - 1;
+
+        if (endPage > totalPage) { // Adjust if window goes beyond total pages
+          endPage = totalPage;
+          startPage = Math.max(1, endPage - paginationLength + 1);
+        }
+
+        for (let i = startPage; i <= endPage; i++) {
+          pageCount.push(i);
         }
       }
-      return pageCount.filter(i => i > 0);
+      return pageCount; // No need for filter(i => i > 0) with this logic
     },
     totalPage() {
       return Math.ceil(this.files.length / this.CardNum)
@@ -81,6 +98,13 @@ export default {
   methods: {
     checkDevice() {
         this.isMobile = window.innerWidth < 768;
+    },
+    handleSearch(query) {
+      // 導向 HomeView 並帶入搜尋參數
+      this.$router.push({ 
+        name: 'home', 
+        query: { q: query } 
+      });
     },
     getFilesInCategory() {
       this.files = AllMyArticle

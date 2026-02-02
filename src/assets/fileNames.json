@@ -1,5 +1,29 @@
 [
   {
+    "name": "Gemini CLI Agent Skills 撰寫指南.md",
+    "category": "提示詞工程",
+    "path": "提示詞工程/Gemini CLI Agent Skills 撰寫指南.md",
+    "date": "2026-02-02T02:34:27.000Z",
+    "matchingLines": [
+      "## ⚙️ 前置作業：啟用 Agent Skills",
+      "## 📂 Agent Skills 核心結構說明",
+      "## 1. 基礎設定範例 (Basic Configuration)",
+      "## 2. 進階設定範例 (Advanced Configuration)",
+      "## 📝 API 測試報告",
+      "## 分析建議",
+      "## 🔗 參考來源"
+    ]
+  },
+  {
+    "name": "stars 整合測試撰寫規則.md",
+    "category": "提示詞工程",
+    "path": "提示詞工程/stars 整合測試撰寫規則.md",
+    "date": "2026-02-02T02:34:27.000Z",
+    "matchingLines": [
+      "## 整合測試撰寫規則"
+    ]
+  },
+  {
     "name": "D3.js 學習筆記.md",
     "category": "Javascript",
     "path": "Javascript/D3.js 學習筆記.md",
@@ -501,21 +525,6 @@
     ]
   },
   {
-    "name": "Gemini CLI Agent Skills 撰寫指南.md",
-    "category": "提示詞工程",
-    "path": "提示詞工程/Gemini CLI Agent Skills 撰寫指南.md",
-    "date": "2026-01-26T08:12:46.000Z",
-    "matchingLines": [
-      "## ⚙️ 前置作業：啟用 Agent Skills",
-      "## 📂 Agent Skills 核心結構說明",
-      "## 1. 基礎設定範例 (Basic Configuration)",
-      "## 2. 進階設定範例 (Advanced Configuration)",
-      "## 📝 API 測試報告",
-      "## 分析建議",
-      "## 🔗 參考來源"
-    ]
-  },
-  {
     "name": "Gemini CLI custom commands 撰寫指南.md",
     "category": "提示詞工程",
     "path": "提示詞工程/Gemini CLI custom commands 撰寫指南.md",
@@ -660,15 +669,6 @@
       "## 安全規則",
       "## 工具使用",
       "## 互動細節"
-    ]
-  },
-  {
-    "name": "stars 整合測試撰寫規則.md",
-    "category": "提示詞工程",
-    "path": "提示詞工程/stars 整合測試撰寫規則.md",
-    "date": "2026-01-26T08:12:46.000Z",
-    "matchingLines": [
-      "## 整合測試撰寫規則"
     ]
   },
   {

@@ -1,16 +1,7 @@
 <template>
   <div class="container-lg py-5">
     <div class="search-section mb-5">
-      <div class="search-container">
-        <div class="search-icon">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <circle cx="11" cy="11" r="8"></circle>
-            <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
-          </svg>
-        </div>
-        <input type="text" v-model="searchText" placeholder="搜尋全站筆記..." class="search-input">
-        <div class="search-glow"></div>
-      </div>
+      <SearchInput v-model:modelValue="searchText" @search="handleSearch"></SearchInput>
     </div>
 
     <!-- Categories View -->
@@ -80,30 +71,38 @@
 <script>
 import AllMyArticle from '../assets/fileNames.json';
 import ArticleCard from '@/components/ArticleCard.vue';
+import SearchInput from '@/components/SearchInput.vue'; // New import
+import { search } from '@/utils/searchEngine'; // New import
 
 export default {
   name: 'HomeView',
-  components: { ArticleCard },
+  components: { ArticleCard, SearchInput }, // Updated components
   data() {
     return {
-      files: [],
+      allArticlesMeta: AllMyArticle, // Store for categories
       CardNum: 6,
       currentPage: 1,
       searchText: '',
-      searchResults: [],
+      searchResults: [], // Will store MiniSearch results
       isMobile: false,
       paginationLength: 5
     }
   },
   watch: {
-    searchText() {
-      this.currentPage = 1;
-      this.search();
-    },
+    // 監聽路由參數變化，以實現 URL 驅動搜尋
+    '$route.query.q': {
+      handler(newQuery) {
+        // 更新 searchText 以便 v-model 同步
+        this.searchText = newQuery || '';
+        // 觸發搜尋
+        this.handleSearch(this.searchText);
+      },
+      immediate: true // 頁面載入時立即執行一次
+    }
   },
   computed: {
     categories() {
-        const cats = new Set(this.files.map(f => f.category));
+        const cats = new Set(this.allArticlesMeta.map(f => f.category));
         return Array.from(cats).sort();
     },
     paginationPageNum() {
@@ -131,29 +130,48 @@ export default {
       return this.currentPage * this.CardNum
     },
     markdownCards() {
-      return this.searchResults.slice(this.pageStart, this.pageEnd);
+      const currentCards = this.searchResults.slice(this.pageStart, this.pageEnd);
+      // 將 MiniSearch 的結果映射回原始的 AllMyArticle 格式
+      return currentCards.map(result => {
+        const originalArticle = this.allArticlesMeta.find(item => item.path === result.id);
+        // 如果找不到原始文章 (理論上不會發生)，則返回 MiniSearch 的結果作為備用
+        return originalArticle ? {
+          ...originalArticle,
+          score: result.score, // MiniSearch 相關資訊
+          terms: result.terms,
+          query: result.query,
+          match: result.match // 匹配的欄位及位置
+        } : { // 備用結構，確保 ArticleCard 不會出錯
+          date: new Date().toISOString(),
+          name: result.title || '',
+          matchingLines: [], 
+          category: result.category || 'Uncategorized',
+          path: result.id || '',
+          score: result.score,
+          terms: result.terms,
+          query: result.query,
+          match: result.match
+        };
+      });
     }
   },
   methods: {
     checkDevice() {
       this.isMobile = window.innerWidth < 768;
     },
-    search() {
-      const searchText = this.searchText.toLowerCase();
-      this.searchResults = this.files.filter(file => file.name.toLowerCase().includes(searchText));
-    },
-    getFilesInFolder() {
-      this.files = AllMyArticle.map(item => (
-        {
-          date: item.date,
-          name: item.name,
-          matchingLines: item.matchingLines,
-          category: item.category
-        }
-      ))
+    // 處理搜尋邏輯
+    handleSearch(query) {
+      this.currentPage = 1; // 重置分頁
+      this.searchResults = query ? search(query) : this.allArticlesMeta.map(item => ({id: item.path, title: item.name, category: item.category})); // 使用 MiniSearch
+      // 如果 query 為空，則顯示所有文章，但格式需符合 MiniSearch 結果的基礎結構
+      
+      // 同步 URL query 參數，避免重複導航
+      if ((query || '') !== (this.$route.query.q || '')) {
+        this.$router.replace({ query: query ? { q: query } : {} }).catch(()=>{}); // catch navigation error
+      }
     },
     getCategoryCount(category) {
-        return this.files.filter(f => f.category === category).length;
+        return this.allArticlesMeta.filter(f => f.category === category).length;
     },
     setPage(page) {
       if (page <= 0 || page > this.totalPage) { return }
@@ -161,10 +179,12 @@ export default {
     }
   },
   mounted() {
-    this.getFilesInFolder();
-    this.searchResults = this.files;
     this.checkDevice();
     window.addEventListener('resize', this.checkDevice);
+    // 頁面初次載入時，如果 URL 中沒有 q 參數，則手動觸發一次 handleSearch，顯示所有文章
+    if (!this.$route.query.q) {
+      this.searchResults = this.allArticlesMeta.map(item => ({id: item.path, title: item.name, category: item.category}));
+    }
   },
   beforeUnmount() {
     window.removeEventListener('resize', this.checkDevice);
@@ -173,55 +193,7 @@ export default {
 </script>
 
 <style scoped>
-.search-container {
-  position: relative;
-  max-width: 600px;
-  margin: 0 auto;
-}
-
-.search-input {
-  width: 100%;
-  padding: 16px 20px 16px 50px;
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 30px;
-  color: white;
-  font-size: 1.1rem;
-  outline: none;
-  backdrop-filter: blur(10px);
-  transition: all 0.3s;
-}
-
-.search-input:focus {
-  border-color: var(--accent-cyan);
-  background: rgba(255, 255, 255, 0.08);
-  box-shadow: 0 0 15px rgba(0, 242, 255, 0.2);
-}
-
-.search-icon {
-  position: absolute;
-  left: 18px;
-  top: 50%;
-  transform: translateY(-50%);
-  color: #888;
-}
-
-.search-input:focus + .search-glow {
-  opacity: 1;
-}
-
-.search-glow {
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  border-radius: 30px;
-  box-shadow: 0 0 20px rgba(0, 242, 255, 0.1);
-  pointer-events: none;
-  opacity: 0;
-  transition: opacity 0.3s;
-}
+/* Search related styles moved to SearchInput.vue */
 
 .section-header .header-line {
   height: 1px;

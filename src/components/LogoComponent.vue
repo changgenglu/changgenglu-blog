@@ -20,12 +20,14 @@ export default {
   },
   mounted() {
     this.checkDevice();
+    window.addEventListener('resize', this.checkDevice); // Add listener
+  },
+  beforeUnmount() { // Add unmount hook
+    window.removeEventListener('resize', this.checkDevice);
   },
   methods: {
     checkDevice() {
-      if (this.windowSize < 768) {
-        this.isMobile = true;
-      }
+      this.isMobile = window.innerWidth < 768; // Fix bug
     },
   },
 }

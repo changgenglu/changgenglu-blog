@@ -227,3 +227,58 @@ $response->assertStatus(Response::HTTP_OK)
 ```php
 \Log::channel('single')->info('Debug message');
 ```
+
+### 資料庫選擇策略
+
+為了平衡測試速度與真實環境一致性，整合測試應根據以下原則選擇資料庫：
+
+#### 1. 預設使用 SQLite
+大多數標準的 Eloquent 操作、關聯查詢與業務邏輯驗證，應預設使用 SQLite（In-Memory）以獲得最快的回饋速度。
+
+- **適用場景**：
+  - 標準 CRUD 操作 (`save`, `find`, `delete`)
+  - Eloquent 關聯 (`with`, `load`)
+  - 一般業務邏輯驗證
+
+#### 2. 必須使用 MySQL 的情境
+若測試涉及以下特性，SQLite 可能無法模擬或行為不一致，**必須**使用 MySQL 並標記 `skipIfNotMySQL`：
+
+- **特定錯誤代碼 (Error Codes)**：
+  - 例如預期 MySQL 拋出 Error 1054 (Unknown column) 並轉換為專案特定錯誤碼 (如 `10001 sql_is_busy`)。SQLite 可能會忽略該錯誤或拋出不同格式的異常。
+- **原生 SQL 語法 (Raw SQL)**：
+  - 使用了 MySQL 特有的函數 (如 `DATE_FORMAT`, `JSON_EXTRACT`, `IF`)。
+  - 使用了 SQLite 不支援的語法。
+- **資料庫鎖定 (Locking)**：
+  - 測試 `lockForUpdate()` 或交易併發行為（SQLite 只有檔案鎖，行為與 Row-lock 不同）。
+- **嚴格模式與約束 (Strict Mode & Constraints)**：
+  - 測試 Unique Constraint 或 Foreign Key 違規的具體錯誤訊息。
+  - 測試 Enum 欄位的嚴格型別檢查。
+
+#### 3. 實作方式
+
+若測試案例依賴 MySQL，請在測試類別中使用 `DatabaseSpecificTestTrait` 並在測試方法開頭呼叫：
+
+```php
+use Tests\Integration\DatabaseSpecificTestTrait;
+
+class GameListTest extends TestCase
+{
+    use DatabaseSpecificTestTrait;
+
+    public function test_mysql_specific_feature()
+    {
+        $this->skipIfNotMySQL('此測試依賴 MySQL 的錯誤處理機制');
+        
+        // ... 測試邏輯
+    }
+}
+```
+
+#### 4. 決策檢查表 (Checklist)
+
+在撰寫測試前，請依序確認：
+1. **是否使用 Raw SQL？** (是 -> MySQL)
+2. **是否驗證資料庫層級的錯誤碼？** (是 -> MySQL)
+3. **是否涉及複雜的 JSON 操作或日期函數？** (是 -> MySQL)
+4. **是否測試交易鎖定？** (是 -> MySQL)
+5. **以上皆否** -> **使用 SQLite**
