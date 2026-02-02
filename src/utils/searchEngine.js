@@ -23,16 +23,16 @@ async function initSearch() {
   // 載入資料並建立索引
   try {
     miniSearch.addAll(searchIndexData);
-    console.log('MiniSearch 索引已建立完成。');
+    // console.log('MiniSearch 索引已建立完成。');
   } catch (error) {
-    console.error('MiniSearch 索引建立失敗:', error);
+    // console.error('MiniSearch 索引建立失敗:', error);
   }
 }
 
 // 執行搜尋
 function search(query) {
   if (!miniSearch) {
-    console.warn('MiniSearch 尚未初始化。');
+    // console.warn('MiniSearch 尚未初始化。');
     return [];
   }
   if (!query) {

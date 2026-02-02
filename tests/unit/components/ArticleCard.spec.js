@@ -6,7 +6,10 @@ import { createRouter, createMemoryHistory } from 'vue-router';
 // Mock Router
 const router = createRouter({
   history: createMemoryHistory(),
-  routes: [{ path: '/:category/:title', component: { template: '<div></div>' } }] // For ArticleCard links
+  routes: [
+    { path: '/:category/:title', component: { template: '<div></div>' } }, // For ArticleCard links
+    { path: '/:title(.*)', name: 'Markdown', component: { template: '<div></div>' } } // Added named route
+  ] 
 });
 
 describe('ArticleCard.vue', () => {
