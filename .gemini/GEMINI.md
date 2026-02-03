@@ -90,3 +90,5 @@
 - The project 'changgenglu-blog' uses a custom Node.js script (makeDirectory.js) to generate a JSON manifest (fileNames.json) of all Markdown articles for the frontend to consume.
 - The 'changgenglu-blog' project uses 'makeDirectory.js' to generate 'src/assets/fileNames.json', which acts as the database for the frontend. Currently, it only stores file metadata (name, date, category) and H2 headers (matchingLines), but not the full content.
 - 'HomeView.vue' implements a client-side instant search that currently filters only by file name. 'CategoryListView.vue' displays articles of a specific category but lacks search functionality.
+- Fixed test failures in 'MarkdownComponent.spec.js' and 'ArticleCard.spec.js' by switching to 'createMemoryHistory' for router mocks, properly hoisting mocks with 'vi.hoisted', and using 'flushPromises' for async assertions.
+- Switched Vue Router to Hash mode (createWebHashHistory) to fix routing on GitHub Pages. Also refactored ArticleCard navigation to use programmatic routing (@click) instead of router-link components to resolve rendering issues.

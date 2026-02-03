@@ -46,6 +46,10 @@ describe('ArticleCard.vue', () => {
   });
 
   it('應正確渲染文章標題', () => {
+    const link = wrapper.findComponent({ name: 'RouterLink' });
+    expect(link.exists()).toBe(true);
+    expect(link.props('to')).toEqual({ name: 'Markdown', params: { title: mockItem.path } });
+    
     expect(wrapper.find('.card-title').exists()).toBe(true);
     // Title should be highlighted due to mockItem.query
     expect(wrapper.find('.card-title').html()).toContain('<span class="search-highlight">Test</span> Article');

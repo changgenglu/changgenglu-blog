@@ -162,8 +162,12 @@ export default {
     // 處理搜尋邏輯
     handleSearch(query) {
       this.currentPage = 1; // 重置分頁
-      this.searchResults = query ? search(query) : this.allArticlesMeta.map(item => ({id: item.path, title: item.name, category: item.category})); // 使用 MiniSearch
-      // 如果 query 為空，則顯示所有文章，但格式需符合 MiniSearch 結果的基礎結構
+      this.searchResults = query ? search(query) : this.allArticlesMeta.map(item => ({
+        id: item.path, 
+        title: item.name, 
+        category: item.category,
+        path: item.path
+      })); // 使用 MiniSearch
       
       // 同步 URL query 參數，避免重複導航
       if ((query || '') !== (this.$route.query.q || '')) {
@@ -183,7 +187,12 @@ export default {
     window.addEventListener('resize', this.checkDevice);
     // 頁面初次載入時，如果 URL 中沒有 q 參數，則手動觸發一次 handleSearch，顯示所有文章
     if (!this.$route.query.q) {
-      this.searchResults = this.allArticlesMeta.map(item => ({id: item.path, title: item.name, category: item.category}));
+      this.searchResults = this.allArticlesMeta.map(item => ({
+        id: item.path, 
+        title: item.name, 
+        category: item.category,
+        path: item.path
+      }));
     }
   },
   beforeUnmount() {

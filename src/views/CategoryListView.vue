@@ -113,7 +113,8 @@ export default {
           date: item.date,
           name: item.name,
           matchingLines: item.matchingLines,
-          category: item.category
+          category: item.category,
+          path: item.path // Ensure path is included
         }));
     },
     setPage(page) {

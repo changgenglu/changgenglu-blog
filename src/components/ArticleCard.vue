@@ -1,33 +1,65 @@
 <template>
-  <div 
-    class="card mb-4 article-card card-glass" 
-    :class="{ 'mobile-card': isMobile, 'cursor-pointer': item.path }"
-    @click="navigateToArticle"
-  >
-    <div class="card-body">
-      <div class="d-flex justify-content-between align-items-start mb-3">
-        <h5 class="card-title text-light mb-0" v-html="displayTitle"></h5>
-        <span class="date-tag">{{ formattedDate }} ago</span>
-      </div>
-      
-      <div class="article-metadata mb-3" v-show="!isMobile">
-        <div v-if="displaySnippet" class="metadata-line">
-          <span class="bullet"></span>
-          <span class="title-text" v-html="displaySnippet"></span>
-        </div>
-        <div v-else-if="item.matchingLines && item.matchingLines.length > 0" v-for="(title, index) in item.matchingLines" :key="index" class="metadata-line">
-          <span class="bullet"></span>
-          <span class="title-text">{{ title }}</span>
-        </div>
-        <div v-else class="metadata-line">
-          <span class="bullet"></span>
-          <span class="title-text">文章內容...</span>
-        </div>
-      </div>
+  <div class="article-card-wrapper">
+    <router-link 
+      v-if="item.path"
+      :to="{ name: 'Markdown', params: { title: item.path } }" 
+      class="article-card-link"
+    >
+      <div class="card mb-4 article-card card-glass" :class="{ 'mobile-card': isMobile }">
+        <div class="card-body">
+          <div class="d-flex justify-content-between align-items-start mb-3">
+            <h5 class="card-title text-light mb-0" v-html="displayTitle"></h5>
+            <span class="date-tag">{{ formattedDate }} ago</span>
+          </div>
+          
+          <div class="article-metadata mb-3" v-show="!isMobile">
+            <div v-if="displaySnippet" class="metadata-line">
+              <span class="bullet"></span>
+              <span class="title-text" v-html="displaySnippet"></span>
+            </div>
+            <div v-else-if="item.matchingLines && item.matchingLines.length > 0" v-for="(title, index) in item.matchingLines" :key="index" class="metadata-line">
+              <span class="bullet"></span>
+              <span class="title-text">{{ title }}</span>
+            </div>
+            <div v-else class="metadata-line">
+              <span class="bullet"></span>
+              <span class="title-text">文章內容...</span>
+            </div>
+          </div>
 
-      <div class="card-footer-info d-flex justify-content-between align-items-center mt-auto" v-if="showCategory">
-        <span class="category-badge">{{ item.category }}</span>
-        <span class="read-more">Read More →</span>
+          <div class="card-footer-info d-flex justify-content-between align-items-center mt-auto" v-if="showCategory">
+            <span class="category-badge">{{ item.category }}</span>
+            <span class="read-more">Read More →</span>
+          </div>
+        </div>
+      </div>
+    </router-link>
+    <div v-else class="card mb-4 article-card card-glass cursor-default" :class="{ 'mobile-card': isMobile }">
+      <div class="card-body">
+        <div class="d-flex justify-content-between align-items-start mb-3">
+          <h5 class="card-title text-light mb-0" v-html="displayTitle"></h5>
+          <span class="date-tag">{{ formattedDate }} ago</span>
+        </div>
+        <!-- ... same metadata block ... -->
+        <div class="article-metadata mb-3" v-show="!isMobile">
+          <div v-if="displaySnippet" class="metadata-line">
+            <span class="bullet"></span>
+            <span class="title-text" v-html="displaySnippet"></span>
+          </div>
+          <div v-else-if="item.matchingLines && item.matchingLines.length > 0" v-for="(title, index) in item.matchingLines" :key="index" class="metadata-line">
+            <span class="bullet"></span>
+            <span class="title-text">{{ title }}</span>
+          </div>
+          <div v-else class="metadata-line">
+            <span class="bullet"></span>
+            <span class="title-text">文章內容...</span>
+          </div>
+        </div>
+
+        <div class="card-footer-info d-flex justify-content-between align-items-center mt-auto" v-if="showCategory">
+          <span class="category-badge">{{ item.category }}</span>
+          <span class="read-more">Read More →</span>
+        </div>
       </div>
     </div>
   </div>
@@ -108,11 +140,6 @@ export default {
         return seconds + ` ${addS(seconds, "second")} `;
       }
       return 'just now';
-    },
-    navigateToArticle() {
-      if (this.item.path) {
-        this.$router.push({ name: 'Markdown', params: { title: this.item.path } });
-      }
     }
   }
 }
@@ -121,6 +148,7 @@ export default {
 <style scoped>
 .article-card-link {
   text-decoration: none;
+  display: block; /* Ensure the link covers the whole area */
 }
 
 .article-card {
