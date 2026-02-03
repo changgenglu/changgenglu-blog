@@ -222,8 +222,8 @@ $response->assertStatus(Response::HTTP_OK)
          ->assertJson(['error_code' => 20001]);
 ```
 
-**3. Logging 隔離與除錯**
-確保 `phpunit.xml` 設定 `LOG_CHANNEL` 為 `null` 避免連接 GCP。若測試時需要排查錯誤，請使用 `Log::channel('')` 指令指定頻道（如 `single` 或 `daily`）將 Log 寫到本地：
+**3. Logging 除錯**
+若測試時需要排查錯誤，請使用 `Log::channel('')` 指令指定頻道（如 `single` 或 `daily`）將 Log 寫到本地：
 ```php
 \Log::channel('single')->info('Debug message');
 ```
