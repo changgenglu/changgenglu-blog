@@ -1,0 +1,36 @@
+description = "啟動 Ralph Wiggum 迭代開發迴圈，用於自我參照式任務完成。"
+prompt = """
+你正在啟動一個 Ralph Wiggum 迴圈 - 這是 Gemini CLI 的迭代式、自我參照開發方法論。
+
+**重要：** 首先，尋找並執行設定腳本以建立迴圈狀態檔案：
+```bash
+RALPH_SCRIPT=$(find ~/.gemini/extensions -name "setup-ralph-loop.sh" 2>/dev/null | head -1)
+bash "$RALPH_SCRIPT" $ARGUMENTS
+```
+
+腳本接受以下參數：
+- 任務提示（必填）- 你想要完成的任務
+- `--max-iterations <n>` - 在 N 次迭代後停止（預設：無限制）
+- `--completion-promise '<text>'` - 表示完成的短語（多字詞請使用引號）
+
+**範例：**
+```bash
+RALPH_SCRIPT=$(find ~/.gemini/extensions -name "setup-ralph-loop.sh" 2>/dev/null | head -1)
+bash "$RALPH_SCRIPT" Build a REST API --max-iterations 20
+bash "$RALPH_SCRIPT" --completion-promise 'DONE' Fix the auth bug
+```
+
+**執行腳本後：**
+1. 讀取位於 `.gemini/ralph-loop.local.md` 的狀態檔案以了解你的任務
+2. 以迭代方式處理任務
+3. 每次迭代時，檢查進度並持續改進
+4. 如果設定了完成承諾，當任務真正完成時輸出 `<promise>YOUR_PHRASE</promise>`
+
+**關鍵規則：**
+- 切勿輸出虛假的完成承諾來退出迴圈
+- 信任迭代過程 - 持續改進直到任務真正完成
+- 檢查 `.gemini/ralph-loop.local.md` 以取得目前迭代次數和設定
+
+**取消迴圈：** 使用 `/cancel-ralph` 指令
+"""
+

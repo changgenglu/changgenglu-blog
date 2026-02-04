@@ -1,0 +1,6 @@
+{
+  "source": "https://github.com/AsyncFuncAI/ralph-wiggum-extension",
+  "type": "github-release",
+  "autoUpdate": false,
+  "releaseTag": "v0.0.1"
+}

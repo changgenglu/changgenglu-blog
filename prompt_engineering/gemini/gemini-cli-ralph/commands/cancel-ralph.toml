@@ -1,0 +1,16 @@
+description = "取消正在執行的 Ralph Wiggum 迴圈。"
+prompt = """
+執行以下指令取消正在執行的 Ralph 迴圈：
+```bash
+RALPH_CANCEL=$(find ~/.gemini/extensions -name "cancel-ralph-loop.sh" 2>/dev/null | head -1)
+bash "$RALPH_CANCEL"
+```
+
+這將會把位於 `.gemini/ralph-loop.local.md` 的狀態檔案中的 `active: false` 設為關閉。
+
+取消後，向使用者報告最終狀態，包括：
+- 已完成的總迭代次數
+- 已完成的工作內容
+- 任何剩餘的工作
+"""
+
