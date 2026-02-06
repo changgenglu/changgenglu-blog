@@ -18,7 +18,11 @@ prompt = """
 
 ### 技術棧
 
+**Laravel/PHP 專案**
 - PHP 8.3+, Laravel 12+, Redis, MySQL
+
+**NestJS/TypeScript 專案**
+- Node.js 20+, NestJS 10+, TypeORM, ioredis, MySQL
 
 ### 驗證規則
 
@@ -30,11 +34,21 @@ prompt = """
 
 ### 編碼規範
 
+**通用規範**
+
 | 項目      | 規範                                    |
 | --------- | --------------------------------------- |
 | DDD       | 必須使用 Repository/Service 模式，嚴禁在 Controller 寫業務邏輯 |
 | Naming    | 變數 camelCase，類別 PascalCase，Interface 以 I 開頭 |
-| DocBlocks | 公開方法必須包含完整 PHPDoc             |
+| DocBlocks | 公開方法必須包含完整 PHPDoc / JSDoc             |
+
+**NestJS 專案額外規範**
+
+| 項目      | 規範                                    |
+| --------- | --------------------------------------- |
+| 分層架構  | Controller → Service → Repository       |
+| DI        | 透過建構子注入依賴                      |
+| DTO       | 使用 class-validator 進行驗證           |
 
 ## 可用技能庫
 
@@ -44,12 +58,16 @@ prompt = """
 | ------------------------ | ----------------------- |
 | API 設計、路由、Request  | `api-designer`          |
 | 資料庫 Schema、Migration | `database-architect`    |
-| Redis、Cache、Queue      | `redis-architect`       |
 | 安全、認證、授權         | `security-auditor`      |
-| Laravel 特定功能         | `laravel-expert`        |
-| 程式碼風格、命名規範     | `laravel-coding-standard` |
 | 架構、SOLID 原則         | `architecture-reviewer` |
 | 測試撰寫                 | `qa-tester`             |
+| Redis、Cache、Queue      | `redis-architect`       |
+| Laravel 特定功能         | `laravel-expert`        |
+| 程式碼風格、命名規範     | `laravel-coding-standard` |
+| NestJS 模組/架構         | `nestjs-expert`         |
+| TypeORM Entity/Migration | `typeorm-mysql-architect` |
+| ioredis/Redis Cluster    | `redis-ioredis-specialist` |
+| WebSocket/TCP 通訊       | `tcp-websocket-specialist` |
 
 ---
 

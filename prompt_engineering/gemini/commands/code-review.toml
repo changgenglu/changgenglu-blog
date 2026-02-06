@@ -53,6 +53,10 @@ prompt = """
 | 涉及大量迴圈/批次處理/分頁/效能敏感操作      | `performance-analyst` |
 | 涉及 Laravel 特定功能 (Middleware/Event/Job) | `laravel-expert`      |
 | 涉及 Test/PHPUnit/Feature Test               | `qa-tester`           |
+| 涉及 NestJS Module/Controller/Service        | `nestjs-expert`       |
+| 涉及 TypeORM Entity/Repository/Migration     | `typeorm-mysql-architect` |
+| 涉及 ioredis/Redis Cluster                   | `redis-ioredis-specialist` |
+| 涉及 WebSocket Gateway/TCP Client            | `tcp-websocket-specialist` |
 
 ---
 
@@ -140,12 +144,25 @@ prompt = """
 
 #### 命名規範
 
+**Laravel/PHP 專案**
+
 | 類型      | 規則        | 正確               | 錯誤                |
 | --------- | ----------- | ------------------ | ------------------- |
 | 變數      | 小駝峰      | `$userEmail`       | `$user_email`       |
 | 常數      | 全大寫+底線 | `COMPANY_IP`       | `CompanyIp`         |
 | 類別      | 大駝峰      | `MemberController` | `member_controller` |
 | Interface | I 開頭      | `IGame`            | `GameInterface`     |
+
+**NestJS/TypeScript 專案**
+
+| 類型      | 規則        | 正確               | 錯誤                |
+| --------- | ----------- | ------------------ | ------------------- |
+| 變數      | camelCase   | `userEmail`        | `user_email`        |
+| 常數      | UPPER_SNAKE | `COMPANY_IP`       | `companyIp`         |
+| 類別      | PascalCase  | `UserService`      | `userService`       |
+| Interface | I 開頭      | `IUserRepository`  | `UserRepositoryInterface` |
+| DTO       | PascalCase  | `CreateUserDto`    | `createUserDTO`     |
+| Entity    | PascalCase  | `UserEntity`       | `user_entity`       |
 
 #### 陣列格式
 
