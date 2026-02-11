@@ -48,21 +48,11 @@ description: "Activates when user requests in-depth code explanation, design pat
 | **Singleton** | 確保單一實例 | 全域資源管理 |
 
 **Factory 範例**：
-```php
-interface IPaymentGateway { }
 
-class PaymentFactory
-{
-    public function create(string $type): IPaymentGateway
-    {
-        return match($type) {
-            'stripe' => new StripeGateway(),
-            'paypal' => new PayPalGateway(),
-            default => throw new InvalidArgumentException()
-        };
-    }
-}
-```
+> 根據使用者詢問的程式語言提供對應範例。包含：
+> - 定義 Interface
+> - 建立 Factory 類別
+> - 使用 switch/match 根據 type 回傳不同實作
 
 ### 2.2 結構型模式
 
@@ -73,23 +63,11 @@ class PaymentFactory
 | **Facade** | 簡化複雜子系統 | 統一介面 |
 
 **Adapter 範例**：
-```php
-// 目標介面
-interface ILogger {
-    public function log(string $message): void;
-}
 
-// 適配第三方
-class MonologAdapter implements ILogger
-{
-    public function __construct(private Logger $monolog) {}
-    
-    public function log(string $message): void
-    {
-        $this->monolog->info($message);
-    }
-}
-```
+> 根據使用者詢問的程式語言提供對應範例。包含：
+> - 定義目標 Interface
+> - 建立 Adapter 類別包裝第三方實作
+> - 展示如何將第三方 API 轉換為內部介面
 
 ### 2.3 行為型模式
 
@@ -100,73 +78,69 @@ class MonologAdapter implements ILogger
 | **Command** | 封裝請求 | 操作佇列 |
 
 **Strategy 範例**：
-```php
-interface IDiscountStrategy {
-    public function calculate(float $amount): float;
-}
 
-class PercentageDiscount implements IDiscountStrategy
-{
-    public function __construct(private float $rate) {}
-    
-    public function calculate(float $amount): float
-    {
-        return $amount * (1 - $this->rate);
-    }
-}
-
-class OrderService
-{
-    public function applyDiscount(Order $order, IDiscountStrategy $strategy): void
-    {
-        $order->total = $strategy->calculate($order->subtotal);
-    }
-}
-```
+> 根據使用者詢問的程式語言提供對應範例。包含：
+> - 定義 Strategy Interface
+> - 建立具體策略實作
+> - 展示 Service 如何透過介面使用策略
 
 ---
 
 ## 3. 視覺化工具
 
-### 3.1 流程圖 (Mermaid)
+### 3.1 流程圖
 
-```mermaid
-sequenceDiagram
-    participant C as Controller
-    participant S as Service
-    participant R as Repository
-    participant DB as Database
-    
-    C->>S: 請求處理
-    S->>R: 查詢資料
-    R->>DB: SQL Query
-    DB-->>R: 結果集
-    R-->>S: 領域物件
-    S-->>C: DTO
+```
+  ┌────────────┐  ┌─────────┐  ┌────────────┐  ┌──────────┐
+  │ Controller │  │ Service │  │ Repository │  │ Database │
+  └─────┬──────┘  └────┬────┘  └─────┬──────┘  └────┬─────┘
+        │              │             │              │
+        │ 1.請求處理   │             │              │
+        │─────────────>│             │              │
+        │              │ 2.查詢資料  │              │
+        │              │────────────>│              │
+        │              │             │ 3.SQL Query  │
+        │              │             │─────────────>│
+        │              │             │              │
+        │              │             │ 4.結果集     │
+        │              │             │<·············│
+        │              │ 5.領域物件  │              │
+        │              │<············│              │
+        │ 6.DTO        │             │              │
+        │<·············│             │              │
+        │              │             │              │
 ```
 
 ### 3.2 類別圖
 
-```mermaid
-classDiagram
-    class IUserRepository {
-        <<interface>>
-        +find(id): User
-        +save(user): void
-    }
-    
-    class UserRepository {
-        +find(id): User
-        +save(user): void
-    }
-    
-    class UserService {
-        -repository: IUserRepository
-        +createUser(data): User
-    }
-    
-    IUserRepository <|.. UserRepository
-    UserService --> IUserRepository
+```
+  ┌─────────────────────────────────┐
+  │      <<interface>>              │
+  │       IUserRepository           │
+  ├─────────────────────────────────┤
+  │  + find(id): User               │
+  │  + save(user): void             │
+  └────────────────┬────────────────┘
+                   │
+                   │ implements
+                   ▼
+  ┌─────────────────────────────────┐
+  │        UserRepository           │
+  ├─────────────────────────────────┤
+  │  + find(id): User               │
+  │  + save(user): void             │
+  └─────────────────────────────────┘
+
+  ┌─────────────────────────────────┐
+  │          UserService            │
+  ├─────────────────────────────────┤
+  │  - repository: IUserRepository  │
+  │  + createUser(data): User       │
+  └────────────────┬────────────────┘
+                   │
+                   │ depends on
+                   ▼
+              IUserRepository
 ```
 
 ---
@@ -202,27 +176,29 @@ Level 3 (給資深工程師):
 
 ## 5. 學習路徑建議
 
-### 5.1 Laravel 學習路徑
+### 5.1 軟體工程通用學習路徑
 
 ```
 基礎 → 進階 → 架構
 
 1. 基礎
-   - Route → Controller → View
-   - Eloquent 基本操作
-   - Blade 模板
+   - 語法與資料結構
+   - 基本 I/O 與錯誤處理
+   - 單元測試入門
 
 2. 進階
-   - Service Container
-   - Middleware
-   - Event/Listener
-   - Queue
+   - 物件導向設計
+   - 依賴注入與 IoC
+   - 非同步與並發處理
+   - API 設計與整合
 
 3. 架構
-   - Repository Pattern
-   - Service Layer
-   - DDD 概念
+   - 分層架構（Layered Architecture）
+   - 設計模式實踐
+   - DDD / Clean Architecture 概念
 ```
+
+> **注意**：特定框架或語言的學習路徑，請參考對應的專屬 Skill（如 `nestjs-expert`、`laravel-expert` 等）。
 
 ### 5.2 設計模式學習順序
 
@@ -274,7 +250,7 @@ Level 3 (給資深工程師):
 - 主要職責：[一句話描述]
 
 ### 流程圖
-[Mermaid 流程圖]
+[ASCII 流程圖]
 
 ### 關鍵邏輯
 1. [步驟 1 說明]
