@@ -1,0 +1,284 @@
+## 整合測試撰寫規則
+
+### 概述
+
+- 需遵守整合測試的精神。
+- 若撰寫的 api 中有嚴重違反 SOLID 原則時，可以簡單提出，讓我評估後續的優化方向。
+- 需遵守 coding style 的規範
+
+### 撰寫風格內容總結
+
+#### 撰寫標準
+
+1. **檔案結構**：每個 API 方法獨立檔案，命名 `{MethodName}Test.php`
+2. **檔案命名**：使用 `Test.php`（非 `IntegrationTest.php`）
+3. **方法命名**：snake_case（非 camelCase），且必須宣告 `: void` 返回類型
+4. **常數定義**：定義 `private const METHOD`、`private const URL`，使用 Laravel HTTP 狀態碼常數（如 `Response::HTTP_OK`）
+5. **錯誤處理**：使用 `resources/lang/en/error.php` 定義的錯誤碼
+6. **屬性類型**：使用 PHP 8 屬性類型聲明（如 `private Games $game;`）
+7. **Mock 初始化**：在 `setUp()` 中初始化 Mock 服務實例
+8. **測試行為設定**：在測試方法中設定 Mock 行為和斷言
+9. **Redis 清理**：僅在測試實際使用 Redis 時操作
+10. **測試覆蓋**：確保 input/output 正確，涵蓋所有商業邏輯
+11. **測試資料**：優先使用 factory 建立，且**若 Factory 已定義狀態方法（如 `enabled()`），禁止在 `create()` 中重複帶入相同參數**
+12. **Interface 優先**：**若有 Interface 定義（如 `ILanguage`），禁止硬編碼字串（如 `'en'`），必須使用 Interface 常數**
+13. **資料修改**：優先修改現有資料而非新建
+14. **結構分隔**：使用 `// ============================================================================` 分隔不同類型的測試區塊（如測試生命週期、參數驗證、業務邏輯等）
+
+#### 測試覆蓋範圍
+
+每個測試檔案須包含：
+- **基本驗證**：缺少 header、無效 header
+- **參數驗證**：必要參數、類型驗證、null 值
+- **業務邏輯**：存在性驗證、狀態驗證
+- **成功案例**：正常操作流程
+
+#### 檔案結構範例
+
+```
+tests/Integration/ControllerName/
+├── MethodNameTest.php    # 專注單一 API 方法測試
+```
+
+**結構原則**：每個檔案專注單一 API 方法，提高可維護性
+
+#### 測試結構模板
+
+**測試常數**：定義 `METHOD`、`URL` 常數，使用 Laravel HTTP 狀態碼常數
+
+**屬性類型**：使用 PHP 8 屬性類型聲明（如 `private Providers $provider`）
+
+**測試方法**：使用 `void` 返回類型，遵循 snake_case 命名規則
+
+**測試常數與屬性宣告**
+
+```php
+private const METHOD = 'post';
+private const URL = '/api/backend/qc/ips';
+
+private Providers $provider;
+private Platforms $platform;
+private ProviderPlatforms $providerPlatform;
+```
+
+**生命週期**：
+```php
+public function setUp(): void
+{
+    parent::setUp();
+    $this->setUpSQLiteForTesting();
+    Redis::flushdb();
+    $this->setLaravelStart();
+    $this->setupTestData();
+    $this->setupMockServices(); // 初始化 Mock 服務
+}
+
+public function tearDown(): void
+{
+    Mockery::close();
+    Redis::flushdb();
+    parent::tearDown();
+}
+```
+
+**參數組織及斷言模式**：
+```php
+$params = [
+    'provider_id' => $this->provider->id,
+    'platform_id' => $this->platform->id,
+];
+
+$expectedResult = [
+    'error_code' => 20001,
+    'error_msg' => [
+        'provider_id' => [
+            'The provider id field is required.'
+        ]
+    ]
+];
+
+$response = $this->apiRequest(self::METHOD, self::URL, $params);
+$response->assertStatus(Response::HTTP_OK)
+    ->assertJson($expectedResult);
+```
+
+#### 服務測試模板
+
+**依賴注入測試**：
+```php
+protected function setupMockServices(): void
+{
+    $this->mockServices['gameSort'] = Mockery::mock(\App\Services\GameSort::class);
+    $this->app->instance(\App\Services\GameSort::class, $this->mockServices['gameSort']);
+}
+
+public function test_dependency_injection(): void {
+    $this->mockServices['gameSort']->shouldReceive('getSortedGames')
+                                  ->with('slot')
+                                  ->andReturn($expectedGames);
+
+    $response = $this->postJson('/api/games/sort', ['category' => 'slot']);
+    $response->assertStatus(200);
+}
+```
+
+**Star 服務測試**：
+```php
+protected function setupMockServices(): void
+{
+    $this->mockServices['star'] = Mockery::mock(\App\Services\Star::class);
+    app()->instance('Star', $this->mockServices['star']);
+}
+
+public function test_star_service_replacement(): void {
+    $this->mockServices['star']->shouldReceive('provider')->andReturn($providerData);
+
+    $response = $this->getJson('/api/qc/platform/category/list');
+    $response->assertStatus(200);
+}
+```
+
+**部分 Mock 測試**：
+```php
+public function test_partial_mock(): void {
+    $mock = $this->partialMock(Service::class, function ($mock) {
+        $mock->shouldReceive('method')->andReturn($expected);
+    });
+}
+```
+
+****測試類別結構**：
+```php
+class ExampleTest extends TestCase {
+    private $mockServices = [];
+
+    protected function tearDown(): void {
+        Mockery::close();
+        parent::tearDown();
+    }
+
+    protected function setupMockServices(): void
+    {
+        // 初始化常用 Mock 服務
+        $this->mockServices['star'] = Mockery::mock(\App\Services\Star::class);
+        $this->mockServices['qc'] = Mockery::mock(\App\Services\Qc::class);
+        $this->mockServices['platform'] = Mockery::mock(\App\Services\Platform::class);
+
+        // 綁定到服務容器
+        app()->instance('Star', $this->mockServices['star']);
+        app()->instance(\App\Services\Qc::class, $this->mockServices['qc']);
+        app()->instance(\App\Services\Platform::class, $this->mockServices['platform']);
+    }
+
+    public function test_example(): void {
+        // 在測試方法中設定 Mock 行為
+        $this->mockServices['star']->shouldReceive('provider')->andReturn($providerData);
+        $this->mockServices['qc']->shouldReceive('getPolicyName')->andReturn('taiwan');
+
+        $response = $this->getJson('/api/test');
+        $response->assertStatus(200)->assertJsonStructure($structure);
+    }
+}
+```
+
+#### 測試原則
+
+1. **環境設定**：在 `setUp()` 中初始化 Mock 服務實例，測試方法中設定行為
+2. **服務識別**：優先依賴注入，減少 `app()` 直接調用
+3. **Mock 策略**：依賴注入用 `$this->app->instance()`，註冊服務用 `app()->instance()`
+4. **測試資料**：優先修改現有資料而非新建，測試後恢復原狀
+5. **錯誤處理**：使用專案定義錯誤碼驗證
+6. **資源清理**：測試結束清理 Mock，避免記憶體洩漏
+
+### Service Mock 注意事項
+
+由於專案歷史因素，Service 的實作與呼叫方式並非全面採用依賴注入 (Dependency Injection)。
+
+- **ServiceFactory 模式**：
+  多數 Controller 與 Service 使用 `app('Service')->init('ServiceName')` 取得實例。此方式底層是直接 `new ServiceName`，**不經過 Laravel Container**。
+  因此，單純使用 `Mockery::mock(Service::class)` 並 `$this->app->instance(Service::class, $mock)` **無法** 成功 Mock 該 Service。
+
+- **撰寫策略**：
+  1. **檢查呼叫方式**：撰寫測試前，務必查看 Controller 及 Service 程式碼。
+     - 若使用 `app('Service')->init(...)`，則無法直接 Mock 目標 Service。
+     - 若使用 `__construct` 注入，則可正常 Mock。
+  2. **Mock ServiceFactory (高難度/不建議)**：
+     若必須 Mock，需 Mock `Service` (ServiceFactory) 本身，並在 `init` 方法中針對特定字串回傳 Mock 物件。這會增加測試複雜度。
+  3. **整合測試優先**：
+     針對無法 Mock 的 Service，建議採用**真實資料庫/Redis** 的整合測試策略，而非單元測試。確保 `setUp` 時資料庫與快取是乾淨的，並建立必要的測試資料。
+
+### 常見陷阱與解決方案 (Common Pitfalls)
+
+**1. Middleware 驗證依賴**
+後台 API (`/api/backend/*`) 會驗證 `x-pid` 標頭。測試前**必須**在 `setUp()` 建立基礎資料，否則會拋出 500 錯誤：
+```php
+Providers::factory()->create(['id' => PROVIDER_CTL_ID, 'enable' => 1]);
+```
+
+**2. 錯誤狀態碼慣例**
+專案 API 在驗證失敗時回傳 **200 OK** 搭配 `error_code`。請斷言 200 而非 422：
+```php
+$response->assertStatus(Response::HTTP_OK)
+         ->assertJson(['error_code' => 20001]);
+```
+
+**3. Logging 除錯**
+若測試時需要排查錯誤，請使用 `Log::channel('')` 指令指定頻道（如 `single` 或 `daily`）將 Log 寫到本地：
+```php
+\Log::channel('single')->info('Debug message');
+```
+
+### 資料庫選擇策略
+
+為了平衡測試速度與真實環境一致性，整合測試應根據以下原則選擇資料庫：
+
+#### 1. 預設使用 SQLite
+大多數標準的 Eloquent 操作、關聯查詢與業務邏輯驗證，應預設使用 SQLite（In-Memory）以獲得最快的回饋速度。
+
+- **適用場景**：
+  - 標準 CRUD 操作 (`save`, `find`, `delete`)
+  - Eloquent 關聯 (`with`, `load`)
+  - 一般業務邏輯驗證
+
+#### 2. 必須使用 MySQL 的情境
+若測試涉及以下特性，SQLite 可能無法模擬或行為不一致，**必須**使用 MySQL 並標記 `skipIfNotMySQL`：
+
+- **特定錯誤代碼 (Error Codes)**：
+  - 例如預期 MySQL 拋出 Error 1054 (Unknown column) 並轉換為專案特定錯誤碼 (如 `10001 sql_is_busy`)。SQLite 可能會忽略該錯誤或拋出不同格式的異常。
+- **原生 SQL 語法 (Raw SQL)**：
+  - 使用了 MySQL 特有的函數 (如 `DATE_FORMAT`, `JSON_EXTRACT`, `IF`)。
+  - 使用了 SQLite 不支援的語法。
+- **資料庫鎖定 (Locking)**：
+  - 測試 `lockForUpdate()` 或交易併發行為（SQLite 只有檔案鎖，行為與 Row-lock 不同）。
+- **嚴格模式與約束 (Strict Mode & Constraints)**：
+  - 測試 Unique Constraint 或 Foreign Key 違規的具體錯誤訊息。
+  - 測試 Enum 欄位的嚴格型別檢查。
+
+#### 3. 實作方式
+
+若測試案例依賴 MySQL，請在測試類別中使用 `DatabaseSpecificTestTrait` 並在測試方法開頭呼叫：
+
+```php
+use Tests\Integration\DatabaseSpecificTestTrait;
+
+class GameListTest extends TestCase
+{
+    use DatabaseSpecificTestTrait;
+
+    public function test_mysql_specific_feature()
+    {
+        $this->skipIfNotMySQL('此測試依賴 MySQL 的錯誤處理機制');
+        
+        // ... 測試邏輯
+    }
+}
+```
+
+#### 4. 決策檢查表 (Checklist)
+
+在撰寫測試前，請依序確認：
+1. **是否使用 Raw SQL？** (是 -> MySQL)
+2. **是否驗證資料庫層級的錯誤碼？** (是 -> MySQL)
+3. **是否涉及複雜的 JSON 操作或日期函數？** (是 -> MySQL)
+4. **是否測試交易鎖定？** (是 -> MySQL)
+5. **以上皆否** -> **使用 SQLite**
