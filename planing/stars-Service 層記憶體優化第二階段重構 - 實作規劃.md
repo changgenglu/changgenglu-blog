@@ -7,6 +7,7 @@
 | v1.0 | 2026-02-24 11:55 | 初次規劃 |
 | v1.1 | 2026-02-24 | 補充 Part 1 新會員統計 SQL 聚合方案；補充留存率計算移至 StatisticsUserLogin Service |
 | v1.2 | 2026-02-24 | 修改四：`$retentionRates` 改用字串 key `"day_N"`，避免整數 key 與位置索引混淆 |
+| v1.3 | 2026-02-24 | 修正 `getVipLevelMemberCount` 雙重計數缺陷（改用 ROW_NUMBER 子查詢）；補充風險評估與缺陷摘要 |
 
 ---
 
@@ -153,12 +154,12 @@ MySQL 8.0 InnoDB 對 `ADD INDEX` 支援 **Online DDL**（`ALGORITHM=INPLACE, LOC
 
 | 問題 | 原方案（PHP 層） | 本次方案（DB 聚合） |
 |---|---|---|
-| VIP 人數統計 | 載入全部明細 → PHP `groupBy` | SQL `COUNT(DISTINCT) GROUP BY vip_level` |
+| VIP 人數統計 | 載入全部明細 → PHP `groupBy`（non-strict mode 下 vip_level 不確定） | SQL `ROW_NUMBER()` 子查詢取每位玩家最後登入的 vip_level，再外層 `GROUP BY` 計數 |
 | 付費人數統計 | 載入全部明細 → PHP `in_array` | SQL `COUNT(DISTINCT username)` |
 | 各類型儲值金額 | 載入全部明細 → PHP `foreach` | SQL `SUM(point) GROUP BY type` |
 | 新會員各登入類型統計 | 載入全部明細 → PHP 逐筆累計，並建立 username 陣列 | SQL `COUNT(*) + SUM(type = ?)` |
 | 留存率計算 | Command 中取 Redis SMEMBERS 全量陣列 → PHP `array_intersect` | 封裝至 `StatisticsUserLogin` Service，邏輯不變，調用語意清晰 |
-| 記憶體複雜度 | O(n)，峰值 >128 MB（OOM） | O(1)，趨近 0 MB |
+| 記憶體複雜度 | O(n)，峰值 >128 MB（OOM） | DB 聚合 O(1)；留存率仍 O(n)，n = DAU |
 | 正式環境 CPU 影響 | 不適用（PHP OOM 前即中斷）| **實測無明顯 CPU 飆升** |
 | 敏感資料外洩風險 | 大量明細存於記憶體，Exception 可能 dump | 無明細在 PHP 記憶體 |
 
@@ -193,17 +194,37 @@ ADD INDEX idx_provider_created_at (provider_id, created_at);
 
 #### `UserLoginRecord` — 重構 `getVipLevelMemberCount()`
 
-**現況問題**：查詢所有明細至 PHP，再用 Laravel Collection `groupBy` 聚合，正式環境約產生 22 MB 峰值。
+**業務邏輯確認**：每位玩家在日報表中僅被計入其當日**最後一次登入**的 VIP 等級；若當日僅登入一次則以該次等級計算。各 VIP 等級的人數加總等於 DAU。
 
-**重構後**：改為 SQL `COUNT(DISTINCT) GROUP BY`，回傳最多 11 筆聚合結果，記憶體趨近 0 MB。
+**現況雙重缺陷**：
+
+1. **原始 PHP 實作**：`groupBy('username')` 未對 `vip_level` 進行聚合，在 MySQL `ONLY_FULL_GROUP_BY` 停用的情況下，回傳的 `vip_level` 值不確定（非 MAX(created_at) 對應的等級），屬於潛在 bug。
+
+2. **初版 SQL 聚合方案（已廢棄）**：
+   ```sql
+   SELECT vip_level, COUNT(DISTINCT username) AS member_count
+   FROM user_login_record
+   WHERE provider_id = ? AND created_at >= ? AND created_at < ?
+   GROUP BY vip_level;
+   ```
+   **雙重計數問題**：玩家當日若有多筆不同 vip_level 的登入記錄（如 VIP1 → VIP2），該玩家會同時出現在 vip_level=1 與 vip_level=2 的計數中，導致各等級人數加總 > DAU，違反業務邏輯。
+
+**正確方案**：以 `ROW_NUMBER()` 子查詢取每位玩家當日最後一筆記錄，再於外層按 vip_level 計數：
 
 ```php
-public function getVipLevelMemberCount($providerId, \DateTime $beginAt, \DateTime $endAt): array
+public function getVipLevelMemberCount(int $providerId, \DateTime $beginAt, \DateTime $endAt): array
 {
-    $rows = Model::select('vip_level', DB::raw('COUNT(DISTINCT username) AS member_count'))
+    $latestVip = Model::select('vip_level', DB::raw(
+        'ROW_NUMBER() OVER (PARTITION BY username ORDER BY created_at DESC) AS rn'
+    ))
         ->where('provider_id', $providerId)
         ->where('created_at', '>=', $beginAt)
-        ->where('created_at', '<', $endAt)
+        ->where('created_at', '<', $endAt);
+
+    $rows = DB::table(DB::raw("({$latestVip->toSql()}) AS latest_vip"))
+        ->mergeBindings($latestVip->getQuery())
+        ->where('rn', 1)
+        ->select('vip_level', DB::raw('COUNT(*) AS member_count'))
         ->groupBy('vip_level')
         ->get();
 
@@ -215,6 +236,10 @@ public function getVipLevelMemberCount($providerId, \DateTime $beginAt, \DateTim
     return $result;
 }
 ```
+
+> **效能說明**：ROW_NUMBER() 子查詢比簡單 GROUP BY 效能略差，但回傳結果集仍極小（最多 11 行），對排程的整體執行時間影響可忽略。
+
+---
 
 #### `UserLoginRecord` — 新增 `getNewMemberStats()`（Part 1 替換）
 
@@ -246,6 +271,8 @@ public function getNewMemberStats(int $providerId, \DateTime $beginAt, \DateTime
     ];
 }
 ```
+
+---
 
 #### `UserDepositedRecord` — 新增兩個語意明確的聚合方法
 
@@ -282,6 +309,8 @@ public function getRevenueByType(int $providerId, \DateTime $beginAt, \DateTime 
 }
 ```
 
+---
+
 #### `StatisticsUserLogin` — 新增 `getDailyCount()` 與 `getRetentionCounts()`
 
 **現況問題（lines 74–75、110–134）**：留存率計算直接散落在 Command 中，每個留存天數各自呼叫 `getDailyList()` 並執行 `array_intersect()`，導致：
@@ -302,8 +331,8 @@ public function getDailyCount(int $providerId, \DateTime $date): int
 }
 
 /**
- * @param  int[]    $days    留存天數清單，如 [1, 3, 7, 14, 30]
- * @return array<int, int>   key 為留存天數整數，value 為交集人數
+ * @param  int[]          $days  留存天數清單，如 [1, 3, 7, 14, 30]
+ * @return array<int, int>       key 為留存天數整數，value 為交集人數
  */
 public function getRetentionCounts(int $providerId, \DateTime $date, array $days): array
 {
@@ -358,6 +387,8 @@ create（全 0）或確認已存在
 → update group 2：VIP 各級人數（DB 聚合，~0 MB）                      → unset
 → update group 3：收益 / 付費人數 / ARPPU / 各類型儲值（DB 聚合，~0 MB）→ unset
 ```
+
+> **update group 3 的 `$revenue` 來源**：`$revenue = array_sum($revenueByType)`，其中 `$revenueByType` 來自 `getRevenueByType()` 的回傳值（`[ type => total_point ]`）。ARPPU 計算為 `bcdiv($revenue, $payingUserCount, 4)`，需確保 `$revenue` 來源正確；`$payingUserCount` 為 0 時應跳過除法回傳 0。
 
 **修改三：新會員統計改用 SQL 聚合（替換 lines 78–101）**
 
@@ -439,7 +470,7 @@ Schema::connection('record')->table('user_deposited_record', function (Blueprint
 
 | 測試檔案 | 測試方法 | 核心驗證 |
 |---|---|---|
-| `UserLoginRecordTest` | `testGetVipLevelMemberCount` | 回傳格式為 `[vip_level => count]`；缺少的等級補 0 |
+| `UserLoginRecordTest` | `testGetVipLevelMemberCount` | 各等級人數加總等於 DAU；玩家當日多筆登入只計入最後等級 |
 | `UserLoginRecordTest` | `testGetUserCount` | unique / 非 unique 分別正確 |
 | `UserLoginRecordTest` | `testGetPwaCount` | `pwa_users` / `unique_pwa_users` 正確 |
 | `UserLoginRecordTest` | `testGetNewMemberStats` | 回傳正確的 `count`、`auto_login_by_phone`、`login_by_phone`、`login_by_qpp`；無資料時四個欄位均為 0 |
@@ -458,7 +489,7 @@ Schema::connection('record')->table('user_deposited_record', function (Blueprint
 
 ```
 1. 撰寫單元測試（紅燈）
-2. 重構 UserLoginRecord::getVipLevelMemberCount()
+2. 重構 UserLoginRecord::getVipLevelMemberCount()（改用 ROW_NUMBER 子查詢）
 3. 新增 UserLoginRecord::getNewMemberStats()
 4. 新增 UserDepositedRecord 聚合方法（getPayingUserCount、getRevenueByType）
 5. 新增 StatisticsUserLogin::getDailyCount() 與 getRetentionCounts()
@@ -472,6 +503,8 @@ Schema::connection('record')->table('user_deposited_record', function (Blueprint
 
 ## 7. 風險評估
 
+### 7.1 主要風險
+
 | 風險 | 等級 | 對策 |
 |---|---|---|
 | DB 聚合查詢造成 CPU 飆升影響其他服務 | **已排除**（正式環境實測無影響）| — |
@@ -481,12 +514,58 @@ Schema::connection('record')->table('user_deposited_record', function (Blueprint
 | `getNewMemberStats()` SQL 聚合與原 PHP 計數邏輯差異 | 低 | 測試環境先以同日期平行比對兩方法回傳值 |
 | `getDailyList($yesterday)` 在 `getDailyCount()` 與 `getRetentionCounts()` 中各呼叫一次（共 2 次 Redis SMEMBERS）| 低 | 正式環境 Redis SMEMBERS 為 O(n)，DAU ~44,000 筆，兩次讀取合計額外耗時 <10 ms，可接受 |
 
+### 7.2 補充識別的風險
+
+**風險 A：`getVipLevelMemberCount` 雙重計數（已修正）**
+
+初版方案（`COUNT(DISTINCT username) GROUP BY vip_level`）在玩家當日有多筆不同 `vip_level` 登入記錄時，同一玩家會同時被計入多個等級，導致各等級人數加總 > DAU。此問題於 v1.3 改用 `ROW_NUMBER()` 子查詢修正，取每位玩家當日最後一筆記錄的等級。
+
+**風險 B：`$revenue` 計算來源隱含**
+
+`$dailyReport` 的 `revenue` 欄位由 `array_sum($revenueByType)` 推導，ARPPU 計算為 `bcdiv($revenue, $payingUserCount, 4)`。若 `getRevenueByType()` 回傳的 `point` 欄位單位與原 `lists()` 不一致，將靜默回傳錯誤值而不報錯。
+
+**緩解**：`testGetRevenueByType` 須驗證金額單位與現有邏輯一致；上線前平行比對一天結果。
+
+**風險 C：`getDailyList($yesterday)` 兩次呼叫的資料一致性**
+
+`getDailyCount()` 與 `getRetentionCounts()` 分別各呼叫 `getDailyList($yesterday)` 一次。若兩次呼叫之間 Redis SET 資料被更新（理論上昨日 TTL 31 天的 SET 不會日中異動），DAU 基數與留存率分母將不一致。
+
+**緩解**：昨日資料在正式環境實務上不會更新，此風險可接受。若需消除，可在未來版本令 `getRetentionCounts()` 接受選用參數 `array $baseList`，由 Command 傳入已取得的 DAU list，消除重複呼叫。
+
+**風險 D：Redis 鎖定的競態條件（已知缺陷，本次範圍外）**
+
+現有 `acquireLock()` 使用兩步驟 `SETNX` + `EXPIRE`，非原子操作。若程序在 SETNX 成功後、EXPIRE 執行前崩潰，鎖將永久持有直到手動清除。本次新增 `releaseLock()` 解決了鎖不釋放的問題，但未修正取鎖時的競態條件。**完整修正方式**為改用 Redis `SET key value EX ttl NX`（單一原子指令），此修正超出本次重構範圍，建議另行追蹤。
+
 ---
 
-## 8. 驗收標準
+## 8. 補充分析：業務邏輯確認
+
+### 8.1 VIP 統計業務規則
+
+- **確認規則**：VIP 等級統計以每位玩家**當日最後一次登入**的 VIP 等級為準；各等級人數加總應等於 DAU。
+
+- **現有實作問題**：舊 `groupBy('username')` 在 MySQL non-strict mode 下，群組內 `vip_level` 值不確定，不保證取最後登入那筆，屬潛在 bug。
+
+- **初版重構問題**：`COUNT(DISTINCT username) GROUP BY vip_level` 在玩家當日有多次 VIP 升降時造成雙重計數。
+
+- **最終方案**：`ROW_NUMBER() OVER (PARTITION BY username ORDER BY created_at DESC)` 取每人最後一筆，外層再 `GROUP BY vip_level`，保證語意正確。
+
+### 8.2 缺陷摘要
+
+| 缺陷 | 嚴重度 | 狀態 |
+|---|---|---|
+| `getVipLevelMemberCount` 初版重構雙重計數（COUNT DISTINCT GROUP BY vip_level）| 高 | **v1.3 已修正**（改用 ROW_NUMBER 子查詢）|
+| 舊 `groupBy('username')` 在 non-strict mode 下 vip_level 不確定 | 中 | **v1.3 已修正**（同上）|
+| Redis 鎖定 `SETNX + EXPIRE` 競態條件 | 中 | **本次範圍外**，需另行追蹤 |
+| Command `$revenue` 總和來源未明示，ARPPU 靜默錯誤風險 | 低 | **已補充文件說明**（§5.2 修改二）|
+| 技術策略表留存率「O(1)」描述不精確 | 低 | **v1.3 已修正**（改為「留存率仍 O(n)，n = DAU」）|
+
+---
+
+## 9. 驗收標準
 
 - [ ] `MakeServiceDailyReport` 執行後記憶體峰值 < 50 MB
 - [ ] 執行時間 < 10 秒
 - [ ] Redis lock 在所有路徑（成功 / 例外）均正常釋放
-- [ ] 單元測試全部通過
+- [ ] 單元測試全部通過（含 `testGetVipLevelMemberCount` 驗證各等級加總等於 DAU）
 - [ ] （後續）正式環境 EXPLAIN 確認複合索引生效（`key_len = 9`，`type = range`）
