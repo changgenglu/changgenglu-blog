@@ -6,6 +6,7 @@
 | ---- | ---------------- | -------- |
 | v1.0 | 2026-02-24 11:55 | 初次規劃 |
 | v1.1 | 2026-02-24 | 補充 Part 1 新會員統計 SQL 聚合方案；補充留存率計算移至 StatisticsUserLogin Service |
+| v1.2 | 2026-02-24 | 修改四：`$retentionRates` 改用字串 key `"day_N"`，避免整數 key 與位置索引混淆 |
 
 ---
 
@@ -302,7 +303,7 @@ public function getDailyCount(int $providerId, \DateTime $date): int
 
 /**
  * @param  int[]    $days    留存天數清單，如 [1, 3, 7, 14, 30]
- * @return array             [ days => intersect_count ]
+ * @return array<int, int>   key 為留存天數整數，value 為交集人數
  */
 public function getRetentionCounts(int $providerId, \DateTime $date, array $days): array
 {
@@ -391,6 +392,8 @@ const RETENTION_DAYS = [1, 3, 7, 14, 30];
 
 **重構後**：原本 5 段重複的 `modify / getDailyList / array_intersect / bcdiv` 程式碼，收斂為 Service 呼叫 + 單一 `foreach`。
 
+`$retentionRates` 使用字串 key `"day_{N}"` 取代整數 key，避免與位置索引在視覺上產生混淆：
+
 ```php
 $dau = $statisticsUserLogin->getDailyCount($provider['id'], $yesterday);
 
@@ -402,18 +405,18 @@ $retentionCounts = $statisticsUserLogin->getRetentionCounts(
 
 $retentionRates = [];
 foreach (self::RETENTION_DAYS as $days) {
-    $retentionRates[$days] = ($dau == 0) ? 0 : bcdiv($retentionCounts[$days], $dau, 4);
+    $retentionRates["day_{$days}"] = ($dau == 0) ? 0 : bcdiv($retentionCounts[$days], $dau, 4);
 }
 ```
 
 對應 `$dailyReport` 陣列的欄位映射：
 
 ```php
-'1_day_retention_rate'  => $retentionRates[1],
-'3_day_retention_rate'  => $retentionRates[3],
-'7_day_retention_rate'  => $retentionRates[7],
-'14_day_retention_rate' => $retentionRates[14],
-'30_day_retention_rate' => $retentionRates[30],
+'1_day_retention_rate'  => $retentionRates['day_1'],
+'3_day_retention_rate'  => $retentionRates['day_3'],
+'7_day_retention_rate'  => $retentionRates['day_7'],
+'14_day_retention_rate' => $retentionRates['day_14'],
+'30_day_retention_rate' => $retentionRates['day_30'],
 ```
 
 ---
@@ -443,7 +446,7 @@ Schema::connection('record')->table('user_deposited_record', function (Blueprint
 | `UserDepositedRecordTest` | `testGetPayingUserCount` | 去重後人數正確 |
 | `UserDepositedRecordTest` | `testGetRevenueByType` | 各 type 金額正確 |
 | `StatisticsUserLoginTest` | `testGetDailyCount` | 等於對應 Redis Set 的 SCARD |
-| `StatisticsUserLoginTest` | `testGetRetentionCounts` | 回傳 `[days => count]`；基準日無資料時各留存數均為 0 |
+| `StatisticsUserLoginTest` | `testGetRetentionCounts` | 回傳 `[1 => count, 3 => count, ...]`（整數 key）；基準日無資料時各留存數均為 0 |
 | `MakeServiceDailyReportTest` | `testHandleCreatesNewRecord` | 首次執行建立新紀錄 |
 | `MakeServiceDailyReportTest` | `testHandleUpdatesExistingRecord` | 已存在時走 update 流程 |
 | `MakeServiceDailyReportTest` | `testLockReleasedAfterSuccess` | 成功後 Redis lock 已釋放 |
