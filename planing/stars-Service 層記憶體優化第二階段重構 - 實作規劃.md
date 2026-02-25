@@ -5,6 +5,7 @@
 | 版本 | 更新時間 | 變更摘要 |
 | ---- | ---------------- | -------- |
 | v1.0 | 2026-02-24 11:55 | 初次規劃 |
+| v1.1 | 2026-02-24 | 補充 Part 1 新會員統計 SQL 聚合方案；補充留存率計算移至 StatisticsUserLogin Service |
 
 ---
 
@@ -154,6 +155,8 @@ MySQL 8.0 InnoDB 對 `ADD INDEX` 支援 **Online DDL**（`ALGORITHM=INPLACE, LOC
 | VIP 人數統計 | 載入全部明細 → PHP `groupBy` | SQL `COUNT(DISTINCT) GROUP BY vip_level` |
 | 付費人數統計 | 載入全部明細 → PHP `in_array` | SQL `COUNT(DISTINCT username)` |
 | 各類型儲值金額 | 載入全部明細 → PHP `foreach` | SQL `SUM(point) GROUP BY type` |
+| 新會員各登入類型統計 | 載入全部明細 → PHP 逐筆累計，並建立 username 陣列 | SQL `COUNT(*) + SUM(type = ?)` |
+| 留存率計算 | Command 中取 Redis SMEMBERS 全量陣列 → PHP `array_intersect` | 封裝至 `StatisticsUserLogin` Service，邏輯不變，調用語意清晰 |
 | 記憶體複雜度 | O(n)，峰值 >128 MB（OOM） | O(1)，趨近 0 MB |
 | 正式環境 CPU 影響 | 不適用（PHP OOM 前即中斷）| **實測無明顯 CPU 飆升** |
 | 敏感資料外洩風險 | 大量明細存於記憶體，Exception 可能 dump | 無明細在 PHP 記憶體 |
@@ -212,6 +215,37 @@ public function getVipLevelMemberCount($providerId, \DateTime $beginAt, \DateTim
 }
 ```
 
+#### `UserLoginRecord` — 新增 `getNewMemberStats()`（Part 1 替換）
+
+**現況問題（lines 78–101）**：`lists()` 以 `is_new_member = true` 篩選後，仍將所有登入明細載入 PHP，並在迴圈中累計 `username` 陣列（`$newMembersFromOtherProduct`、`$newMembersByPhone`、`$newMembersFromQPP`）。實際用途僅為取各陣列的 `count()`，無需在 PHP 層持有 username 字串。
+
+**重構決策**：資料來源為 `user_login_record`（MySQL），與 `StatisticsUserLogin`（Redis）資料來源不同，可安全替換為 SQL 聚合，不影響留存率計算的語意正確性。
+
+**重構後**：改為單次 SQL 查詢，回傳 1 筆聚合結果，4 個整數欄位，記憶體趨近 0 MB。
+
+```php
+public function getNewMemberStats(int $providerId, \DateTime $beginAt, \DateTime $endAt): array
+{
+    $types = $this->getTypes();
+    $row = Model::where('provider_id', $providerId)
+        ->where('created_at', '>=', $beginAt)
+        ->where('created_at', '<', $endAt)
+        ->where('is_new_member', true)
+        ->selectRaw(
+            'COUNT(*) AS total, SUM(type = ?) AS auto_login_by_phone, SUM(type = ?) AS login_by_phone, SUM(type = ?) AS login_by_qpp',
+            [$types['league_funny'], $types['otp'], $types['qpp']]
+        )
+        ->first();
+
+    return [
+        'count'               => (int) ($row->total ?? 0),
+        'auto_login_by_phone' => (int) ($row->auto_login_by_phone ?? 0),
+        'login_by_phone'      => (int) ($row->login_by_phone ?? 0),
+        'login_by_qpp'        => (int) ($row->login_by_qpp ?? 0),
+    ];
+}
+```
+
 #### `UserDepositedRecord` — 新增兩個語意明確的聚合方法
 
 保留現有 `lists()` 通用方法不動，僅新增專用方法。
@@ -246,6 +280,48 @@ public function getRevenueByType(int $providerId, \DateTime $beginAt, \DateTime 
     return $result;
 }
 ```
+
+#### `StatisticsUserLogin` — 新增 `getDailyCount()` 與 `getRetentionCounts()`
+
+**現況問題（lines 74–75、110–134）**：留存率計算直接散落在 Command 中，每個留存天數各自呼叫 `getDailyList()` 並執行 `array_intersect()`，導致：
+- Redis `SMEMBERS` 呼叫次數為 1（DAU）+ 5（留存天數）= 6 次
+- 全量 username 陣列存於 Command 變數，職責不清
+- 無法單獨為此邏輯撰寫單元測試
+
+**重構決策**：留存率使用 Redis 資料（`SMEMBERS`），與 `user_login_record`（MySQL）資料來源不同，**不可替換為 SQL 聚合**，維持 Redis 資料路徑，僅將計算邏輯封裝至 Service 層。
+
+**方案選擇**：採用**方案 A（分開取）**——`getDailyCount()` 與 `getRetentionCounts()` 為獨立方法。`getDailyList($yesterday)` 在兩個方法中各呼叫一次（共 2 次），以換取方法職責單一、介面清晰的可維護性。
+
+**新增兩個方法：**
+
+```php
+public function getDailyCount(int $providerId, \DateTime $date): int
+{
+    return count($this->getDailyList($providerId, $date));
+}
+
+/**
+ * @param  int[]    $days    留存天數清單，如 [1, 3, 7, 14, 30]
+ * @return array             [ days => intersect_count ]
+ */
+public function getRetentionCounts(int $providerId, \DateTime $date, array $days): array
+{
+    $baseList = $this->getDailyList($providerId, $date);
+    $result = [];
+
+    foreach ($days as $day) {
+        $compareDate = (clone $date)->modify("-{$day} day");
+        $compareList = $this->getDailyList($providerId, $compareDate);
+        $result[$day] = count(array_intersect($baseList, $compareList));
+    }
+
+    return $result;
+}
+```
+
+> **注意**：Redis 版本為 5.0.14，不支援 `SINTERCARD`，維持現有 PHP `array_intersect` 邏輯。
+
+---
 
 ### 5.2 Command 層重構 — `MakeServiceDailyReport`
 
@@ -282,20 +358,65 @@ create（全 0）或確認已存在
 → update group 3：收益 / 付費人數 / ARPPU / 各類型儲值（DB 聚合，~0 MB）→ unset
 ```
 
-**修改三：新會員統計改用整數累計**
+**修改三：新會員統計改用 SQL 聚合（替換 lines 78–101）**
+
+**原實作**：`lists()` 載入所有新會員明細 → PHP 迴圈累計 username 陣列 → 最終只取各陣列的 `count()`。
+
+**重構後**：呼叫新增的 `getNewMemberStats()` 取得 1 筆聚合結果，整個新會員統計段從 ~20 行縮減為 ~5 行，記憶體趨近 0 MB。
 
 ```php
-$autoLoginByPhone = 0;
-$loginByPhone = 0;
-$loginByQpp = 0;
-foreach ($records['list'] as $record) {
-    $newMemberCount++;
-    if ($record['type'] === $loginTypes['league_funny']) $autoLoginByPhone++;
-    elseif ($record['type'] === $loginTypes['otp']) $loginByPhone++;
-    elseif ($record['type'] === $loginTypes['qpp']) $loginByQpp++;
-}
-unset($records);
+$newMemberStats   = $userLoginRecord->getNewMemberStats($provider['id'], $yesterday, $today);
+$newMemberCount   = $newMemberStats['count'];
+$autoLoginByPhone = $newMemberStats['auto_login_by_phone'];
+$loginByPhone     = $newMemberStats['login_by_phone'];
+$loginByQpp       = $newMemberStats['login_by_qpp'];
 ```
+
+對應 `$dailyReport` 陣列的欄位映射調整：
+
+```php
+'new_member'          => $newMemberCount,
+'auto_login_by_phone' => $autoLoginByPhone,
+'login_by_phone'      => $loginByPhone,
+'login_by_qpp'        => $loginByQpp,
+```
+
+**修改四：留存率計算重構至 `StatisticsUserLogin`（替換 lines 74–75、110–134）**
+
+**新增類別常數**：
+
+```php
+const RETENTION_DAYS = [1, 3, 7, 14, 30];
+```
+
+**重構後**：原本 5 段重複的 `modify / getDailyList / array_intersect / bcdiv` 程式碼，收斂為 Service 呼叫 + 單一 `foreach`。
+
+```php
+$dau = $statisticsUserLogin->getDailyCount($provider['id'], $yesterday);
+
+$retentionCounts = $statisticsUserLogin->getRetentionCounts(
+    $provider['id'],
+    $yesterday,
+    self::RETENTION_DAYS
+);
+
+$retentionRates = [];
+foreach (self::RETENTION_DAYS as $days) {
+    $retentionRates[$days] = ($dau == 0) ? 0 : bcdiv($retentionCounts[$days], $dau, 4);
+}
+```
+
+對應 `$dailyReport` 陣列的欄位映射：
+
+```php
+'1_day_retention_rate'  => $retentionRates[1],
+'3_day_retention_rate'  => $retentionRates[3],
+'7_day_retention_rate'  => $retentionRates[7],
+'14_day_retention_rate' => $retentionRates[14],
+'30_day_retention_rate' => $retentionRates[30],
+```
+
+---
 
 ### 5.3 Migration — 複合索引（效能優化，可後續擇機執行）
 
@@ -309,6 +430,8 @@ Schema::connection('record')->table('user_deposited_record', function (Blueprint
 });
 ```
 
+---
+
 ### 5.4 單元測試
 
 | 測試檔案 | 測試方法 | 核心驗證 |
@@ -316,8 +439,11 @@ Schema::connection('record')->table('user_deposited_record', function (Blueprint
 | `UserLoginRecordTest` | `testGetVipLevelMemberCount` | 回傳格式為 `[vip_level => count]`；缺少的等級補 0 |
 | `UserLoginRecordTest` | `testGetUserCount` | unique / 非 unique 分別正確 |
 | `UserLoginRecordTest` | `testGetPwaCount` | `pwa_users` / `unique_pwa_users` 正確 |
+| `UserLoginRecordTest` | `testGetNewMemberStats` | 回傳正確的 `count`、`auto_login_by_phone`、`login_by_phone`、`login_by_qpp`；無資料時四個欄位均為 0 |
 | `UserDepositedRecordTest` | `testGetPayingUserCount` | 去重後人數正確 |
 | `UserDepositedRecordTest` | `testGetRevenueByType` | 各 type 金額正確 |
+| `StatisticsUserLoginTest` | `testGetDailyCount` | 等於對應 Redis Set 的 SCARD |
+| `StatisticsUserLoginTest` | `testGetRetentionCounts` | 回傳 `[days => count]`；基準日無資料時各留存數均為 0 |
 | `MakeServiceDailyReportTest` | `testHandleCreatesNewRecord` | 首次執行建立新紀錄 |
 | `MakeServiceDailyReportTest` | `testHandleUpdatesExistingRecord` | 已存在時走 update 流程 |
 | `MakeServiceDailyReportTest` | `testLockReleasedAfterSuccess` | 成功後 Redis lock 已釋放 |
@@ -330,11 +456,13 @@ Schema::connection('record')->table('user_deposited_record', function (Blueprint
 ```
 1. 撰寫單元測試（紅燈）
 2. 重構 UserLoginRecord::getVipLevelMemberCount()
-3. 新增 UserDepositedRecord 聚合方法
-4. 重構 MakeServiceDailyReport（補鎖、create-then-update、改用新方法）
-5. 確認單元測試全部通過（綠燈）
-6. 部署正式環境，觀察次日排程執行結果與記憶體用量
-7. （後續）建立複合索引 Migration，離峰時段執行（預估 6–15 分鐘，Online DDL 不停機）
+3. 新增 UserLoginRecord::getNewMemberStats()
+4. 新增 UserDepositedRecord 聚合方法（getPayingUserCount、getRevenueByType）
+5. 新增 StatisticsUserLogin::getDailyCount() 與 getRetentionCounts()
+6. 重構 MakeServiceDailyReport（補鎖、create-then-update、改用新方法、加入 RETENTION_DAYS 常數）
+7. 確認單元測試全部通過（綠燈）
+8. 部署正式環境，觀察次日排程執行結果與記憶體用量
+9. （後續）建立複合索引 Migration，離峰時段執行（預估 6–15 分鐘，Online DDL 不停機）
 ```
 
 ---
@@ -347,6 +475,8 @@ Schema::connection('record')->table('user_deposited_record', function (Blueprint
 | Online DDL 期間 replica lag 累積 | 低–中 | 於凌晨低流量時段執行；監控 replica delay |
 | `getVipLevelMemberCount` 回傳型別從 Collection 改為 array | 低 | Command 端使用 `$vipLevelMemberCount[n] ?? 0`，array 相容 |
 | `getRevenueByType` 與舊 `lists()` 聚合邏輯差異 | 低 | 單元測試驗證；上線前可與現有邏輯平行執行一天進行結果比對 |
+| `getNewMemberStats()` SQL 聚合與原 PHP 計數邏輯差異 | 低 | 測試環境先以同日期平行比對兩方法回傳值 |
+| `getDailyList($yesterday)` 在 `getDailyCount()` 與 `getRetentionCounts()` 中各呼叫一次（共 2 次 Redis SMEMBERS）| 低 | 正式環境 Redis SMEMBERS 為 O(n)，DAU ~44,000 筆，兩次讀取合計額外耗時 <10 ms，可接受 |
 
 ---
 
