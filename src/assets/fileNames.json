@@ -1,9 +1,16 @@
 [
   {
+    "name": "MySQL 查詢效能評估筆記.md",
+    "category": "系統相關",
+    "path": "系統相關/MySQL 查詢效能評估筆記.md",
+    "date": "2026-02-24T09:49:35.000Z",
+    "matchingLines": []
+  },
+  {
     "name": "stars 整合測試撰寫規則.md",
     "category": "提示詞工程",
     "path": "提示詞工程/stars 整合測試撰寫規則.md",
-    "date": "2026-02-02T05:46:53.000Z",
+    "date": "2026-02-03T06:04:18.000Z",
     "matchingLines": [
       "## 整合測試撰寫規則"
     ]

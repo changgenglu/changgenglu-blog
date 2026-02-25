@@ -8,232 +8,352 @@
 
 ---
 
-## 1. 需求概述
+# Phase 2 重構規劃書：DB 聚合 + 複合索引
 
-### 1.1 背景與目標
+## 1. 背景
 
-- **需求背景（Why）**：第一階段已在 Command 層以「全零佔位 + 分批 update」解決 `BackfillServiceDailyReport` 的 OOM，但根本原因（Service 層 Eloquent 物件肥大）尚未修正。`MakeServiceDailyReport` 的排程命令有相同結構性問題，尚未套用任何 OOM 防護。
-- **功能目標（What）**：壓縮 PHP 資料結構（不改 SQL 策略）、對排程命令套用相同防護模式、補齊測試覆蓋，確保重構安全可驗證。
-- **影響範圍（Where）**：`UserLoginRecord`、`UserDepositedRecord` 兩個 Service，以及 `MakeServiceDailyReport` Command。
-
-### 1.2 範圍界定
-
-- **包含**
-  - `UserLoginRecord::getVipLevelMemberCount()` — `pluck` 取代 `get()`
-  - `UserDepositedRecord::lists()` — `toBase()` 跳過 Eloquent hydration
-  - `MakeServiceDailyReport` — 套用全零佔位 + 三組分批 update + 記憶體回收
-  - 重構前先補充 PHPUnit 單元測試
-  - 修正 `MakeServiceDailyReport` 缺少 `releaseLock()` 的現有 bug
-- **不包含**
-  - `StatisticsUserLogin` — 見 §1.3 評估結論，無需優化
-  - 將統計邏輯移入 Job — 見 §1.3 評估結論，無需引入
-  - `ServiceDailyReport::create()` / `update()` Service 方法本身的拆分（第三階段）
-- **假設條件**
-  - 正式環境 memory\_limit ≥ 128 MB，與測試環境相同
-  - `report` DB connection 支援普通 `UPDATE`（無唯讀限制）
-
-### 1.3 前置評估結論
-
-#### StatisticsUserLogin — 無需優化
-
-| 操作 | 資料量 | 峰值記憶體估算 | 結論 |
-|------|--------|----------------|------|
-| `getTenMinuteList` × 144 | 平均每時段 306 人 | < 0.5 MB / 次 | 安全 |
-| `getDailyList` (DAU=44,043) | 44,043 個字串 | ≈ 3~5 MB | 安全 |
-| `array_intersect` × 5 | 兩個 44,043 陣列 | ≈ 10 MB 峰值 | 安全 |
-
-Redis `SMEMBERS` 回傳純字串陣列，無 Eloquent 物件開銷，不存在記憶體瓶頸。
-
-#### 統計邏輯移入 Job — 不需要
-
-- 正式環境排程單次執行約 2 秒，屬可接受範圍。
-- Redis 分散式鎖已確保同一 provider 不重複執行。
-- 引入 Job 需要額外的 Horizon 佇列資源與錯誤重試設計，成本高於效益。
-- 結論：維持同步排程，不引入 Job。
-
-#### 冪等策略 — 判斷存在後 create/update，不用 transaction rollback
-
-- `GameServerDailyReport`、`BettingDailyReport`、`PayingDailyReport`、`ProfitDailyReport` 已使用 `upsert()`，本身具備冪等性。
-- `ServiceDailyReport` 套用與 Backfill 相同的「先查存在 → update / 否則 create」邏輯即可。
-- 各報表之間不需要跨表原子性，局部失敗重跑即可，不需 rollback。
+`MakeServiceDailyReport` 每日凌晨執行一次，統計前一日的登入與儲值數據。  
+原實作將 `user_login_record`（~4.3M 筆）與 `user_deposited_record`（~2.2M 筆）的明細資料全數載入 PHP 進行聚合，導致記憶體峰值超過 128 MB 限制（OOM）。
 
 ---
 
-## 2. 系統架構變更
+## 2. 測試方法與結果
 
-### 2.1 資料庫變更
+> **重要說明**：本節所有 SQL 測試資料（含 SHOW INDEX、SHOW CREATE TABLE、COUNT(\*)、information_schema 查詢、MySQL 版本確認）均直接在**正式環境**執行取得，非本機或測試環境。
 
-無。
+### 2.1 EXPLAIN 查詢計畫分析
 
-### 2.2 設定變更
+**目的**：在修改程式碼或索引之前，先確認資料庫對現有查詢與計畫中的聚合查詢，實際走的是哪條執行路徑，避免盲目修改。
 
-無。
+**測試方式**：在正式環境 `record` 資料庫連線下，對以下四種查詢加上 `EXPLAIN` 前綴執行，MySQL 會回傳執行計畫摘要（不實際掃描資料），讀取 `type`、`key`、`key_len`、`Extra` 欄位判斷效能。
 
-### 2.3 程式碼結構
+**判讀標準：**
 
-#### 修改檔案
+| 欄位 | 最佳 | 可接受 | 危險 |
+|---|---|---|---|
+| `type` | `const` / `range` | `ref` | `ALL`（全表掃描）|
+| `key_len` | 越大越好（代表用到更多索引欄位）| — | 僅 2（只用到 provider_id）|
+| `Extra` | 無 | `Using where` | `Using filesort`（視結果集大小）|
 
-| 檔案路徑 | 修改內容摘要 |
-|---------|-------------|
-| `app/Services/UserLoginRecord.php` | `getVipLevelMemberCount` 改用 `pluck` + `array_count_values` |
-| `app/Services/UserDepositedRecord.php` | `lists()` 加入 `toBase()` 跳過 Eloquent hydration |
-| `app/Console/Commands/MakeServiceDailyReport.php` | 套用全零佔位 + 三組分批 update + releaseLock 修正 |
+**EXPLAIN 結果（正式環境）：**
 
-#### 新增檔案
+| 查詢說明 | type | key | key_len | Extra |
+|---|---|---|---|---|
+| 現況：撈全部明細（`SELECT username, vip_level`）| `ref` | `index_provider` | 2 | Using where |
+| 改用：VIP 人數 DB 聚合（`GROUP BY vip_level`）| `ref` | `index_provider` | 2 | Using where; Using filesort |
+| 付費人數（`COUNT(DISTINCT username)`）| `ref` | `index_provider` | 2 | Using where |
+| 各類型儲值金額（`SUM(point) GROUP BY type`）| `ref` | `index_provider` | 2 | Using where; Using filesort |
 
-| 檔案路徑 | 類型 | 職責說明 |
-|---------|-----|---------|
-| `tests/Unit/Services/UserLoginRecordTest.php` | PHPUnit Test | 驗證 `getVipLevelMemberCount` 回傳結構與數值正確性 |
-| `tests/Unit/Services/UserDepositedRecordTest.php` | PHPUnit Test | 驗證 `lists()` 欄位限制行為與 stdClass 相容性 |
-| `tests/Unit/Commands/MakeServiceDailyReportTest.php` | PHPUnit Test | 驗證 Command 的冪等性、分批 update 流程與 lock 行為 |
-| `tests/Unit/Commands/BackfillServiceDailyReportTest.php` | PHPUnit Test | 補齊第一階段修改的測試覆蓋 |
+**結果解讀：**
 
----
-
-## 3. API 規格設計
-
-N/A（本次為 CLI / Service 層重構，無 API 異動）
+- 四個查詢均走 `ref`（有用到索引），非全表掃描，DB 聚合方向基本可行。
+- `key_len = 2` 代表 MySQL 目前只用 `provider_id`（smallint，2 bytes）進行索引過濾，`created_at` 的範圍條件並未進入索引，退化為逐筆比對（`Using where`）。
+- `Using filesort` 出現在帶有 `GROUP BY` 的查詢，代表需要額外排序步驟。由於聚合結果集極小（VIP 等級最多 11 行、儲值類型最多 8 行），此排序成本可接受。
 
 ---
 
-## 4. 實作細節
+### 2.2 正式環境 SQL 聚合實測
 
-### 4.1 實作任務清單
+**目的**：在正式環境有其他服務同時連線的情況下，驗證 SQL 聚合查詢是否會造成 CPU 飆升或影響其他服務。
 
-| # | 任務 | 依賴 |
-|---|------|------|
-| 1 | 撰寫 `UserLoginRecordTest` — 覆蓋 `getVipLevelMemberCount` | - |
-| 2 | 撰寫 `UserDepositedRecordTest` — 覆蓋 `lists()` 含 column 限制 | - |
-| 3 | 撰寫 `BackfillServiceDailyReportTest` — 覆蓋冪等與分批流程 | - |
-| 4 | 撰寫 `MakeServiceDailyReportTest` — 覆蓋冪等、lock、分批流程 | - |
-| 5 | 重構 `UserLoginRecord::getVipLevelMemberCount` | 1 通過後執行 |
-| 6 | 重構 `UserDepositedRecord::lists` | 2 通過後執行 |
-| 7 | 重構 `MakeServiceDailyReport::handle` | 4 通過後執行 |
-| 8 | 修正 `MakeServiceDailyReport::handle` 缺少 releaseLock | 7 |
+**測試方式**：在正式環境（無複合索引）直接執行以下聚合語法，同時觀察 CPU 與查詢回應時間：
 
-### 4.2 關鍵邏輯
+```sql
+-- VIP 人數聚合
+SELECT vip_level, COUNT(DISTINCT username) AS member_count
+FROM user_login_record
+WHERE provider_id = ? AND created_at >= ? AND created_at < ?
+GROUP BY vip_level;
 
-#### Service：`UserLoginRecord::getVipLevelMemberCount`
+-- 付費人數
+SELECT COUNT(DISTINCT username) AS paying_user_count
+FROM user_deposited_record
+WHERE provider_id = ? AND created_at >= ? AND created_at < ?;
 
-```
-// 現況：get() 建立 N 個 Eloquent Model → PHP groupBy → ~22 MB
-// 目標：pluck() 只取 vip_level 純字串陣列 → array_count_values → ~1-2 MB
-
-pluck('vip_level') from (
-    SELECT vip_level
-    FROM user_login_records
-    WHERE provider_id = ? AND created_at >= ? AND created_at < ?
-    GROUP BY username          ← SQL 去重邏輯保留不動
-)
-→ toArray()                   ← Collection<string>，無 Model 物件
-→ array_count_values()        ← C 層統計，回傳 [ vip_level => count ]
+-- 各儲值類型金額
+SELECT type, SUM(point) AS total_point
+FROM user_deposited_record
+WHERE provider_id = ? AND created_at >= ? AND created_at < ?
+GROUP BY type;
 ```
 
-回傳型態由 `Collection` 改為 `array`，鍵值結構不變（`[0 => N, 1 => N, ...]`），呼叫端 `$vipLevelMemberCount[0] ?? 0` 語法相容。
+**實測結果：**
 
-#### Service：`UserDepositedRecord::lists`
+- CPU 無明顯飆升，與其他正常查詢無顯著差異
+- 查詢回應速度正常，未觀察到阻塞或延遲
+- 測試期間其他服務連線持續運作，未受影響
 
-```
-// 現況：$stmt->get()->toArray()
-//       每列建立完整 Eloquent Model（$attributes, $original, $casts...）
-// 目標：$stmt->toBase()->get()->toArray()
-//       每列回傳 stdClass，無 Model 開銷，減少 ~70% 記憶體
+**結論**：DB 聚合查詢在正式環境（含並行連線）下**安全可執行**，無需額外的限流或排程錯開機制。
 
-toBase() 的副作用：
-- 回傳 stdClass 而非 Model，屬性存取語法從 $row['key'] 改為 $row->key
-- 但 ->toArray() 後兩者皆為純 array，呼叫端不受影響
-```
+---
 
-#### Command：`MakeServiceDailyReport` 分批流程
+### 2.3 資料表現況調查
 
-```
-handle():
-    1. acquire Redis lock（現有邏輯）
+**目的**：確認正式環境資料量與索引現況，作為評估 DDL 執行時間與索引設計的依據。
 
-    2. resolve report id（冪等）
-       existing = ServiceDailyReportModel::where(provider_id, date)->first()
-       if existing → reportId = existing.id
-       else        → create all-zero → reportId = new.id
+**測試方式**：在正式環境 `record` 資料庫連線下執行以下 SQL：
 
-    3. Update Group 1（輕量，無記憶體風險）
-       compute: mcu, acu, dau, new_member counts, pwa, pageViews, retention rates
-       update ServiceDailyReport where id = reportId
-       unset all group 1 variables
+```sql
+SELECT COUNT(*) FROM user_login_record;
+SELECT COUNT(*) FROM user_deposited_record;
 
-    4. Update Group 2（VIP，+22 MB）
-       compute: vipLevelMemberCount via getVipLevelMemberCount()  ← 重構後 ~1-2 MB
-       update ServiceDailyReport where id = reportId
-       vipLevelMemberCount = null; gc_collect_cycles()
+SELECT table_name, table_rows,
+  ROUND(data_length / 1024 / 1024, 2) AS data_mb,
+  ROUND(index_length / 1024 / 1024, 2) AS index_mb
+FROM information_schema.tables
+WHERE table_schema = 'record'
+  AND table_name IN ('user_login_record', 'user_deposited_record');
 
-    5. Update Group 3（儲值，致命點）
-       compute: depositedRecords via lists(column=['username','type','point'])
-       update ServiceDailyReport where id = reportId
-       depositedRecords = null; gc_collect_cycles()
-
-    6. upsert GameServerDailyReport（現有，不動）
-    7. upsert BettingDailyReport（現有，不動）
-    8. upsert PayingDailyReport（現有，不動）
-    9. upsert ProfitDailyReport（現有，不動）
-
-    10. releaseLock()  ← 新增，修正現有 bug
+SHOW INDEX FROM user_login_record;
+SHOW INDEX FROM user_deposited_record;
 ```
 
-#### 新增 releaseLock
+**測試結果（正式環境）：**
 
+| 項目 | `user_login_record` | `user_deposited_record` |
+|---|---|---|
+| 精確筆數 | 4,346,418 | 2,241,881 |
+| 資料大小 | 345 MB | 127 MB |
+| 索引大小 | 162 MB | 82 MB |
+| 合計大小 | 507 MB | 209 MB |
+| 平均 row size | ~88 bytes | ~59 bytes |
+
+**現有索引：**
+
+| 資料表 | 索引名稱 | 欄位 | Cardinality | 問題 |
+|---|---|---|---|---|
+| `user_login_record` | `index_provider` | `provider_id` | **2** | 選擇性極低，幾乎無效 |
+| `user_login_record` | `..._created_at_index` | `created_at` | 3,418,980 | 無法與 provider 條件同時使用 |
+| `user_deposited_record` | `index_provider` | `provider_id` | **1** | 選擇性為零，完全無效 |
+| `user_deposited_record` | `..._created_at_index` | `created_at` | 1,597,633 | 無法與 provider 條件同時使用 |
+
+> 兩張資料表目前僅有 provider_id 1 與 2，且 99% 資料屬於 provider 1。`provider_id` 單欄索引 Cardinality 為 1–2，對縮小掃描範圍幾乎沒有幫助。
+
+---
+
+### 2.4 ALTER TABLE 執行時間估算
+
+**MySQL 版本（正式環境）**：8.0.37-google（Google Cloud SQL）
+
+MySQL 8.0 InnoDB 對 `ADD INDEX` 支援 **Online DDL**（`ALGORITHM=INPLACE, LOCK=NONE`），執行期間不鎖表，允許正常讀寫並行。主要耗時為全表掃描並建立 B-tree 索引結構。
+
+| 資料表 | 需掃描資料量 | 新索引估計大小 | 預估時間 |
+|---|---|---|---|
+| `user_login_record` | 345 MB | ~125 MB | **4–10 分鐘** |
+| `user_deposited_record` | 127 MB | ~50 MB | **2–5 分鐘** |
+| 合計 | — | — | **6–15 分鐘** |
+
+> 建議於離峰時段（凌晨）執行，避免 replica lag 累積。實際時間受當下資料庫 I/O 負載影響，可能偏離估算範圍。
+
+---
+
+## 3. 技術策略
+
+| 問題 | 原方案（PHP 層） | 本次方案（DB 聚合） |
+|---|---|---|
+| VIP 人數統計 | 載入全部明細 → PHP `groupBy` | SQL `COUNT(DISTINCT) GROUP BY vip_level` |
+| 付費人數統計 | 載入全部明細 → PHP `in_array` | SQL `COUNT(DISTINCT username)` |
+| 各類型儲值金額 | 載入全部明細 → PHP `foreach` | SQL `SUM(point) GROUP BY type` |
+| 記憶體複雜度 | O(n)，峰值 >128 MB（OOM） | O(1)，趨近 0 MB |
+| 正式環境 CPU 影響 | 不適用（PHP OOM 前即中斷）| **實測無明顯 CPU 飆升** |
+| 敏感資料外洩風險 | 大量明細存於記憶體，Exception 可能 dump | 無明細在 PHP 記憶體 |
+
+---
+
+## 4. 複合索引評估
+
+### 4.1 建議索引
+
+```sql
+ADD INDEX idx_provider_created_at (provider_id, created_at);
 ```
+
+**為何在 provider_id 選擇性極低的情況下仍有效：**  
+複合索引的 B-tree 按 `(provider_id, created_at)` 排序，等同於「先依 provider 分群，群內再依時間排序」。查詢一天的資料時，MySQL 直接跳到 `provider_id = 1` 的時間段做範圍掃描，掃描量從 4.3M 筆降至 ~44,000 筆（約 100 倍改善）。
+
+| 索引方案 | 一天查詢掃描筆數 |
+|---|---|
+| 現有 `index_provider` | ~4,300,000（99% 全掃）|
+| 現有 `created_at_index` | ~45,000（含全 provider）|
+| 複合 `(provider_id, created_at)` | ~44,000（精確範圍）|
+
+### 4.2 優先級調整
+
+基於正式環境實測結果（無複合索引下 SQL 聚合查詢無明顯 CPU 影響），**複合索引由必要前提調整為效能優化項目**，可在主體重構完成、排程穩定運行後再擇機建立。
+
+---
+
+## 5. 實作計畫
+
+### 5.1 Service 層重構
+
+#### `UserLoginRecord` — 重構 `getVipLevelMemberCount()`
+
+**現況問題**：查詢所有明細至 PHP，再用 Laravel Collection `groupBy` 聚合，正式環境約產生 22 MB 峰值。
+
+**重構後**：改為 SQL `COUNT(DISTINCT) GROUP BY`，回傳最多 11 筆聚合結果，記憶體趨近 0 MB。
+
+```php
+public function getVipLevelMemberCount($providerId, \DateTime $beginAt, \DateTime $endAt): array
+{
+    $rows = Model::select('vip_level', DB::raw('COUNT(DISTINCT username) AS member_count'))
+        ->where('provider_id', $providerId)
+        ->where('created_at', '>=', $beginAt)
+        ->where('created_at', '<', $endAt)
+        ->groupBy('vip_level')
+        ->get();
+
+    $result = [];
+    foreach ($rows as $row) {
+        $result[$row->vip_level] = (int) $row->member_count;
+    }
+
+    return $result;
+}
+```
+
+#### `UserDepositedRecord` — 新增兩個語意明確的聚合方法
+
+保留現有 `lists()` 通用方法不動，僅新增專用方法。
+
+```php
+public function getPayingUserCount(int $providerId, \DateTime $beginAt, \DateTime $endAt): int
+{
+    return (int) Model::where('provider_id', $providerId)
+        ->where('created_at', '>=', $beginAt)
+        ->where('created_at', '<', $endAt)
+        ->distinct()
+        ->count('username');
+}
+
+/**
+ * @return array [ type => total_point ]
+ */
+public function getRevenueByType(int $providerId, \DateTime $beginAt, \DateTime $endAt): array
+{
+    $rows = Model::select('type', DB::raw('SUM(point) AS total_point'))
+        ->where('provider_id', $providerId)
+        ->where('created_at', '>=', $beginAt)
+        ->where('created_at', '<', $endAt)
+        ->groupBy('type')
+        ->get();
+
+    $result = [];
+    foreach ($rows as $row) {
+        $result[$row->type] = (int) $row->total_point;
+    }
+
+    return $result;
+}
+```
+
+### 5.2 Command 層重構 — `MakeServiceDailyReport`
+
+**修改一：補齊缺失的 `releaseLock()`**
+
+現有 `handle()` 在取得 Redis lock 後，成功或例外均未釋放，導致鎖持續 10 分鐘（`LOCK_TTL`）。
+
+```php
 private function releaseLock(int $providerId): void
-    lockKey = getLockKey(providerId)
-    redis()->del(lockKey)
+{
+    $this->redis()->del($this->getLockKey($providerId));
+}
 ```
 
-### 4.3 錯誤處理設計
+以 `finally` 確保所有路徑均釋放：
 
-| 情境 | 現有處理 | 本次調整 |
-|------|---------|---------|
-| create 失敗（DB 連線） | 外層 catch log | 不動，lock 會在 TTL 後自動釋放 |
-| update group 2/3 失敗 | 無（中途拋出） | 補 try-catch，失敗時 releaseLock 後再 rethrow |
-| Lock 已存在（重複執行） | `exit` | 不動 |
+```php
+$providerId = $provider['id'];
+try {
+    // 統計邏輯
+} catch (\Exception $e) {
+    Log::error('make:service_daily_report', ['exception' => $e]);
+} finally {
+    $this->releaseLock($providerId);
+}
+```
 
-### 4.4 測試策略
+**修改二：「預先佔位 + 分批更新」**
 
-#### Unit Test 重點
+```
+create（全 0）或確認已存在
+→ update group 1：MCU / ACU / DAU / 新會員 / PWA / 頁面瀏覽 / 留存率  → unset
+→ update group 2：VIP 各級人數（DB 聚合，~0 MB）                      → unset
+→ update group 3：收益 / 付費人數 / ARPPU / 各類型儲值（DB 聚合，~0 MB）→ unset
+```
 
-| 測試檔案 | 測試項目 | Mock 對象 |
-|---------|---------|----------|
-| `UserLoginRecordTest` | `getVipLevelMemberCount` 回傳 `array` 型態、鍵為 vip_level 整數、值為計數 | DB（使用 RefreshDatabase 或 Mock） |
-| `UserLoginRecordTest` | vip_level 無資料時回傳空 array | DB |
-| `UserDepositedRecordTest` | `lists()` 欄位限制 — 回傳陣列不包含 `id`、`created_at` | DB |
-| `UserDepositedRecordTest` | `lists()` 無限制時仍回傳全欄位 | DB |
-| `BackfillServiceDailyReportTest` | 重跑同一天不建立重複 record | DB + Redis Mock |
-| `MakeServiceDailyReportTest` | lock 存在時 handle() 提前結束 | Redis Mock |
-| `MakeServiceDailyReportTest` | handle() 完成後 lock 被釋放 | Redis Mock |
-| `MakeServiceDailyReportTest` | 重跑同一天不建立重複 ServiceDailyReport | DB + Redis Mock |
+**修改三：新會員統計改用整數累計**
+
+```php
+$autoLoginByPhone = 0;
+$loginByPhone = 0;
+$loginByQpp = 0;
+foreach ($records['list'] as $record) {
+    $newMemberCount++;
+    if ($record['type'] === $loginTypes['league_funny']) $autoLoginByPhone++;
+    elseif ($record['type'] === $loginTypes['otp']) $loginByPhone++;
+    elseif ($record['type'] === $loginTypes['qpp']) $loginByQpp++;
+}
+unset($records);
+```
+
+### 5.3 Migration — 複合索引（效能優化，可後續擇機執行）
+
+```php
+Schema::connection('record')->table('user_login_record', function (Blueprint $table) {
+    $table->index(['provider_id', 'created_at'], 'idx_provider_created_at');
+});
+
+Schema::connection('record')->table('user_deposited_record', function (Blueprint $table) {
+    $table->index(['provider_id', 'created_at'], 'idx_provider_created_at');
+});
+```
+
+### 5.4 單元測試
+
+| 測試檔案 | 測試方法 | 核心驗證 |
+|---|---|---|
+| `UserLoginRecordTest` | `testGetVipLevelMemberCount` | 回傳格式為 `[vip_level => count]`；缺少的等級補 0 |
+| `UserLoginRecordTest` | `testGetUserCount` | unique / 非 unique 分別正確 |
+| `UserLoginRecordTest` | `testGetPwaCount` | `pwa_users` / `unique_pwa_users` 正確 |
+| `UserDepositedRecordTest` | `testGetPayingUserCount` | 去重後人數正確 |
+| `UserDepositedRecordTest` | `testGetRevenueByType` | 各 type 金額正確 |
+| `MakeServiceDailyReportTest` | `testHandleCreatesNewRecord` | 首次執行建立新紀錄 |
+| `MakeServiceDailyReportTest` | `testHandleUpdatesExistingRecord` | 已存在時走 update 流程 |
+| `MakeServiceDailyReportTest` | `testLockReleasedAfterSuccess` | 成功後 Redis lock 已釋放 |
+| `MakeServiceDailyReportTest` | `testLockReleasedAfterException` | 例外後 Redis lock 仍釋放 |
 
 ---
 
-## 5. 部署與驗證
+## 6. 執行順序
 
-### 5.1 部署注意事項
+```
+1. 撰寫單元測試（紅燈）
+2. 重構 UserLoginRecord::getVipLevelMemberCount()
+3. 新增 UserDepositedRecord 聚合方法
+4. 重構 MakeServiceDailyReport（補鎖、create-then-update、改用新方法）
+5. 確認單元測試全部通過（綠燈）
+6. 部署正式環境，觀察次日排程執行結果與記憶體用量
+7. （後續）建立複合索引 Migration，離峰時段執行（預估 6–15 分鐘，Online DDL 不停機）
+```
 
-| 階段 | 項目 | 說明 |
-|------|------|------|
-| 部署前 | 確認測試全綠 | `./vendor/bin/phpunit tests/Unit/Services/ tests/Unit/Commands/` |
-| 部署後 | 手動執行回補指令 | `php artisan backfill:service_daily_report {clientId} --date=yesterday` 確認記憶體輸出正常 |
-| 部署後 | 觀察排程第一次執行 | 確認 `make:service_daily_report` 不 OOM 且 lock 在執行完畢後消失 |
+---
 
-### 5.2 驗證項目
+## 7. 風險評估
 
-#### 記憶體基準（正式環境 44,043 DAU / 35,000 deposits）
+| 風險 | 等級 | 對策 |
+|---|---|---|
+| DB 聚合查詢造成 CPU 飆升影響其他服務 | **已排除**（正式環境實測無影響）| — |
+| Online DDL 期間 replica lag 累積 | 低–中 | 於凌晨低流量時段執行；監控 replica delay |
+| `getVipLevelMemberCount` 回傳型別從 Collection 改為 array | 低 | Command 端使用 `$vipLevelMemberCount[n] ?? 0`，array 相容 |
+| `getRevenueByType` 與舊 `lists()` 聚合邏輯差異 | 低 | 單元測試驗證；上線前可與現有邏輯平行執行一天進行結果比對 |
 
-| 步驟 | 重構前預估 | 重構後目標 |
-|------|-----------|------------|
-| getVipLevelMemberCount | +22 MB，不釋放 | +1~2 MB |
-| userDepositedRecord->lists | OOM（128 MB 上限） | +10~15 MB（3 欄 × 35,000 列） |
-| 整體峰值 | > 128 MB（FATAL） | < 50 MB |
+---
 
-### 5.3 自我檢查點
+## 8. 驗收標準
 
-- [ ] `getVipLevelMemberCount` 回傳型態改為 `array`，所有呼叫端 `$var[n] ?? 0` 語法確認相容
-- [ ] `toBase()` 後 `toArray()` 的呼叫端無使用 Eloquent 專屬方法（如 `->save()`）
-- [ ] `MakeServiceDailyReport` 所有執行路徑（成功 / lock 衝突 / 例外）均有呼叫或跳過 `releaseLock`
-- [ ] 單元測試全部通過後才執行 Service 修改
+- [ ] `MakeServiceDailyReport` 執行後記憶體峰值 < 50 MB
+- [ ] 執行時間 < 10 秒
+- [ ] Redis lock 在所有路徑（成功 / 例外）均正常釋放
+- [ ] 單元測試全部通過
+- [ ] （後續）正式環境 EXPLAIN 確認複合索引生效（`key_len = 9`，`type = range`）
