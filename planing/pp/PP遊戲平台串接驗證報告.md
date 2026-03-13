@@ -1,6 +1,6 @@
 # PP (Pragmatic Play) 遊戲平台串接驗證報告
 
-**日期：** 2026-03-10（初版）/ 2026-03-11（補充流程文件審查）
+**日期：** 2026-03-10（初版）/ 2026-03-11（補充流程文件審查、幣別不可變性、投注級距評估）
 **對象：** 開發團隊與專案相關人員
 **目的：** 核對 PP 串接實作與「PP 交易流程說明書」及「星城外接 API 文件」之差異，列出待處理項目與技術討論點。同時審查我方撰寫的 PP 串接流程說明文件（`Pragmatic_Play_單一錢包.md`）與官方規範的一致性。
 
@@ -113,18 +113,33 @@
 
 ### 5.1 退款 (Refund) 實作說明
 
-目前的 `refund.html` 實作邏輯如下：
+#### 退款觸發情境
+
+PP 發送退款請求的常見情境：
+
+1. **網路斷線或逾時**：下注請求已送出但未收到回應，PP 無法確認交易是否成功，發送退款以確保安全
+2. **遊戲異常**：下注成功但遊戲過程中發生異常，無法正常結算
+3. **未完成回合的自動結算（Auto-finalization）**：
+   - **一般觸發的免費旋轉**：玩家在一般遊戲過程中觸發免費旋轉或獎勵遊戲時，不會產生新的下注交易，下注資金已包含在基礎旋轉的下注請求中
+   - **購買型免費旋轉（Bonus Buy）**：玩家主動購買免費旋轉時，會透過下注請求扣除購買金額，請求中的 `roundDetails` 參數會標示為 `"bonusBuy"`。若購買後未完成遊戲，PP 會自動發送退款
+
+#### 目前實作邏輯
 
 1. **查詢原始交易**：透過 `reference` 查找 `pp_bet_record_sub`。
 2. **PP 特殊規則處理**：若找不到原始交易，系統會記錄日誌並直接回傳成功（`error: 0`），不會對錢包進行任何操作，符合 PP 規範。
-3. **錢包操作 (待修正)**：
-   - **現狀**：目前退款呼叫 `executeSpin` 時，帶入的參數為 `betAmount = refundAmount, payoff = refundAmount`。
-   - **技術風險**：根據星城餘額公式 `最新餘額 = 前餘額 - bet + win`，這會導致餘額「不變」。
-   - **建議修正**：正確的退款（返還下注）應為 `betAmount = 0, payoff = refundAmount`，如此餘額才會正確增加回玩家帳戶。
-4. **退款失敗快取問題** ⚠️：
-   - **現狀**：`pp.controller.ts:549-565`，當 `executeSpin` 執行失敗時，程式碼仍回傳 `error: 0`（成功）並帶 `cash: 0`，且此「成功」結果會被寫入 Redis 快取。
-   - **技術風險**：後續 PP 重試同一 `reference` 的退款請求時，會命中 Redis 快取直接回傳「成功」，導致退款永遠不會實際執行——玩家的錢永久遺失。
+3. **交易 ID 前綴處理**（`pp.controller.ts:533`）：
+   - **現狀**：已正確使用 `refund_${request.reference}` 作為呼叫星城 `api_spin` 的 `tid`，避免與原始 Bet 的 `reference` 重複導致星城回傳 tid 重複錯誤。
+   - **MG 對照**：MG 的 rollback 交易使用 `rollback_${txnId}` 前綴（`mg.schedule.ts:159`、`mg.controller.ts:501`），兩者設計思路一致。
+4. **錢包操作 (待修正)** ⚠️：
+   - **現狀**：目前退款呼叫 `executeSpin` 時，帶入的參數為 `betAmount = refundAmount, payoff = refundAmount`（`pp.controller.ts:534-535`）。
+   - **技術風險**：根據星城餘額公式 `最新餘額 = 前餘額 - bet + win`，這會導致餘額「不變」（`-refundAmount + refundAmount = 0`）。
+   - **MG 對照**：MG 的 rollback 正確使用 `betAmount = 0, payoff = amount`（`mg.schedule.ts:535-536`），餘額才會正確增加。
+   - **建議修正**：改為 `betAmount = 0, payoff = refundAmount`。
+5. **退款失敗快取問題** ⚠️：
+   - **現狀**：`pp.controller.ts:570-581`，當 `executeSpin` 拋出異常時，catch 區塊仍回傳 `error: 0`（成功）並帶 `cash: 0`。
+   - **技術風險**：後續 PP 重試同一 `reference` 的退款請求時，會命中冪等檢查（`pp.controller.ts:490-498`）直接回傳「成功」，導致退款永遠不會實際執行。
    - **建議修正**：`executeSpin` 失敗時不應快取結果，且應回傳 PP 錯誤碼 `100`（INTERNAL_ERROR_RETRY）讓 PP 重試。
+   - **⚠️ 補充風險**：即使修正為回傳錯誤碼 `100` 讓 PP 重試，仍面臨 XinKey 過期問題——若玩家已離線超過 5 分鐘，所有重試均會因 XinKey 失效而持續失敗（詳見第 7 章）。
 
 ---
 
@@ -162,10 +177,32 @@
 
 **致命場景**：玩家完成遊戲 → 離線 → 5 分鐘後 XinKey 過期 → PP 發送 `promoWin` 請求 → Puppy 取得的 XinKey 已失效 → 錢包拒絕交易 → PP 持續重試 24 小時均失敗 → **玩家永久損失獎金**。
 
+### MG 現有做法（參考）
+
+MG 平台面對相同問題的處理方式：
+
+1. **MG 沒有 24 小時持續重試機制**：MG 的失敗交易處理依賴排程任務（`mg.schedule.ts`，每分鐘執行一次），在處理失敗交易時會呼叫 `getPlayerInfo()` 取得玩家 xinkey（`mg.schedule.ts:520-527`）。
+2. **玩家離線時跳過處理**：若 `getPlayerInfo()` 回傳 `null`（玩家不在線），排程直接 `return false` 跳過該筆交易，等待下次排程再嘗試。
+3. **等待玩家重新登入**：當玩家下次登入時，產生新的 xinkey 並寫入 Redis，排程任務即可取得有效的 xinkey 完成重試。
+4. **手動完結**：若排程無法自動處理，團隊會透過 `PUT /failed/transaction/` 端點手動完結失敗交易。
+
+### PP 的差異與挑戰
+
+PP 與 MG 的關鍵差異在於**重試的主動方**不同：
+
+| | MG | PP |
+|---|---|---|
+| **重試主動方** | Puppy 排程（我方主動） | PP 系統（廠商主動） |
+| **重試時間窗** | 無限期（直到玩家上線） | 24 小時後轉人工 |
+| **重試觸發** | 每分鐘排程檢查 | PP 自動重試（5 秒 × 2 次 → 交易隊列） |
+
+PP 的重試由廠商主動發起，Puppy 無法控制重試時機。若 24 小時內玩家未重新登入，PP 將標記該交易為「手動調節」，需要雙方人工對帳處理。
+
 ### 建議方案
 
-1. **短期**：與星城確認是否存在 XinKey 重新激活機制，或是否可用其他身份識別方式（如 `userId` + `groupId`）進行離線交易。
-2. **長期**：設計 playerInfo 持久化策略，在 XinKey 過期時自動觸發重新登入流程取得新的 XinKey。
+1. **短期**：參考 MG 做法，建立 PP 失敗交易排程任務，將 PP 重試失敗（因 XinKey 過期）的交易寫入 `pp_failed_transactions` 表，等待玩家重新登入後由排程主動重試。
+2. **中期**：與星城確認是否存在 XinKey 重新激活機制，或是否可用其他身份識別方式進行離線交易。
+3. **長期**：設計 playerInfo 持久化策略，在 XinKey 過期時自動觸發重新登入流程取得新的 XinKey。
 
 ---
 
@@ -302,12 +339,16 @@ PP 規範中 Bet、Result、BonusWin、JackpotWin、PromoWin、Adjustment 的回
 
 Refund 回應參數僅要求 `transactionId`、`error`、`description`，**不要求** `cash`、`bonus`、`currency`。流程說明文件的時序圖標示「回傳餘額」可能誤導實作者。
 
-### 12.4 Refund 的 `reference` 欄位語義
+### 12.4 Refund 的 `reference` 欄位語義與交易 ID 處理
 
 **嚴重度**：Major
 **對照規範**：PP 官方規範 3.11 節（第 47 頁）
 
 PP 規範中 Refund 的 `reference` 欄位說明為「賭注交易的參考」（即原始 Bet 的 reference），而非退款本身的 reference。流程說明文件未釐清此語義差異。這意味著退款的冪等性應基於「同一筆原始 Bet reference 只退款一次」。
+
+**交易 ID 衝突問題**：由於星城系統沒有獨立的退款 API，Puppy 透過 `api_spin` 執行退款。若直接使用 PP Refund 的 `reference`（即原始 Bet 的 reference）作為 `tid` 呼叫 `api_spin`，會因為 `tid` 與原始下注交易重複而導致星城回傳錯誤。
+
+**目前實作**：PP 串接已使用 `refund_${request.reference}` 作為 `tid`（`pp.controller.ts:533`），與 MG 的 `rollback_${txnId}`（`mg.controller.ts:501`）設計一致，已正確避免 tid 衝突。流程說明文件應補充此前綴規則的說明。
 
 ### 12.5 Authenticate 回應欄位不完整
 
@@ -353,17 +394,102 @@ PP 通知運營商玩家會話已過期的端點（可選）。
 | `HealthCheck` | 健康檢查 | PP 規範 |
 | `ReplayAPI` | 取得回合重播連結（限 31 天內，對客服查驗有價值） | PP 規範 2.7 節 |
 
-### 13.4 Authenticate 重複呼叫行為未說明
-
-**對照規範**：PP 官方規範 3.4 節
-
-玩家從 PP 內建迷你大廳打開新遊戲時，PP 可能使用相同 token 再次發送 Authenticate 請求。流程說明文件應說明 Puppy 如何處理同一 token 的重複驗證。
-
-### 13.5 Auto-finalization 遺漏「部分遊玩未贏分」情境
+### 13.4 Auto-finalization 遺漏「部分遊玩未贏分」情境
 
 **對照規範**：PP 官方規範 2.6 節（第 22 頁，情境 c）
 
 流程說明文件描述了 Auto-finalization 觸發 refund（完全沒玩）或 bonusWin/result（玩了部分並派彩），但遺漏第三種情境：**玩家玩了免費旋轉但完全沒贏**，PP 直接結束回合不發送任何資金請求（若啟用 EndRound 則僅發送 EndRound）。
+
+---
+
+## 14. 幣別不可變性 (Currency Immutability) ⚠️
+
+### 問題描述
+
+**PP 規格**：玩家帳號在第一次透過 Authenticate 建立時，其 `currency` 就會被固定在 PP 系統中。之後即便在請求中傳入不同幣別，PP 也無法更改。
+
+**遺漏點**：串接流程說明文件（`Pragmatic_Play_單一錢包.md`）未提醒此限制。若玩家在星城側更改了錢包幣別（例如從 TWD 換成 USD），Puppy 必須攔截此變更或在 Authenticate 階段報錯，否則會造成兩端帳務幣別不一致。
+
+### 現狀分析
+
+目前 Puppy 的 PP 串接透過 `countryCode` 路由參數區分請求（`@Controller('api/platforms/pp/:countryCode')`），同一個 `countryCode` 下對應同一個幣別（由 `PpServiceFactory` 根據地區配置注入）。因此在現有架構下：
+
+- 同一 `countryCode` 的所有玩家使用相同幣別，由服務層配置決定（如 `TW` → `TWD`）
+- 幣別不會因個別玩家而異，而是由地區固定
+
+### 風險評估：低
+
+在現行 `countryCode` 架構下，幣別不一致的風險較低，因為幣別是綁定在地區配置而非玩家層級。但仍需注意以下邊界情境：
+
+1. **新增地區時**：若未來新增 `countryCode` 且使用不同幣別，已存在於 PP 系統的玩家帳號（跨地區同 userId）可能因幣別衝突而異常
+2. **環境配置變更**：若修改了某個 `countryCode` 對應的幣別配置，已建立的 PP 玩家帳號幣別不會隨之變更
+
+### 建議
+
+1. 在串接流程說明文件中補充 PP 幣別不可變性的限制說明
+2. 確保 `userId` 在不同 `countryCode`（幣別）之間具備唯一性，避免跨幣別帳號衝突
+
+---
+
+## 15. 投注級距（betLimits）未實作 ⚠️
+
+### 問題描述
+
+星城玩家有等級制度，各等級在不同類型的遊戲有相對應的投注上下限。PP 的 `/authenticate.html` 回應支援 `betLimits` JSON 物件來設定投注級距。但目前 PP 串接實作完全未實作此功能，串接流程說明文件與本報告先前版本也未提及。
+
+### 現狀分析
+
+**資料已存在但被丟棄**：
+
+1. **總部錢包 TCP Login 回應已攜帶 `max`/`min`**（`stars_protocol/message/login_message.ts:11-12`）：
+   ```typescript
+   public max: number;    // 投注上限
+   public min: number;    // 投注下限
+   ```
+   封包解析（`stars_protocol/packet/response/login.ts:17-18`）正確讀取了這兩個欄位。
+
+2. **PP `executeLogin()` 丟棄了 `max`/`min`**（`pp.service.ts:251`）：
+   ```typescript
+   async executeLogin(xinkey: string): Promise<{ username: string; err: string }>
+   // ← 回傳型別僅含 username 和 err，丟棄 max/min
+   ```
+   MG 的 `executeLogin()`（`mg.service.ts:277-279`）同樣丟棄了這兩個欄位。
+
+3. **PP `authenticate` 回傳缺少 `betLimits`**（`pp.controller.ts:123-129`）：
+   ```typescript
+   return {
+       userId, currency, cash, bonus: 0, error: 0,
+       // ← 缺少 betLimits
+   };
+   ```
+
+4. **`PpWalletResponse` 未定義 `betLimits` 欄位**（`dto.ts:382-391`）。
+
+5. **錯誤碼已定義但未使用**：`PpErrorCode.BET_LIMIT_EXCEEDED = 310`（`error-code.enum.ts:38`）已定義，但整個 PP 模組中無任何程式碼檢查投注金額是否超出級距。
+
+### 不需要在 Puppy 新增級距對應表
+
+星城 `/api_login` 回傳的 `max`/`min` **已經是該玩家等級對應的投注上下限**（參見星城 API 文件 3.3 節、4.3 節），是星城系統根據玩家 VIP 等級計算好的結果。Puppy 只需要**透傳**這兩個值即可，不需要自行維護級距對應表。且目前總部錢包亦未提供獨立的級距查詢 API。
+
+### 資料流（應有的實作）
+
+```
+總部錢包 TCP Login 回應 { max, min }
+  → PP executeLogin() 回傳 { username, err, max, min }（目前丟棄）
+    → PP authenticate 端點將 max/min 轉換為 PP betLimits 格式回傳（目前缺失）
+```
+
+### 需修改的程式碼
+
+| 檔案 | 修改內容 |
+|------|---------|
+| `pp.service.ts:251` | `executeLogin()` 回傳型別加入 `max`、`min` |
+| `pp.controller.ts:96-129` | `authenticate` 端點將 `max`/`min` 轉換為 PP 的 `betLimits` JSON 物件回傳 |
+| `dto.ts:382-391` | `PpWalletResponse` 加入 `betLimits` 欄位 |
+
+### 注意事項
+
+PP `betLimits` 的具體 JSON 結構需依 PP 官方規範確認（可能包含 `defaultBet`、`minBet`、`maxBet`、`minTotalBet`、`maxTotalBet` 等欄位），星城回傳的是單一 `max`/`min`，需確認如何正確映射至 PP 的多層級結構。
 
 ---
 
@@ -372,12 +498,12 @@ PP 通知運營商玩家會話已過期的端點（可選）。
 ### 致命問題（必須優先解決）
 
 1. **[致命]** 冪等性 Redis TTL 不足（190 分鐘 << 24 小時重試窗口）：實作「Redis + DB 雙重保護」機制，利用 `pp_bet_record_sub.reference` unique 約束覆蓋全時間段。
-2. **[致命]** XinKey 5 分鐘存活限制 vs PP 非同步交易的架構矛盾：需與星城確認是否有重新激活機制，或重新設計 playerInfo 持久化策略。
+2. **[致命]** XinKey 5 分鐘存活限制 vs PP 非同步交易的架構矛盾：參考 MG 做法建立 PP 失敗交易排程，將 XinKey 過期導致的失敗交易寫入 `pp_failed_transactions`，等待玩家重新登入後由排程主動重試；同時與星城確認是否有 XinKey 重新激活機制（見第 7 章）。
 
 ### 高優先級
 
-3. **[高優先級]** 修改 `refund` 邏輯：將錢包操作改為 `bet=0, payoff=amount`。
-4. **[高優先級]** 修正退款失敗快取問題：`executeSpin` 失敗時不應快取結果至 Redis，應回傳錯誤碼 `100` 讓 PP 重試（`pp.controller.ts:549-565`）。
+3. **[高優先級]** 修改 `refund` 邏輯：將錢包操作從 `bet=refundAmount, payoff=refundAmount`（餘額不變）改為 `bet=0, payoff=refundAmount`（正確返還），對照 MG rollback 的做法（`mg.schedule.ts:535-536`）（見第 5.1 章）。
+4. **[高優先級]** 修正退款失敗處理：`executeSpin` 失敗時不應快取結果至 Redis，應回傳錯誤碼 `100` 讓 PP 重試；同時需考慮 XinKey 過期後重試仍會持續失敗，應將失敗交易寫入 `pp_failed_transactions` 由排程處理（`pp.controller.ts:570-581`）（見第 5.1 章、第 7 章）。
 5. **[高優先級]** 補充 `bet_record_sub.status` 狀態管理：交易成功/失敗時更新狀態，建立排程任務消化失敗交易。
 6. **[高優先級]** 補充端點認證保護：`/game/url`、`/games`、`/closeSession`、`/failed/transaction/list` 均未受 Hash 驗證或 IP 白名單保護（`pp.module.ts:46-59`），需加上對應認證機制。
 7. **[高優先級]** 實作星城規範要求的三個端點：取得遊戲試玩連結（`POST /api/game/demo/link`）、取得供應商報表（`GET /api/report/list`）、強制指定用戶離線（`POST /api/user/kick`），需確認上線前是否必須完成。
@@ -385,17 +511,19 @@ PP 通知運營商玩家會話已過期的端點（可選）。
 9. **[高優先級]** 〔文件〕補充完整錯誤代碼對照表：流程說明文件僅提及錯誤碼 `0` 和 `1`，需補充 PP 規範定義的全部錯誤代碼及其 Reconciliation 行為差異，並說明星城錯誤碼到 PP 錯誤碼的映射規則（見第 10 章）。
 10. **[高優先級]** 〔文件〕補充 Reconciliation 分交易類型說明：特別是 Bet 失敗後 PP 自動觸發 Refund 的連動行為、各交易類型的重試策略差異、24 小時後標記手動調節的處理（見第 11 章）。
 11. **[高優先級]** 〔文件〕補充所有交易回應的 `bonus`、`transactionId`、`usedPromo` 必需欄位處理策略，以及 Refund 回應格式與其他端點的差異（見第 12 章）。
+12. **[高優先級]** 實作投注級距（betLimits）：修改 `executeLogin()` 回傳 `max`/`min`，在 `authenticate` 端點將星城回傳的投注上下限轉換為 PP `betLimits` JSON 物件回傳，並在 `PpWalletResponse` 加入 `betLimits` 欄位（見第 15 章）。
 
 ### 中優先級
 
-12. **[中優先級]** 實作 0 元過濾：在派彩與 FRB 請求中，若 `amount = 0` 則直接回傳成功而不呼叫錢包。
-13. **[中優先級]** 確認 Jackpot 拆分需求：是否需新增資料庫欄位記錄 `jackpotDetails`。
-14. **[中優先級]** 確認金額精度轉換：PP 金額（可能含小數）與星城 `api_spin` 的 ULong 整數之間的倍率轉換機制。
-15. **[中優先級]** 〔文件〕補充 `/balance.html` 端點說明、Authenticate 完整回應欄位、Adjustment 的 `validBetAmount` 參數（見第 12 章）。
-16. **[中優先級]** 〔文件〕補充 Puppy → PP 方向的 API 清單（CancelRound、ReplayAPI 等），評估是否需串接（見第 13 章）。
-17. **[中優先級]** 〔文件〕補充 Authenticate 重複呼叫、Auto-finalization 第三種情境等邊界行為（見第 13 章）。
+13. **[中優先級]** 實作 0 元過濾：在派彩與 FRB 請求中，若 `amount = 0` 則直接回傳成功而不呼叫錢包。
+14. **[中優先級]** 確認 Jackpot 拆分需求：是否需新增資料庫欄位記錄 `jackpotDetails`。
+15. **[中優先級]** 確認金額精度轉換：PP 金額（可能含小數）與星城 `api_spin` 的 ULong 整數之間的倍率轉換機制。
+16. **[中優先級]** 〔文件〕補充 `/balance.html` 端點說明、Authenticate 完整回應欄位、Adjustment 的 `validBetAmount` 參數（見第 12 章）。
+17. **[中優先級]** 〔文件〕補充 Puppy → PP 方向的 API 清單（CancelRound、ReplayAPI 等），評估是否需串接（見第 13 章）。
+18. **[中優先級]** 〔文件〕補充 Authenticate 重複呼叫、Auto-finalization 第三種情境等邊界行為（見第 13 章）。
+19. **[中優先級]** 〔文件〕補充 PP 幣別不可變性限制說明，提醒新增地區或變更幣別配置時需注意已建立的 PP 玩家帳號幣別不會隨之變更（見第 14 章）。
 
 ### 低優先級
 
-18. **[低優先級]** 統一遊戲連結端點：確認是否需要依照星城 PDF 3.1 完整實作 `/api/game/link`。
-19. **[低優先級]** 〔文件〕補充可選端點說明（SessionExpired、GetBalancePerGame），供團隊評估是否串接。
+20. **[低優先級]** 統一遊戲連結端點：確認是否需要依照星城 PDF 3.1 完整實作 `/api/game/link`。
+21. **[低優先級]** 〔文件〕補充可選端點說明（SessionExpired、GetBalancePerGame），供團隊評估是否串接。
