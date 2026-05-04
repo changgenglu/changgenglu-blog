@@ -3,68 +3,68 @@
 <!-- TOC -->
 
 - [Git 學習筆記](#git-%E5%AD%B8%E7%BF%92%E7%AD%86%E8%A8%98)
-    - [常用指令](#%E5%B8%B8%E7%94%A8%E6%8C%87%E4%BB%A4)
-        - [Git 常用指令](#git-%E5%B8%B8%E7%94%A8%E6%8C%87%E4%BB%A4)
-    - [Git Flow 開發流程觀念](#git-flow-%E9%96%8B%E7%99%BC%E6%B5%81%E7%A8%8B%E8%A7%80%E5%BF%B5)
-        - [分支介紹](#%E5%88%86%E6%94%AF%E4%BB%8B%E7%B4%B9)
-            - [長期分支](#%E9%95%B7%E6%9C%9F%E5%88%86%E6%94%AF)
-            - [Topic 任務分支](#topic-%E4%BB%BB%E5%8B%99%E5%88%86%E6%94%AF)
-        - [Git Commit 規範](#git-commit-%E8%A6%8F%E7%AF%84)
-            - [Commit Message 格式](#commit-message-%E6%A0%BC%E5%BC%8F)
-            - [標題](#%E6%A8%99%E9%A1%8C)
-            - [正文](#%E6%AD%A3%E6%96%87)
-            - [Footer](#footer)
-            - [commit 模板](#commit-%E6%A8%A1%E6%9D%BF)
-    - [Git 本地操作情境](#git-%E6%9C%AC%E5%9C%B0%E6%93%8D%E4%BD%9C%E6%83%85%E5%A2%83)
-        - [將 git 預設的編輯器改為 vim](#%E5%B0%87-git-%E9%A0%90%E8%A8%AD%E7%9A%84%E7%B7%A8%E8%BC%AF%E5%99%A8%E6%94%B9%E7%82%BA-vim)
-        - [取消 commit：git reset](#%E5%8F%96%E6%B6%88-commitgit-reset)
-        - [git commit 打錯字](#git-commit-%E6%89%93%E9%8C%AF%E5%AD%97)
-        - [將未完成的工作暫存：git stash](#%E5%B0%87%E6%9C%AA%E5%AE%8C%E6%88%90%E7%9A%84%E5%B7%A5%E4%BD%9C%E6%9A%AB%E5%AD%98git-stash)
-        - [解決合併衝突](#%E8%A7%A3%E6%B1%BA%E5%90%88%E4%BD%B5%E8%A1%9D%E7%AA%81)
-        - [Git 別名](#git-%E5%88%A5%E5%90%8D)
-            - [設定 git reset --hard 的 alias](#%E8%A8%AD%E5%AE%9A-git-reset---hard-%E7%9A%84-alias)
-            - [gitconfig 檔案的使用注意事項](#gitconfig-%E6%AA%94%E6%A1%88%E7%9A%84%E4%BD%BF%E7%94%A8%E6%B3%A8%E6%84%8F%E4%BA%8B%E9%A0%85)
-        - [Git rebase](#git-rebase)
-            - [修改歷史訊息](#%E4%BF%AE%E6%94%B9%E6%AD%B7%E5%8F%B2%E8%A8%8A%E6%81%AF)
-            - [取消 merge 清除合併紀錄](#%E5%8F%96%E6%B6%88-merge-%E6%B8%85%E9%99%A4%E5%90%88%E4%BD%B5%E7%B4%80%E9%8C%84)
-        - [ORIG_HEAD](#orig_head)
-        - [Git 檔案忽略設定指南](#git-%E6%AA%94%E6%A1%88%E5%BF%BD%E7%95%A5%E8%A8%AD%E5%AE%9A%E6%8C%87%E5%8D%97)
-            - [問題背景](#%E5%95%8F%E9%A1%8C%E8%83%8C%E6%99%AF)
-            - [常見的錯誤方案：使用 .gitignore](#%E5%B8%B8%E8%A6%8B%E7%9A%84%E9%8C%AF%E8%AA%A4%E6%96%B9%E6%A1%88%E4%BD%BF%E7%94%A8-gitignore)
-                - [為什麼 .gitignore 不適合](#%E7%82%BA%E4%BB%80%E9%BA%BC-gitignore-%E4%B8%8D%E9%81%A9%E5%90%88)
-            - [正確的解決方案：使用 skip-worktree](#%E6%AD%A3%E7%A2%BA%E7%9A%84%E8%A7%A3%E6%B1%BA%E6%96%B9%E6%A1%88%E4%BD%BF%E7%94%A8-skip-worktree)
-                - [什麼是 skip-worktree](#%E4%BB%80%E9%BA%BC%E6%98%AF-skip-worktree)
-                - [操作步驟](#%E6%93%8D%E4%BD%9C%E6%AD%A5%E9%A9%9F)
-                - [檔案狀態標記說明](#%E6%AA%94%E6%A1%88%E7%8B%80%E6%85%8B%E6%A8%99%E8%A8%98%E8%AA%AA%E6%98%8E)
-            - [設定存儲位置](#%E8%A8%AD%E5%AE%9A%E5%AD%98%E5%84%B2%E4%BD%8D%E7%BD%AE)
-                - [主要存儲位置](#%E4%B8%BB%E8%A6%81%E5%AD%98%E5%84%B2%E4%BD%8D%E7%BD%AE)
-                - [特性](#%E7%89%B9%E6%80%A7)
-            - [管理和注意事項](#%E7%AE%A1%E7%90%86%E5%92%8C%E6%B3%A8%E6%84%8F%E4%BA%8B%E9%A0%85)
-                - [日常管理](#%E6%97%A5%E5%B8%B8%E7%AE%A1%E7%90%86)
-                - [處理衝突](#%E8%99%95%E7%90%86%E8%A1%9D%E7%AA%81)
-                - [重要限制](#%E9%87%8D%E8%A6%81%E9%99%90%E5%88%B6)
-            - [團隊協作建議](#%E5%9C%98%E9%9A%8A%E5%8D%94%E4%BD%9C%E5%BB%BA%E8%AD%B0)
-                - [建立 Setup 腳本](#%E5%BB%BA%E7%AB%8B-setup-%E8%85%B3%E6%9C%AC)
-                - [文件化](#%E6%96%87%E4%BB%B6%E5%8C%96)
-        - [在 git server 建立新儲存庫](#%E5%9C%A8-git-server-%E5%BB%BA%E7%AB%8B%E6%96%B0%E5%84%B2%E5%AD%98%E5%BA%AB)
-        - [將本地專案新增至遠端儲存庫](#%E5%B0%87%E6%9C%AC%E5%9C%B0%E5%B0%88%E6%A1%88%E6%96%B0%E5%A2%9E%E8%87%B3%E9%81%A0%E7%AB%AF%E5%84%B2%E5%AD%98%E5%BA%AB)
-        - [轉移資料庫：git mirror](#%E8%BD%89%E7%A7%BB%E8%B3%87%E6%96%99%E5%BA%ABgit-mirror)
-        - [git push fail](#git-push-fail)
-            - [暫存空間不足](#%E6%9A%AB%E5%AD%98%E7%A9%BA%E9%96%93%E4%B8%8D%E8%B6%B3)
-            - [欲提交的分支受保護](#%E6%AC%B2%E6%8F%90%E4%BA%A4%E7%9A%84%E5%88%86%E6%94%AF%E5%8F%97%E4%BF%9D%E8%AD%B7)
-            - [遠端儲存庫板本和本地不一樣](#%E9%81%A0%E7%AB%AF%E5%84%B2%E5%AD%98%E5%BA%AB%E6%9D%BF%E6%9C%AC%E5%92%8C%E6%9C%AC%E5%9C%B0%E4%B8%8D%E4%B8%80%E6%A8%A3)
-    - [開發流程實例](#%E9%96%8B%E7%99%BC%E6%B5%81%E7%A8%8B%E5%AF%A6%E4%BE%8B)
-        - [從首功能分支繼續開發後續分支](#%E5%BE%9E%E9%A6%96%E5%8A%9F%E8%83%BD%E5%88%86%E6%94%AF%E7%B9%BC%E7%BA%8C%E9%96%8B%E7%99%BC%E5%BE%8C%E7%BA%8C%E5%88%86%E6%94%AF)
-            - [解決方案](#%E8%A7%A3%E6%B1%BA%E6%96%B9%E6%A1%88)
-                - [從目前的分支建立新分支繼續開發](#%E5%BE%9E%E7%9B%AE%E5%89%8D%E7%9A%84%E5%88%86%E6%94%AF%E5%BB%BA%E7%AB%8B%E6%96%B0%E5%88%86%E6%94%AF%E7%B9%BC%E7%BA%8C%E9%96%8B%E7%99%BC)
-                - [基於目前的功能分支開發，等完成後再重構](#%E5%9F%BA%E6%96%BC%E7%9B%AE%E5%89%8D%E7%9A%84%E5%8A%9F%E8%83%BD%E5%88%86%E6%94%AF%E9%96%8B%E7%99%BC%E7%AD%89%E5%AE%8C%E6%88%90%E5%BE%8C%E5%86%8D%E9%87%8D%E6%A7%8B)
-    - [Git 管理](#git-%E7%AE%A1%E7%90%86)
-        - [使用 VSCode 管理 Git](#%E4%BD%BF%E7%94%A8-vscode-%E7%AE%A1%E7%90%86-git)
-    - [GitHub 操作](#github-%E6%93%8D%E4%BD%9C)
-        - [將本地專案上傳到 github](#%E5%B0%87%E6%9C%AC%E5%9C%B0%E5%B0%88%E6%A1%88%E4%B8%8A%E5%82%B3%E5%88%B0-github)
-        - [Https 設定 Token](#https-%E8%A8%AD%E5%AE%9A-token)
-        - [設定 SSH](#%E8%A8%AD%E5%AE%9A-ssh)
-        - [部署靜態頁面到 github](#%E9%83%A8%E7%BD%B2%E9%9D%9C%E6%85%8B%E9%A0%81%E9%9D%A2%E5%88%B0-github)
+  - [常用指令](#%E5%B8%B8%E7%94%A8%E6%8C%87%E4%BB%A4)
+    - [Git 常用指令](#git-%E5%B8%B8%E7%94%A8%E6%8C%87%E4%BB%A4)
+  - [Git Flow 開發流程觀念](#git-flow-%E9%96%8B%E7%99%BC%E6%B5%81%E7%A8%8B%E8%A7%80%E5%BF%B5)
+    - [分支介紹](#%E5%88%86%E6%94%AF%E4%BB%8B%E7%B4%B9)
+      - [長期分支](#%E9%95%B7%E6%9C%9F%E5%88%86%E6%94%AF)
+      - [Topic 任務分支](#topic-%E4%BB%BB%E5%8B%99%E5%88%86%E6%94%AF)
+    - [Git Commit 規範](#git-commit-%E8%A6%8F%E7%AF%84)
+      - [Commit Message 格式](#commit-message-%E6%A0%BC%E5%BC%8F)
+      - [標題](#%E6%A8%99%E9%A1%8C)
+      - [正文](#%E6%AD%A3%E6%96%87)
+      - [Footer](#footer)
+      - [commit 模板](#commit-%E6%A8%A1%E6%9D%BF)
+  - [Git 本地操作情境](#git-%E6%9C%AC%E5%9C%B0%E6%93%8D%E4%BD%9C%E6%83%85%E5%A2%83)
+    - [將 git 預設的編輯器改為 vim](#%E5%B0%87-git-%E9%A0%90%E8%A8%AD%E7%9A%84%E7%B7%A8%E8%BC%AF%E5%99%A8%E6%94%B9%E7%82%BA-vim)
+    - [取消 commit：git reset](#%E5%8F%96%E6%B6%88-commitgit-reset)
+    - [git commit 打錯字](#git-commit-%E6%89%93%E9%8C%AF%E5%AD%97)
+    - [將未完成的工作暫存：git stash](#%E5%B0%87%E6%9C%AA%E5%AE%8C%E6%88%90%E7%9A%84%E5%B7%A5%E4%BD%9C%E6%9A%AB%E5%AD%98git-stash)
+    - [解決合併衝突](#%E8%A7%A3%E6%B1%BA%E5%90%88%E4%BD%B5%E8%A1%9D%E7%AA%81)
+    - [Git 別名](#git-%E5%88%A5%E5%90%8D)
+      - [設定 git reset --hard 的 alias](#%E8%A8%AD%E5%AE%9A-git-reset---hard-%E7%9A%84-alias)
+      - [gitconfig 檔案的使用注意事項](#gitconfig-%E6%AA%94%E6%A1%88%E7%9A%84%E4%BD%BF%E7%94%A8%E6%B3%A8%E6%84%8F%E4%BA%8B%E9%A0%85)
+    - [Git rebase](#git-rebase)
+      - [修改歷史訊息](#%E4%BF%AE%E6%94%B9%E6%AD%B7%E5%8F%B2%E8%A8%8A%E6%81%AF)
+      - [取消 merge 清除合併紀錄](#%E5%8F%96%E6%B6%88-merge-%E6%B8%85%E9%99%A4%E5%90%88%E4%BD%B5%E7%B4%80%E9%8C%84)
+    - [ORIG_HEAD](#orig_head)
+    - [Git 檔案忽略設定指南](#git-%E6%AA%94%E6%A1%88%E5%BF%BD%E7%95%A5%E8%A8%AD%E5%AE%9A%E6%8C%87%E5%8D%97)
+      - [問題背景](#%E5%95%8F%E9%A1%8C%E8%83%8C%E6%99%AF)
+      - [常見的錯誤方案：使用 .gitignore](#%E5%B8%B8%E8%A6%8B%E7%9A%84%E9%8C%AF%E8%AA%A4%E6%96%B9%E6%A1%88%E4%BD%BF%E7%94%A8-gitignore)
+        - [為什麼 .gitignore 不適合](#%E7%82%BA%E4%BB%80%E9%BA%BC-gitignore-%E4%B8%8D%E9%81%A9%E5%90%88)
+      - [正確的解決方案：使用 skip-worktree](#%E6%AD%A3%E7%A2%BA%E7%9A%84%E8%A7%A3%E6%B1%BA%E6%96%B9%E6%A1%88%E4%BD%BF%E7%94%A8-skip-worktree)
+        - [什麼是 skip-worktree](#%E4%BB%80%E9%BA%BC%E6%98%AF-skip-worktree)
+        - [操作步驟](#%E6%93%8D%E4%BD%9C%E6%AD%A5%E9%A9%9F)
+        - [檔案狀態標記說明](#%E6%AA%94%E6%A1%88%E7%8B%80%E6%85%8B%E6%A8%99%E8%A8%98%E8%AA%AA%E6%98%8E)
+      - [設定存儲位置](#%E8%A8%AD%E5%AE%9A%E5%AD%98%E5%84%B2%E4%BD%8D%E7%BD%AE)
+        - [主要存儲位置](#%E4%B8%BB%E8%A6%81%E5%AD%98%E5%84%B2%E4%BD%8D%E7%BD%AE)
+        - [特性](#%E7%89%B9%E6%80%A7)
+      - [管理和注意事項](#%E7%AE%A1%E7%90%86%E5%92%8C%E6%B3%A8%E6%84%8F%E4%BA%8B%E9%A0%85)
+        - [日常管理](#%E6%97%A5%E5%B8%B8%E7%AE%A1%E7%90%86)
+        - [處理衝突](#%E8%99%95%E7%90%86%E8%A1%9D%E7%AA%81)
+        - [重要限制](#%E9%87%8D%E8%A6%81%E9%99%90%E5%88%B6)
+      - [團隊協作建議](#%E5%9C%98%E9%9A%8A%E5%8D%94%E4%BD%9C%E5%BB%BA%E8%AD%B0)
+        - [建立 Setup 腳本](#%E5%BB%BA%E7%AB%8B-setup-%E8%85%B3%E6%9C%AC)
+        - [文件化](#%E6%96%87%E4%BB%B6%E5%8C%96)
+    - [在 git server 建立新儲存庫](#%E5%9C%A8-git-server-%E5%BB%BA%E7%AB%8B%E6%96%B0%E5%84%B2%E5%AD%98%E5%BA%AB)
+    - [將本地專案新增至遠端儲存庫](#%E5%B0%87%E6%9C%AC%E5%9C%B0%E5%B0%88%E6%A1%88%E6%96%B0%E5%A2%9E%E8%87%B3%E9%81%A0%E7%AB%AF%E5%84%B2%E5%AD%98%E5%BA%AB)
+    - [轉移資料庫：git mirror](#%E8%BD%89%E7%A7%BB%E8%B3%87%E6%96%99%E5%BA%ABgit-mirror)
+    - [git push fail](#git-push-fail)
+      - [暫存空間不足](#%E6%9A%AB%E5%AD%98%E7%A9%BA%E9%96%93%E4%B8%8D%E8%B6%B3)
+      - [欲提交的分支受保護](#%E6%AC%B2%E6%8F%90%E4%BA%A4%E7%9A%84%E5%88%86%E6%94%AF%E5%8F%97%E4%BF%9D%E8%AD%B7)
+      - [遠端儲存庫板本和本地不一樣](#%E9%81%A0%E7%AB%AF%E5%84%B2%E5%AD%98%E5%BA%AB%E6%9D%BF%E6%9C%AC%E5%92%8C%E6%9C%AC%E5%9C%B0%E4%B8%8D%E4%B8%80%E6%A8%A3)
+  - [開發流程實例](#%E9%96%8B%E7%99%BC%E6%B5%81%E7%A8%8B%E5%AF%A6%E4%BE%8B)
+    - [從首功能分支繼續開發後續分支](#%E5%BE%9E%E9%A6%96%E5%8A%9F%E8%83%BD%E5%88%86%E6%94%AF%E7%B9%BC%E7%BA%8C%E9%96%8B%E7%99%BC%E5%BE%8C%E7%BA%8C%E5%88%86%E6%94%AF)
+      - [解決方案](#%E8%A7%A3%E6%B1%BA%E6%96%B9%E6%A1%88)
+        - [從目前的分支建立新分支繼續開發](#%E5%BE%9E%E7%9B%AE%E5%89%8D%E7%9A%84%E5%88%86%E6%94%AF%E5%BB%BA%E7%AB%8B%E6%96%B0%E5%88%86%E6%94%AF%E7%B9%BC%E7%BA%8C%E9%96%8B%E7%99%BC)
+        - [基於目前的功能分支開發，等完成後再重構](#%E5%9F%BA%E6%96%BC%E7%9B%AE%E5%89%8D%E7%9A%84%E5%8A%9F%E8%83%BD%E5%88%86%E6%94%AF%E9%96%8B%E7%99%BC%E7%AD%89%E5%AE%8C%E6%88%90%E5%BE%8C%E5%86%8D%E9%87%8D%E6%A7%8B)
+  - [Git 管理](#git-%E7%AE%A1%E7%90%86)
+    - [使用 VSCode 管理 Git](#%E4%BD%BF%E7%94%A8-vscode-%E7%AE%A1%E7%90%86-git)
+  - [GitHub 操作](#github-%E6%93%8D%E4%BD%9C)
+    - [將本地專案上傳到 github](#%E5%B0%87%E6%9C%AC%E5%9C%B0%E5%B0%88%E6%A1%88%E4%B8%8A%E5%82%B3%E5%88%B0-github)
+    - [Https 設定 Token](#https-%E8%A8%AD%E5%AE%9A-token)
+    - [設定 SSH](#%E8%A8%AD%E5%AE%9A-ssh)
+    - [部署靜態頁面到 github](#%E9%83%A8%E7%BD%B2%E9%9D%9C%E6%85%8B%E9%A0%81%E9%9D%A2%E5%88%B0-github)
 
 <!-- /TOC -->
 
@@ -269,7 +269,6 @@
      # 刪除分支
      $ git branch -d hotfix-1.2.1
      ```
-
 
 ### Git Commit 規範
 
@@ -821,9 +820,7 @@ git reset ORIG_HEAD --hard
 - 切換分支時本地修改不會丟失
 - 不影響其他團隊成員的工作
 
-#### 常見的錯誤方案：使用 .gitignore
-
-##### 為什麼 .gitignore 不適合
+#### 為什麼 .gitignore 不適合
 
 ```bash
 # 錯誤的做法
@@ -838,7 +835,7 @@ echo ".env" >> .gitignore
 - 需要使用 `git rm --cached` 移除追蹤，但這會影響其他人
 - `.gitignore` 本身會被提交，影響整個團隊
 
-#### 正確的解決方案：使用 skip-worktree
+#### 使用 skip-worktree
 
 ##### 什麼是 skip-worktree
 
@@ -987,17 +984,111 @@ git update-index --skip-worktree .env
 
 ````
 
+#### 使用 .git/info/exclude
+
+##### 什麼是 .git/info/exclude
+
+`.git/info/exclude` 是 Git 提供的另一個忽略機制，效力與 `.gitignore` 完全相同（同樣的 pattern 語法），但有兩個關鍵差異：
+
+- 檔案位於 `.git/info/exclude`，**不會被版本控制**（`.git/` 整個目錄不會被 commit）
+- 因此這個忽略規則**只在當前 clone 的本機生效**，不會散佈給團隊其他成員
+
+換句話說：`.gitignore` 是「全團隊共識的忽略清單」，`.git/info/exclude` 是「我這台機器的個人忽略清單」。
+
+##### 適用情境
+
+需要忽略**未被追蹤**的檔案或目錄，但**不想動到團隊共用的 .gitignore**：
+
+- 個人在專案根目錄放的草稿、筆記、實驗腳本
+- IDE / Claude Code 等工具產生的本地工作目錄（如 `.claude/`、`.cursor/`）
+- 本地測試用的臨時檔案
+
+如果是「已被追蹤但本地修改不想推送」，則該用前面介紹的 `skip-worktree`，不要用這個方案——它對已追蹤檔案無效。
+
+##### 設定方法
+
+直接編輯 `.git/info/exclude` 檔案，語法與 `.gitignore` 完全相同：
+
+```bash
+# 進到專案根目錄
+cd <your-project>
+
+# 用任意編輯器加入要忽略的 pattern
+echo ".claude/" >> .git/info/exclude
+echo "scratch/" >> .git/info/exclude
+echo "*.local.md" >> .git/info/exclude
+```
+
+預設檔案內容（git init 時建立）：
+
+```
+# git ls-files --others --exclude-from=.git/info/exclude
+# Lines that start with '#' are comments.
+# For a project mostly in C, the following would be a good set of
+# exclude patterns (uncomment them if you want to use them):
+# *.[oa]
+# *~
+```
+
+##### 確認某個檔案被哪條規則忽略
+
+當不確定 `.gitignore` 與 `.git/info/exclude` 是哪一邊在生效時，使用 `git check-ignore -v`：
+
+```bash
+git check-ignore -v .claude/
+# 輸出範例：
+# .git/info/exclude:7:.claude/    .claude/
+#  ↑路徑              ↑行號 ↑pattern ↑被忽略的檔案
+```
+
+輸出中的「路徑:行號」明確告訴你規則來自哪個檔案的第幾行。
+
+##### 移除設定
+
+直接編輯 `.git/info/exclude` 把對應行刪掉即可，沒有專屬指令。
+
+##### 重要限制
+
+1. **Clone 時會重置** — `.git/` 整個目錄不會跟著 clone，重新 clone 後設定消失
+2. **不對稱風險** — 只有設定的人會忽略，其他協作者不會。對方仍可能不小心 `git add` 那個檔案進入版控
+3. **無法團隊共享** — 想讓全團隊都忽略同一個檔案，請改用 `.gitignore`
+
+##### 實例：排查 .claude/ 為何沒進版控
+
+某次發現專案的 `.claude/` 目錄沒被 git 追蹤，但 `.gitignore` 看起來沒有相關規則。排查流程：
+
+```bash
+# Step 1：確認 .gitignore 內容
+cat .gitignore | grep claude
+# 沒有輸出，代表 .gitignore 沒設
+
+# Step 2：用 git check-ignore 找真正的規則來源
+git check-ignore -v .claude/
+# 輸出：.git/info/exclude:7:.claude/    .claude/
+# → 真正的忽略規則在 .git/info/exclude 第 7 行
+
+# Step 3：確認 git 真的沒追蹤任何 .claude/ 檔案
+git ls-files | grep -c "^\.claude/"
+# 輸出：0
+
+# Step 4：查看 .git/info/exclude 內容確認
+cat .git/info/exclude
+```
+
+這個案例展示了：當 `.gitignore` 找不到答案時，記得多查一個地方——`.git/info/exclude`。
+
 #### 替代方案比較
 
-| 方案 | 適用場景 | 優點 | 缺點 |
-|------|----------|------|------|
-| `.gitignore` | 未被追蹤的檔案 | 團隊共享、簡單 | 不適用於已追蹤的檔案 |
-| `skip-worktree` | 已追蹤但不想同步本地修改 | 不影響其他人、保持檔案在 repo 中 | 需要每個人單獨設定 |
-| `assume-unchanged` | 性能優化用途 | 類似 skip-worktree | 主要用於性能，不是為了忽略修改 |
+| 方案 | 適用場景 | 是否團隊共享 | 對已追蹤檔案有效 |
+|------|----------|-------------|----------------|
+| `.gitignore` | 未被追蹤的檔案 | ✅ 會 commit 進 repo | ❌ 否 |
+| `.git/info/exclude` | 未被追蹤的檔案、僅本機個人忽略 | ❌ 不會 commit | ❌ 否 |
+| `skip-worktree` | 已追蹤但不想同步本地修改 | ❌ 本地設定 | ✅ 是 |
+| `assume-unchanged` | 性能優化用途，不建議當忽略工具 | ❌ 本地設定 | ✅ 是 |
 
 #### 最佳實踐
 
-1. **明確區分用途** - 使用 `.gitignore` 處理未追蹤檔案，使用 `skip-worktree` 處理已追蹤但不想同步的檔案
+1. **明確區分用途** - `.gitignore` 處理團隊共享的未追蹤檔案、`.git/info/exclude` 處理本機個人的未追蹤檔案、`skip-worktree` 處理已追蹤但不想同步的本地修改
 2. **團隊溝通** - 在 README 中明確說明哪些檔案需要設定 skip-worktree
 3. **建立腳本** - 為新團隊成員提供自動設定腳本
 4. **定期檢查** - 定期檢查 `git ls-files -v | grep ^S` 確認設定正確
@@ -1146,7 +1237,7 @@ git 有兩種通訊協定，ssh 和 http。若是使用 HTTP 協定，其底層�
   # http.postBuffer => 緩衝區大小
 ```
 
-2. 加大緩衝區
+1. 加大緩衝區
 
 ```shell
   # 524288000 為 500MB，此緩衝值大小需斟酌設定。
@@ -1298,7 +1389,7 @@ $ Enter same passphrase again:
 
 此處的輸入密碼為使用至個金鑰的密碼，可以選擇不輸入。
 
-2. 產生 SSH 連線所需的公鑰內容
+1. 產生 SSH 連線所需的公鑰內容
 
 ```bash
 cat ~/.ssh/id_rsa.pub
@@ -1310,7 +1401,7 @@ cat ~/.ssh/id_rsa.pub
 ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABgQDFp+A3qe4qm1Dkw66LN/  vNGlufX5iC9VERfuUiXHNM5L3hQuz6wO8WuzFv+zDIHRPGUl616oLXTHTqommuO0GZavDo+lbUIRkSBM9j/9tr  +hlF4LPTT4ggjOgzLCHTrSyzcmcdykgBfnDgX3aYfZbhCEcWdERUxWFNnDf +YYlNd8L6LMKSIce61nhqiSLNbugDCrE0IH+/1hoS3LNoag9V05Qwo5yZ6srLNJT8uISoqvJv5BwSpBL9ImnePx  +LzDiVXlJMisKf1GSXdVuWmVWlKrZOsadk4ZkSNH2cL1wgkNvAUbydWKG9Ag4TfI/khKwUXyhT  +7V4jWsJusDXZxafylZma4qeOsaLAN4ScSStnOoSm1CxeNqmPsQpAGbtvx49yB2 +c4HFsa68VzcwV1oejhh2E67iqqKK53IFN/  qQmYYfhUukY6rgLLHlLkmjLqdVpVcULCP0mMzn4xacFWLwDgOtZK1i97vWaLPyG6hYQQ108zK9i/Cg13p0Z+CUTCs=  changgenglu@masenyuandeMacBook-Air.local
 ```
 
-3. 上傳公鑰
+1. 上傳公鑰
 
 到 Github > Settings > SSH and GPG keys 的設定頁面，選擇 New SSH Key。
 
