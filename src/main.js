@@ -2,11 +2,11 @@ import { createApp } from "vue";
 import App from "./App.vue";
 import router from "./router";
 import store from "./store";
-import "bootstrap/dist/css/bootstrap.min.css";
 import Markdown from "vue3-markdown-it";
 import "highlight.js/styles/monokai.css";
 import "./assets/styles/theme.css";
 import "./assets/styles/patterns.css";
+import "./assets/styles/layout.css";
 
 createApp(App).use(store).use(router).use(Markdown).mount("#app");
 

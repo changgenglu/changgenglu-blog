@@ -2,6 +2,7 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { mount } from '@vue/test-utils';
 import ArticleCard from '@/components/ArticleCard.vue';
 import { createRouter, createMemoryHistory } from 'vue-router';
+import { flushPromises } from '@vue/test-utils';
 
 // Mock Router
 const router = createRouter({
@@ -60,9 +61,9 @@ describe('ArticleCard.vue', () => {
     expect(wrapper.find('.category-badge').text()).toBe('Test');
   });
 
-  it('應正確顯示匹配的 H2 行', () => {
+  it('應正確顯示匹配的 H2 行（不含 ## 前綴）', () => {
     expect(wrapper.findAll('.title-text').length).toBe(2);
-    expect(wrapper.findAll('.title-text')[0].text()).toBe('## Introduction');
+    expect(wrapper.findAll('.title-text')[0].text()).toBe('Introduction');
   });
 
   it('當有 query 且有 displaySnippet 時，應顯示 snippet', async () => {
@@ -78,6 +79,46 @@ describe('ArticleCard.vue', () => {
     expect(wrapper.find('.title-text').html()).toContain('<span class="search-highlight">測試</span> 片段');
     // Ensure that if snippet is displayed, matchingLines are not (v-if vs v-else-if)
     expect(wrapper.findAll('.title-text').length).toBe(1);
+  });
+
+  describe('分類徽章', () => {
+    let navRouter;
+    let navWrapper;
+
+    beforeEach(async () => {
+      navRouter = createRouter({
+        history: createMemoryHistory(),
+        routes: [
+          { path: '/category/:categoryName', name: 'CategoryList', component: { template: '<div></div>' } },
+          { path: '/:title(.*)', name: 'Markdown', component: { template: '<div></div>' } },
+        ],
+      });
+      await navRouter.push('/');
+      navWrapper = mount(ArticleCard, {
+        props: { item: mockItem, showCategory: true },
+        global: { plugins: [navRouter] },
+      });
+    });
+
+    afterEach(() => navWrapper.unmount());
+
+    it('點擊徽章應導向分類頁而不是文章', async () => {
+      await navWrapper.find('.category-badge').trigger('click');
+      await flushPromises();
+      expect(navRouter.currentRoute.value.name).toBe('CategoryList');
+      expect(navRouter.currentRoute.value.params.categoryName).toBe('Test');
+    });
+
+    it('點擊文章連結應導向文章', async () => {
+      await navWrapper.find('.article-card-link').trigger('click');
+      await flushPromises();
+      expect(navRouter.currentRoute.value.name).toBe('Markdown');
+    });
+
+    it('連結不應巢狀（卡片連結與徽章連結是兄弟節點）', () => {
+      expect(navWrapper.findAll('a a')).toHaveLength(0);
+      expect(navWrapper.findAll('a')).toHaveLength(2);
+    });
   });
 
   describe('countDate method', () => {

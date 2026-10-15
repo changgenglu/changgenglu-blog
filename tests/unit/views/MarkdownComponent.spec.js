@@ -140,86 +140,81 @@ describe('MarkdownComponent.vue', () => {
     wrapper.unmount();
   });
 
-  describe('template conditional rendering', () => {
+  describe('章節目錄的顯示條件', () => {
+    const TWO_H2 = '<h2>安裝</h2><p>a</p><h2>使用</h2>';
+    // 以 v-html 渲染內容，才能讓目錄從真實的 DOM 標題建立
+    const HtmlStub = {
+      template: '<div class="markdown-content" v-html="source"></div>',
+      props: ['source'],
+    };
     let wrapper;
+    const originalWidth = window.innerWidth;
 
-    beforeEach(async () => {
-      // Setup default mock fetch for content
-      global.fetch = vi.fn().mockImplementation(() =>
-        Promise.resolve({
-          ok: true,
-          text: () => Promise.resolve('## Test Title\n\n- item 1'),
-        })
-      );
-      // Mock navigator.clipboard
-      Object.assign(navigator, {
-        clipboard: {
-          writeText: vi.fn().mockImplementation(() => Promise.resolve()),
-        },
-      });
-
+    async function mountWith(html, width) {
+      window.innerWidth = width;
+      mockParseMarkdown.mockReturnValue({ content: html, tocContent: '' });
       await router.push('/TestError');
       await router.isReady();
-
       wrapper = mount(MarkdownComponent, {
         global: {
           plugins: [router],
-          stubs: {
-            Markdown: {
-              template: '<div class="markdown-content"><slot /></div>',
-              props: ['source']
-            },
-            'scroll-to-top-button': true
-          }
+          stubs: { Markdown: HtmlStub, 'scroll-to-top-button': true },
         },
-        props: {
-          // You might need to mock route.params.title if it's used in data()
-        }
+        attachTo: document.body,
       });
       await flushPromises();
+    }
+
+    const toc = () => wrapper.find('nav[aria-label="本頁章節"]');
+    // 收合開關在 nav 之外，所以「目錄存在」與「清單可見」分開判斷
+
+    beforeEach(() => {
+      global.fetch = vi.fn().mockImplementation(() =>
+        Promise.resolve({ ok: true, text: () => Promise.resolve('ignored') })
+      );
     });
 
     afterEach(() => {
       wrapper.unmount();
+      window.innerWidth = originalWidth;
       global.fetch.mockRestore();
     });
 
-    it('toggle-menu-btn 在非行動裝置上應隱藏', async () => {
-      wrapper.vm.isMobile = false;
-      wrapper.vm.markdownMenu = 'some menu';
-      await wrapper.vm.$nextTick();
-      expect(wrapper.find('#toggle-menu-btn').isVisible()).toBe(false);
+    it('非行動裝置上有章節時目錄預設展開', async () => {
+      await mountWith(TWO_H2, 1024);
+      expect(wrapper.find('button[aria-expanded]').attributes('aria-expanded')).toBe('true');
+      expect(toc().find('ul').isVisible()).toBe(true);
     });
 
-    it('toggle-menu-btn 在行動裝置上且無菜單內容時應隱藏', async () => {
-      wrapper.vm.isMobile = true;
-      wrapper.vm.markdownMenu = '';
-      await wrapper.vm.$nextTick();
-      expect(wrapper.find('#toggle-menu-btn').isVisible()).toBe(false);
+    it('行動裝置上無章節時不顯示目錄', async () => {
+      await mountWith('<p>沒有章節</p>', 500);
+      expect(toc().exists()).toBe(false);
     });
 
-    it('toggle-menu-btn 在行動裝置上且有菜單內容時應顯示', async () => {
-      wrapper.vm.isMobile = true;
-      wrapper.vm.markdownMenu = 'some menu';
-      await wrapper.vm.$nextTick();
-      expect(wrapper.find('#toggle-menu-btn').isVisible()).toBe(true);
+    it('行動裝置上有章節時顯示目錄標題按鈕', async () => {
+      await mountWith(TWO_H2, 500);
+      expect(wrapper.find('button[aria-expanded]').isVisible()).toBe(true);
     });
 
-    it('目錄內容 (Markdown id="menu") 應在 showMenu 為 false 時隱藏', async () => {
-      wrapper.vm.showMenu = false;
-      wrapper.vm.markdownMenu = 'some menu';
-      await wrapper.vm.$nextTick();
-      // Find the div that contains the Markdown component for the menu
-      const menuContainer = wrapper.find('.row > div:first-child');
-      expect(menuContainer.isVisible()).toBe(false);
+    it('行動裝置上目錄預設收合、清單隱藏', async () => {
+      await mountWith(TWO_H2, 500);
+      expect(wrapper.find('button[aria-expanded]').attributes('aria-expanded')).toBe('false');
+      expect(toc().find('ul').isVisible()).toBe(false);
     });
 
-    it('目錄內容 (Markdown id="menu") 應在 showMenu 為 true 且有菜單內容時顯示', async () => {
-      wrapper.vm.showMenu = true;
-      wrapper.vm.markdownMenu = 'some menu';
+    it('行動裝置上點目錄標題後清單展開', async () => {
+      await mountWith(TWO_H2, 500);
+      await wrapper.find('button[aria-expanded]').trigger('click');
+      expect(wrapper.find('button[aria-expanded]').attributes('aria-expanded')).toBe('true');
+      expect(toc().find('ul').isVisible()).toBe(true);
+    });
+
+    it('視窗從桌機縮到手機寬度時目錄改為收合', async () => {
+      await mountWith(TWO_H2, 1024);
+      window.innerWidth = 500;
+      window.dispatchEvent(new Event('resize'));
       await wrapper.vm.$nextTick();
-      const menuContainer = wrapper.find('.row > div:first-child');
-      expect(menuContainer.isVisible()).toBe(true);
+      expect(wrapper.find('button[aria-expanded]').attributes('aria-expanded')).toBe('false');
     });
   });
 

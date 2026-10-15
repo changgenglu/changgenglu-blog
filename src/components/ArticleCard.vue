@@ -1,46 +1,19 @@
 <template>
   <div class="article-card-wrapper">
-    <router-link
-      v-if="item.path"
-      :to="{ name: 'Markdown', params: { title: item.path } }"
-      class="article-card-link"
-    >
-      <div class="article-card surface" :class="{ 'mobile-card': isMobile }">
-        <div class="card-body">
-          <div class="card-head">
-            <h5 class="card-title" v-html="displayTitle"></h5>
-            <span class="date-tag">{{ formattedDate }} ago</span>
-          </div>
-
-          <div class="article-metadata" v-show="!isMobile">
-            <div v-if="displaySnippet" class="metadata-line">
-              <span class="bullet"></span>
-              <span class="title-text" v-html="displaySnippet"></span>
-            </div>
-            <div v-else-if="item.matchingLines && item.matchingLines.length > 0" v-for="(title, index) in item.matchingLines" :key="index" class="metadata-line">
-              <span class="bullet"></span>
-              <span class="title-text">{{ title }}</span>
-            </div>
-            <div v-else class="metadata-line">
-              <span class="bullet"></span>
-              <span class="title-text">文章內容...</span>
-            </div>
-          </div>
-
-          <div class="card-footer-info" v-if="showCategory">
-            <span class="category-badge">{{ item.category }}</span>
-            <span class="read-more">Read More →</span>
-          </div>
-        </div>
-      </div>
-    </router-link>
-    <div v-else class="article-card surface cursor-default" :class="{ 'mobile-card': isMobile }">
+    <!-- 整張卡可點：連結以疊層鋪滿卡片，分類徽章是它的兄弟節點而非子節點，避免 <a> 巢狀 <a> -->
+    <div class="article-card surface" :class="{ 'mobile-card': isMobile, 'is-linked': item.path }">
+      <router-link
+        v-if="item.path"
+        :to="{ name: 'Markdown', params: { title: item.path } }"
+        class="article-card-link"
+        :aria-label="plainTitle"
+      ></router-link>
       <div class="card-body">
         <div class="card-head">
           <h5 class="card-title" v-html="displayTitle"></h5>
           <span class="date-tag">{{ formattedDate }} ago</span>
         </div>
-        <!-- ... same metadata block ... -->
+
         <div class="article-metadata" v-show="!isMobile">
           <div v-if="displaySnippet" class="metadata-line">
             <span class="bullet"></span>
@@ -48,7 +21,7 @@
           </div>
           <div v-else-if="item.matchingLines && item.matchingLines.length > 0" v-for="(title, index) in item.matchingLines" :key="index" class="metadata-line">
             <span class="bullet"></span>
-            <span class="title-text">{{ title }}</span>
+            <span class="title-text">{{ stripHeadingMark(title) }}</span>
           </div>
           <div v-else class="metadata-line">
             <span class="bullet"></span>
@@ -57,7 +30,10 @@
         </div>
 
         <div class="card-footer-info" v-if="showCategory">
-          <span class="category-badge">{{ item.category }}</span>
+          <router-link
+            :to="categoryPath"
+            class="category-badge"
+          >{{ item.category }}</router-link>
           <span class="read-more">Read More →</span>
         </div>
       </div>
@@ -85,6 +61,12 @@ export default {
     }
   },
   computed: {
+    categoryPath() {
+      return `/category/${encodeURIComponent(this.item.category)}`;
+    },
+    plainTitle() {
+      return this.item.name ? this.item.name.replace('.md', '') : '';
+    },
     formattedDate() {
       return this.countDate(this.item.date);
     },
@@ -103,7 +85,9 @@ export default {
         // 否則，如果在 H2 標題中找到匹配，則高亮該 H2
         else if (this.item.matchingLines && this.item.matchingLines.length > 0) {
             const lowerQuery = this.item.query.toLowerCase();
-            const matchedLine = this.item.matchingLines.find(line => line.toLowerCase().includes(lowerQuery));
+            const matchedLine = this.item.matchingLines
+                .map(line => this.stripHeadingMark(line))
+                .find(line => line.toLowerCase().includes(lowerQuery));
             if (matchedLine) {
                 snippetText = highlightMatch(matchedLine, this.item.query);
             }
@@ -112,6 +96,10 @@ export default {
     }
   },
   methods: {
+    // matchingLines 來自 makeDirectory 的原始 Markdown 標題行，顯示時才去掉 "## " 前綴
+    stripHeadingMark(line) {
+      return line.replace(/^#{1,6}\s+/, '');
+    },
     countDate(fileDate) {
       var now = new Date();
       var specifiedDate = new Date(fileDate);
@@ -151,13 +139,14 @@ export default {
 }
 
 .article-card-link {
-  text-decoration: none;
-  display: block;
-  height: 100%;
+  position: absolute;
+  inset: 0;
+  z-index: 1;
   border-radius: var(--radius-md);
 }
 
 .article-card {
+  position: relative;
   height: 100%;
   min-height: 200px;
   display: flex;
@@ -238,6 +227,9 @@ export default {
 }
 
 .category-badge {
+  position: relative;
+  z-index: 2;
+  text-decoration: none;
   color: var(--ink);
   font-size: 0.75rem;
   font-family: var(--font-mono);
@@ -253,6 +245,10 @@ export default {
   content: ' ]';
 }
 
+.category-badge:hover {
+  color: var(--primary);
+}
+
 .read-more {
   font-size: 0.85rem;
   color: var(--primary);
@@ -262,16 +258,12 @@ export default {
 }
 
 .article-card:hover .read-more,
-.article-card-link:focus-visible .read-more {
+.article-card-link:focus-visible ~ .card-body .read-more {
   opacity: 1;
 }
 
 .mobile-card {
   min-height: auto;
-}
-
-.cursor-pointer {
-  cursor: pointer;
 }
 
 .article-card :deep(.search-highlight) {

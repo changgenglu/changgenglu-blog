@@ -16,6 +16,7 @@
   --code-ink: #d6d9e5;
   --code-line: rgba(255, 255, 255, 0.2);
   --code-line-soft: rgba(255, 255, 255, 0.1);
+  --code-success: #6ee7a8;
   --highlight-bg: #fff1a8;
   --highlight-ink: #202541;
   --danger: #b42318;
@@ -26,13 +27,6 @@
   --radius-md: 14px;
   --container: 86rem;
   color-scheme: light;
-
-  /* 舊變數名稱的暫時別名：尚未改版的頁面仍引用，待移除 Bootstrap CSS 時一併刪除 */
-  --bg-main: var(--bg);
-  --bg-surface: var(--surface);
-  --accent-cyan: var(--primary);
-  --glass-border: var(--line);
-  --glass-blur: none;
 }
 
 :root[data-theme="dark"] {
@@ -56,7 +50,7 @@
   color-scheme: dark;
 }
 
-/* 最小 reset：Bootstrap Reboot 在移除前仍載入，這裡匯入在其後，讓版面不依賴 Reboot */
+/* 最小 reset：取代原本由 Bootstrap Reboot 提供的基礎重設 */
 *,
 *::before,
 *::after {
@@ -87,8 +81,17 @@ a {
   color: inherit;
 }
 
+img,
+svg {
+  vertical-align: middle;
+}
+
 img {
   max-width: 100%;
+}
+
+[hidden] {
+  display: none !important;
 }
 
 table {
@@ -98,6 +101,10 @@ table {
 button,
 input {
   font: inherit;
+}
+
+button:not(:disabled) {
+  cursor: pointer;
 }
 
 :focus-visible {

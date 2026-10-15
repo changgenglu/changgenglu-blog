@@ -1,0 +1,58 @@
+/* 跨頁共用的版面元件；頁面專屬樣式留在各 .vue 的 scoped style */
+.btn-ghost {
+  display: inline-block;
+  padding: 8px 18px;
+  background: transparent;
+  border: 1px solid var(--line-strong);
+  border-radius: var(--radius-sm);
+  color: var(--ink);
+  text-decoration: none;
+  line-height: 1.5;
+  cursor: pointer;
+  transition: border-color 0.2s ease, color 0.2s ease, background-color 0.2s ease;
+}
+
+.btn-ghost:hover {
+  background: var(--primary-soft);
+  border-color: var(--primary);
+  color: var(--primary);
+}
+
+.pager {
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.pager-link {
+  display: inline-block;
+  min-width: 40px;
+  padding: 6px 12px;
+  text-align: center;
+  text-decoration: none;
+  color: var(--text);
+  background: var(--surface);
+  border: 1px solid var(--line-strong);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+}
+
+.pager-link:hover {
+  border-color: var(--primary);
+  color: var(--primary);
+}
+
+.pager .active .pager-link {
+  background: var(--primary);
+  border-color: var(--primary);
+  color: var(--on-primary);
+}
+
+.pager .disabled .pager-link {
+  opacity: 0.4;
+  cursor: not-allowed;
+}

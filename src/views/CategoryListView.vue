@@ -1,39 +1,42 @@
 <template>
-  <div class="container-lg">
-    <div class="search-section mb-5">
-      <SearchInput v-model:modelValue="searchText" @search="handleSearch" placeholder="在此分類中搜尋..." ></SearchInput>
-    </div>
-    <h2 class="text-center my-4 title-ink">{{ categoryName }}</h2>
-    <div class="row">
-      <div v-for="(item, index) in markdownCards" :key="index" :class="{ 'col-6': !isMobile }">
-        <ArticleCard :item="item" :isMobile="isMobile" />
+  <div class="category-page">
+    <section class="category-hero grid-paper">
+      <p class="eyebrow">[ CATEGORY ]</p>
+      <h2 class="category-title">{{ categoryName }}</h2>
+    </section>
+    <div class="stripe" aria-hidden="true"></div>
+
+    <div class="grid-paper category-body">
+      <div class="search-section">
+        <SearchInput v-model:modelValue="searchText" @search="handleSearch" placeholder="在此分類中搜尋..." ></SearchInput>
       </div>
-      <div v-show="files.length === 0">
-        <div class="h2 text-center m-5 title-ink">
-          查無資料
+
+      <div class="card-grid">
+        <div v-for="(item, index) in markdownCards" :key="index">
+          <ArticleCard :item="item" :isMobile="isMobile" />
         </div>
       </div>
-    </div>
-    <!-- pagination -->
-     <ul class="pagination" v-show="files.length !== 0 && paginationPageNum.length !== 1">
-      <li class="page-item" @click.prevent="setPage(currentPage - 1)">
-        <a class="page-link" href="#" aria-label="Previous">
-          <span aria-hidden="true">&laquo;</span>
-        </a>
-      </li>
-      <li class="page-item" :class="{ 'active': (currentPage === (n)) }" v-for="(n, index) in paginationPageNum"
-        :key="index" @click.prevent="setPage(n)">
-        <a class="page-link" href="#">{{ n }}</a>
-      </li>
-      <li class="page-item" @click.prevent="setPage(currentPage + 1)">
-        <a class="page-link" href="#" aria-label="Next">
-          <span aria-hidden="true">&raquo;</span>
-        </a>
-      </li>
-    </ul>
-    
-    <div class="text-center mt-4 mb-5">
-        <router-link to="/" class="btn btn-ghost">回分類首頁</router-link>
+      <div v-show="files.length === 0" class="empty-state">
+        查無資料
+      </div>
+
+      <nav class="pagination-nav" aria-label="分頁" v-show="files.length !== 0 && paginationPageNum.length !== 1">
+        <ul class="pager">
+          <li :class="{ disabled: currentPage === 1 }">
+            <button type="button" class="pager-link" aria-label="上一頁" @click="setPage(currentPage - 1)">&laquo;</button>
+          </li>
+          <li :class="{ active: currentPage === n }" v-for="(n, index) in paginationPageNum" :key="index">
+            <button type="button" class="pager-link" :aria-current="currentPage === n ? 'page' : null" @click="setPage(n)">{{ n }}</button>
+          </li>
+          <li :class="{ disabled: currentPage === totalPage }">
+            <button type="button" class="pager-link" aria-label="下一頁" @click="setPage(currentPage + 1)">&raquo;</button>
+          </li>
+        </ul>
+      </nav>
+
+      <div class="back-link">
+        <router-link to="/" class="btn-ghost">回首頁</router-link>
+      </div>
     </div>
   </div>
 </template>
@@ -134,45 +137,66 @@ export default {
 </script>
 
 <style scoped>
-.title-ink {
-  color: var(--ink);
+.category-hero {
+  padding: 48px 24px 32px;
 }
 
-.btn-ghost {
-  background: transparent;
-  border: 1px solid var(--line-strong);
-  color: var(--ink);
-  border-radius: var(--radius-sm);
-}
-
-.btn-ghost:hover {
-  background: var(--primary-soft);
-  border-color: var(--primary);
+.eyebrow {
+  margin: 0 0 12px;
+  font-family: var(--font-mono);
+  font-size: 0.85rem;
   color: var(--primary);
+  letter-spacing: 0.08em;
 }
 
-.pagination {
-  padding: 0;
-  justify-content: center;
+.category-title {
+  margin: 0;
+  font-size: clamp(1.75rem, 5vw, 2.75rem);
+  font-weight: 600;
+  line-height: 1.2;
+  color: var(--ink);
+  overflow-wrap: anywhere;
 }
 
-.pagination .page-link {
-  background: var(--surface);
-  border: 1px solid var(--line-strong);
+.category-body {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  padding: 32px 24px 48px;
+}
+
+.card-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 20px;
+}
+
+.card-grid > div {
+  min-width: 0;
+}
+
+.empty-state {
+  padding: 48px 0;
+  text-align: center;
+  font-size: 1.25rem;
   color: var(--text);
-  margin: 0 4px;
-  border-radius: var(--radius-sm);
 }
 
-.pagination .page-link:hover {
-  background: var(--primary-soft);
-  border-color: var(--primary);
-  color: var(--primary);
+.back-link {
+  text-align: center;
 }
 
-.pagination .page-item.active .page-link {
-  background: var(--primary);
-  border-color: var(--primary);
-  color: var(--on-primary);
+@media (max-width: 767.98px) {
+  .category-hero {
+    padding: 32px 16px 24px;
+  }
+
+  .category-body {
+    padding: 24px 16px 40px;
+  }
+
+  .card-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
 }
 </style>
