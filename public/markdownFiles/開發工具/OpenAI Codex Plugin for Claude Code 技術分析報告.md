@@ -29,20 +29,14 @@ OpenAI 於 2026 年 3 月 31 日發布官方 Claude Code 插件 `codex-plugin-cc
 
 ### 架構示意
 
-```
-Claude Code Session
-    │
-    │  /codex:review (Stop hook 觸發)
-    ▼
-Codex CLI（本地中轉）
-    │
-    │  API Request
-    ▼
-OpenAI API（GPT-5 / gpt-5.4-mini 等）
-    │
-    │  Review Result
-    ▼
-Review Gate 判斷 → 有問題？阻斷 Stop → Claude 修正 → 再次審查
+```mermaid
+flowchart TD
+    A["Claude Code Session"] -->|"/codex:review (Stop hook 觸發)"| B["Codex CLI（本地中轉）"]
+    B -->|API Request| C["OpenAI API（GPT-5 / gpt-5.4-mini 等）"]
+    C -->|Review Result| D["Review Gate 判斷"]
+    D -->|有問題？| E["阻斷 Stop"]
+    E --> F["Claude 修正"]
+    F --> G["再次審查"]
 ```
 
 ---
@@ -79,24 +73,13 @@ Review Gate 的核心是 Claude Code 的 **Stop Hook** 機制：
 
 ### 2.4 迴圈流程圖解
 
-```
-Claude 產出程式碼
-    │
-    ▼
-Stop Hook 觸發 → Codex 審查
-    │                   │
-    │   有問題？ ────────┘
-    │       │
-    │       ▼
-    │   Stop 被阻斷
-    │       │
-    │       ▼
-    │   Claude 修正
-    │       │
-    └───────┘  ← 重新觸發 Stop Hook
-    │
-    ▼（Codex 判斷無問題）
-Session 結束
+```mermaid
+flowchart TD
+    A["Claude 產出程式碼"] --> B["Stop Hook 觸發 → Codex 審查"]
+    B -->|有問題？| C["Stop 被阻斷"]
+    C --> D["Claude 修正"]
+    D -->|重新觸發 Stop Hook| B
+    B -->|Codex 判斷無問題| E["Session 結束"]
 ```
 
 ### 2.5 與 16 子代理架構的對照

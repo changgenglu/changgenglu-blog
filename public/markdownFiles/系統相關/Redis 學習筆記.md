@@ -646,24 +646,30 @@ Redis Pipeline（管道）是一種將多個 Redis 指令打包在一起發送�
 
 **傳統模式（無 Pipeline）：**
 
-```
-Client -> SET key1 value1 -> Server
-Client <- OK <- Server
-Client -> SET key2 value2 -> Server
-Client <- OK <- Server
-Client -> SET key3 value3 -> Server
-Client <- OK <- Server
+```mermaid
+sequenceDiagram
+    participant C as Client
+    participant S as Server
+    C->>S: SET key1 value1
+    S-->>C: OK
+    C->>S: SET key2 value2
+    S-->>C: OK
+    C->>S: SET key3 value3
+    S-->>C: OK
 ```
 
 **Pipeline 模式：**
 
-```
-Client -> SET key1 value1 -> Server
-Client -> SET key2 value2 -> Server
-Client -> SET key3 value3 -> Server
-Client <- OK <- Server
-Client <- OK <- Server
-Client <- OK <- Server
+```mermaid
+sequenceDiagram
+    participant C as Client
+    participant S as Server
+    C->>S: SET key1 value1
+    C->>S: SET key2 value2
+    C->>S: SET key3 value3
+    S-->>C: OK
+    S-->>C: OK
+    S-->>C: OK
 ```
 
 ### 效能提升原理

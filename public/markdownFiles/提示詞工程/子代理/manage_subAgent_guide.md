@@ -240,20 +240,17 @@ planner、planning-specialist、architect、review-lead。
 設計原則：**decision tree，不是 if-else 清單**。
 每個節點只問一個 binary question，答案決定走哪條分支。
 
-```
-收到需求
-  │
-  ├─ 使用者提供了需求文件 / PRD？
-  │   └─ YES → @planning-specialist（一次性評分）
-  │
-  ├─ 需求口頭描述 / 不成形？
-  │   └─ YES → @planner（互動式）
-  │
-  ├─ 修改範圍 ≤ 1 個檔案？
-  │   └─ YES → @implementer 直接做
-  │
-  └─ 跨模組（4+ 檔案）？
-      └─ Wave 流程
+```mermaid
+flowchart TD
+    S["收到需求"]
+    S --> Q1{"使用者提供了需求文件 / PRD？"}
+    Q1 -->|YES| A1["@planning-specialist（一次性評分）"]
+    S --> Q2{"需求口頭描述 / 不成形？"}
+    Q2 -->|YES| A2["@planner（互動式）"]
+    S --> Q3{"修改範圍 ≤ 1 個檔案？"}
+    Q3 -->|YES| A3["@implementer 直接做"]
+    S --> Q4{"跨模組（4+ 檔案）？"}
+    Q4 --> A4["Wave 流程"]
 ```
 
 gstack 的路由設計參考：它依據「什麼改變了」來決定需要哪些 review——
@@ -265,13 +262,12 @@ gstack 的路由設計參考：它依據「什麼改變了」來決定需要哪�
 Wave 是你的架構的獨特優勢——它把任務編成有依賴關係的波次，
 同一波次內的 agent 可以 parallel 執行。
 
-```
-Phase 3 — 實作
-  Wave 1: foundation-implementer（Migration, Model, Config, Route）
-      ↓ 必須完成才能開始下一波
-  Wave 2: logic-implementer ║ api-implementer（parallel）
-      ↓
-  Wave 3: test-implementer（可選）
+```mermaid
+flowchart TD
+    subgraph P3["Phase 3 — 實作"]
+        W1["Wave 1: foundation-implementer（Migration, Model, Config, Route）"] -->|必須完成才能開始下一波| W2["Wave 2: logic-implementer ║ api-implementer（parallel）"]
+        W2 --> W3["Wave 3: test-implementer（可選）"]
+    end
 ```
 
 設計原則：

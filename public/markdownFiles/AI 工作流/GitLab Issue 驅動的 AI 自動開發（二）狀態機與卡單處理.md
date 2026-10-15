@@ -76,22 +76,16 @@ session 結束且沒有任何變更      → claude-failed
 
 狀態圖：
 
-```text
-               ┌─────────────────────────────┐
-               ▼                             │
-ready-for-claude → claude-in-progress → ready-for-review
-                         │                   │
-                         │            review-in-progress
-                         │               │         │
-                         │          有 findings   通過
-                         │               │         │
-                         │     ready-for-review-fix │
-                         │               │         ▼
-                         │     review-fix-in-progress  review-passed
-                         │               │
-                         └──── 失敗/受阻 ─┴──▶ claude-failed
-                                              env-blocked
-                                              manual-intervention-needed
+```mermaid
+flowchart TD
+    RFC["ready-for-claude"] --> CIP["claude-in-progress"]
+    CIP --> RFR["ready-for-review"]
+    RFR --> RFC
+    RFR --> RIP["review-in-progress"]
+    RIP -->|"有 findings"| RFF["ready-for-review-fix"]
+    RIP -->|通過| RP["review-passed"]
+    RFF --> FIP["review-fix-in-progress"]
+    CIP & FIP -->|"失敗/受阻"| CF["claude-failed"] & EB["env-blocked"] & MI["manual-intervention-needed"]
 ```
 
 圖上省略了問答與修訂的支線。這兩條支線是：

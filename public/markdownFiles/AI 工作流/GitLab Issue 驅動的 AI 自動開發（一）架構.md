@@ -27,21 +27,15 @@
 
 我把它切成三層，每層職責單純：
 
-```text
-┌────────────────────────────────────────────┐
-│ 規劃端（人 + AI session）                    │
-│   操作手冊（skill）+ 發單前的檢查腳本          │
-└──────────────────┬─────────────────────────┘
-                   │ 發 issue、貼 label
-┌──────────────────▼─────────────────────────┐
-│ GitLab：label 狀態機 + issue/MR 留言          │
-│   ← 唯一的狀態儲存                            │
-└───────┬────────────────────────┬───────────┘
-        │ 輪詢                    │ 輪詢
-┌───────▼──────────┐   ┌─────────▼──────────┐
-│ 實作 worker       │   │ 審查 worker         │
-│ 常駐 Node 程式    │   │ 另一支常駐程式       │
-└──────────────────┘   └────────────────────┘
+```mermaid
+flowchart TD
+    P["規劃端（人 + AI session）<br/>操作手冊（skill）+ 發單前的檢查腳本"]
+    G["GitLab：label 狀態機 + issue/MR 留言<br/>← 唯一的狀態儲存"]
+    I["實作 worker<br/>常駐 Node 程式"]
+    R["審查 worker<br/>另一支常駐程式"]
+    P -->|"發 issue、貼 label"| G
+    G -->|輪詢| I
+    G -->|輪詢| R
 ```
 
 - **規劃端**：一份操作手冊（對 Claude Code 來說是一個 skill），告訴規劃用的 session 怎麼依範本發 issue、怎麼放回卡住的單。
@@ -132,21 +126,23 @@
 
 時序示意：
 
-```text
-規劃者        實作 worker       審查 worker        GitLab
-  │ 發單        │                  │                 │
-  ├────────────────────────────────────────────────▶ ready-for-claude
-  │            │ 輪詢到、認領       │                 │
-  │            ├─────────────────────────────────────▶ claude-in-progress
-  │            │ 實作→守門→測試     │                 │
-  │            ├─────────────────────────────────────▶ 開 Draft MR
-  │            │                  │                 ready-for-review
-  │            │                  │ 輪詢到、認領      │
-  │            │                  ├──────────────────▶ review-in-progress
-  │            │                  │ 重跑測試、審 diff  │
-  │            │                  ├──────────────────▶ review-passed
-  │ ◀───── 通知 ─────────────────────────────────────┤
-  │ 標 ready、合併                                    │
+```mermaid
+sequenceDiagram
+    participant PL as 規劃者
+    participant IW as 實作 worker
+    participant RW as 審查 worker
+    participant GL as GitLab
+    PL->>GL: 發單 / ready-for-claude
+    Note over IW: 輪詢到、認領
+    IW->>GL: claude-in-progress
+    Note over IW: 實作→守門→測試
+    IW->>GL: 開 Draft MR / ready-for-review
+    Note over RW: 輪詢到、認領
+    RW->>GL: review-in-progress
+    Note over RW: 重跑測試、審 diff
+    RW->>GL: review-passed
+    GL-->>PL: 通知
+    Note over PL: 標 ready、合併
 ```
 
 ## 發單：issue 必須自包含

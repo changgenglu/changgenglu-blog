@@ -11,36 +11,14 @@
 
 Claude Code 按以下優先級從低到高載入指令，**後者覆蓋前者**：
 
-```
-┌─────────────────────────────────────────────────────┐
-│ Layer 1: Managed Policy（最低優先級）                  │
-│ 位置：/etc/claude-code/CLAUDE.md (Linux/WSL)          │
-│       C:\Program Files\ClaudeCode\CLAUDE.md (Windows) │
-│ 載入：每次 session 自動載入                             │
-│ 用途：企業級全局規範（IT/DevOps 管理）                   │
-├─────────────────────────────────────────────────────┤
-│ Layer 2: User Instructions                            │
-│ 位置：~/.claude/CLAUDE.md                             │
-│       ~/.claude/rules/*.md                            │
-│ 載入：每次 session 自動載入                             │
-│ 用途：個人偏好、通用習慣                                │
-├─────────────────────────────────────────────────────┤
-│ Layer 3: Project Root                                 │
-│ 位置：./CLAUDE.md 或 ./.claude/CLAUDE.md              │
-│       ./.claude/rules/*.md                            │
-│ 載入：每次 session 自動載入                             │
-│ 用途：專案核心規範、技術棧、架構概述                      │
-├─────────────────────────────────────────────────────┤
-│ Layer 4: Path-Scoped Rules                            │
-│ 位置：./.claude/rules/*.md（含 paths: frontmatter）    │
-│ 載入：當 Claude 讀取匹配路徑的檔案時動態載入              │
-│ 用途：特定目錄/檔案類型的規範（如 migration、API）       │
-├─────────────────────────────────────────────────────┤
-│ Layer 5: Subdirectory CLAUDE.md（最高優先級）           │
-│ 位置：./src/api/CLAUDE.md、./packages/auth/CLAUDE.md  │
-│ 載入：當 Claude 讀取該目錄下的檔案時動態載入              │
-│ 用途：模組級指令（如 monorepo 中的子專案）                │
-└─────────────────────────────────────────────────────┘
+```mermaid
+flowchart TB
+    L1["<b>Layer 1: Managed Policy（最低優先級）</b><br/>位置：/etc/claude-code/CLAUDE.md (Linux/WSL)<br/>C:\Program Files\ClaudeCode\CLAUDE.md (Windows)<br/>載入：每次 session 自動載入<br/>用途：企業級全局規範（IT/DevOps 管理）"]
+    L2["<b>Layer 2: User Instructions</b><br/>位置：~/.claude/CLAUDE.md<br/>~/.claude/rules/*.md<br/>載入：每次 session 自動載入<br/>用途：個人偏好、通用習慣"]
+    L3["<b>Layer 3: Project Root</b><br/>位置：./CLAUDE.md 或 ./.claude/CLAUDE.md<br/>./.claude/rules/*.md<br/>載入：每次 session 自動載入<br/>用途：專案核心規範、技術棧、架構概述"]
+    L4["<b>Layer 4: Path-Scoped Rules</b><br/>位置：./.claude/rules/*.md（含 paths: frontmatter）<br/>載入：當 Claude 讀取匹配路徑的檔案時動態載入<br/>用途：特定目錄/檔案類型的規範（如 migration、API）"]
+    L5["<b>Layer 5: Subdirectory CLAUDE.md（最高優先級）</b><br/>位置：./src/api/CLAUDE.md、./packages/auth/CLAUDE.md<br/>載入：當 Claude 讀取該目錄下的檔案時動態載入<br/>用途：模組級指令（如 monorepo 中的子專案）"]
+    L1 ~~~ L2 ~~~ L3 ~~~ L4 ~~~ L5
 ```
 
 ### 1.2 關鍵行為
@@ -59,18 +37,19 @@ Claude Code 按以下優先級從低到高載入指令，**後者覆蓋前者**�
 
 ### 2.1 拆分決策框架
 
-```
-CLAUDE.md 是否超過 200 行？
-├─ 否 → 暫時不拆，觀察增長趨勢
-└─ 是 → 是否超過 300 行？
-    ├─ 否 → 檢查是否有明確的「可拆段落」（見 §2.2）
-    │   ├─ 有 → 拆到 .claude/rules/
-    │   └─ 無 → 嘗試精簡（刪重複、壓縮表格）
-    └─ 是 → 強烈建議拆分
-        ├─ 是否為 monorepo 或多模組專案？
-        │   ├─ 是 → 使用 subdirectory CLAUDE.md
-        │   └─ 否 → 使用 .claude/rules/ + path-scoped
-        └─ 拆分後主檔控制在 150-200 行以內
+```mermaid
+flowchart TD
+    Q1{"CLAUDE.md 是否超過 200 行？"}
+    Q1 -->|否| N1["暫時不拆，觀察增長趨勢"]
+    Q1 -->|是| Q2{"是否超過 300 行？"}
+    Q2 -->|否| Q3{"檢查是否有明確的「可拆段落」（見 §2.2）"}
+    Q3 -->|有| N2["拆到 .claude/rules/"]
+    Q3 -->|無| N3["嘗試精簡（刪重複、壓縮表格）"]
+    Q2 -->|是| S["強烈建議拆分"]
+    S --> Q4{"是否為 monorepo 或多模組專案？"}
+    Q4 -->|是| N4["使用 subdirectory CLAUDE.md"]
+    Q4 -->|否| N5["使用 .claude/rules/ + path-scoped"]
+    S --> N6["拆分後主檔控制在 150-200 行以內"]
 ```
 
 ### 2.2 可拆 vs 不可拆的判斷標準
@@ -307,14 +286,11 @@ src/
 
 ### 5.2 成長階段拆分路徑
 
-```
-Phase 1（< 100 行）：單一 CLAUDE.md 即可
-    ↓ 專案成長
-Phase 2（100-200 行）：考慮將 coding style 拆到 .claude/rules/
-    ↓ 加入更多規範
-Phase 3（200-300 行）：path-scoped rules 拆出特定技術規範
-    ↓ 多模組/monorepo
-Phase 4（300+ 行）：subdirectory CLAUDE.md 做模組隔離
+```mermaid
+flowchart TD
+    P1["Phase 1（#lt; 100 行）：單一 CLAUDE.md 即可"] -->|專案成長| P2["Phase 2（100-200 行）：考慮將 coding style 拆到 .claude/rules/"]
+    P2 -->|加入更多規範| P3["Phase 3（200-300 行）：path-scoped rules 拆出特定技術規範"]
+    P3 -->|多模組/monorepo| P4["Phase 4（300+ 行）：subdirectory CLAUDE.md 做模組隔離"]
 ```
 
 ---
