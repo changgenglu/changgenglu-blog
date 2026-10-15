@@ -1,18 +1,18 @@
 # Gemini 專案策略
 
-> 本文件定義 `satellite` 專案的策略、架構規範與業務術語。
+> 本文件定義 `後台系統` 專案的策略、架構規範與業務術語。
 
 ---
 
 ## 0. 執行環境 (Execution Environment)
 
-- **Container**: Podman (容器名稱: `stars`)
+- **Container**: Podman (容器名稱: `<容器名稱>`)
 - **OS**: Alpine Linux (容器內)
 - **Shell**: `/bin/sh` (注意：非 bash，避免使用 bash 特有語法)
-- **Project Root**: `/var/www/html/satellite` (容器內路徑)
+- **Project Root**: `/var/www/html/<專案目錄>` (容器內路徑)
 - **IDE**: Cursor
 
-> **重要**: 所有 PHP 指令必須透過 `podman exec -it stars` 在容器內執行。
+> **重要**: 所有 PHP 指令必須透過 `podman exec -it <容器名稱>` 在容器內執行。
 
 ## 1. 專案技術棧 (Tech Stack)
 
@@ -21,7 +21,7 @@
 - **Framework**: Laravel 9.x
 - **Language**: PHP 8.0+
 - **OS**: Alpine Linux
-- **Database**: MySQL/MariaDB (Connection: `satellite`)
+- **Database**: MySQL/MariaDB (Connection: `backend_db`)
 - **Cache**: Redis (`predis/predis`)
 - **Storage**: Google Cloud Storage (`google/cloud-storage`)
 
@@ -40,7 +40,7 @@
 | 英文術語          | 中文術語       | 定義/職責                        | 備註                            |
 | :---------------- | :------------- | :------------------------------- | :------------------------------ |
 | **Provider**      | **站台**       | 系統的租戶/客戶端                | `provider_id` 通常關聯至此      |
-| **Platform**      | **遊戲供應商** | 提供遊戲內容的供應商 (如 PG, TP) | 與 Provider 為多對多關係        |
+| **Platform**      | **遊戲供應商** | 提供遊戲內容的供應商 (如 廠商 E、廠商 F) | 與 Provider 為多對多關係        |
 | **Admin**         | **控端**       | 最高權限管理者                   | 可管理所有 Provider 與 Platform |
 | **Provider User** | **管端**       | 站台管理者                       | 僅能管理所屬 Provider 的設定    |
 | **Feature**       | **菜單/功能**  | 系統的功能模組與選單             | 用於權限控制與選單顯示          |
@@ -53,7 +53,7 @@
 
 本專案採用特殊的 Service Factory 模式：
 
-- **調用方式**：使用 `app('Service')::init('ServiceName')` 或靜態方法調用。
+- **呼叫方式**：使用 `app('Service')::init('ServiceName')` 或靜態方法呼叫。
 - **職責**：
   - `Feature` Service: 負責菜單建立、權限綁定。
   - `User` Service: 處理用戶邏輯。
@@ -73,8 +73,8 @@
 
 ### 3.4 BFF / Proxy 模式
 
-- **角色**：`satellite` 主要作為 Backend for Frontend (後台管理介面) 的 API Gateway。
-- **資料權責**：核心業務資料（如 Game, Tag, Platform）通常位於外部核心系統，`satellite` 透過 `App\Services\Internal` 呼叫外部 API 進行 CRUD，而不直接操作本地 DB。
+- **角色**：`後台系統` 主要作為 Backend for Frontend (後台管理介面) 的 API Gateway。
+- **資料權責**：核心業務資料（如 Game, Tag, Platform）通常位於外部核心系統，`後台系統` 透過 `App\Services\Internal` 呼叫外部 API 進行 CRUD，而不直接操作本地 DB。
 - **實作慣例**：Controller 負責 `Request Validation`，並使用 `HttpClient` 轉發請求，直接透傳外部服務的 Response。
 
 ---
@@ -104,17 +104,17 @@
 - 快取 key 命名規則：`{module}:{entity}:{id}`
 -->
 
-- **Service 調用**: 專案傾向使用 `app('Service')::init(...)` 的動態加載模式。
+- **Service 呼叫**: 專案傾向使用 `app('Service')::init(...)` 的動態加載模式。
 - **User 表**: 表名為 `user`，非 Laravel 預設的 `users`。
 - **權限關聯**: 建立 Feature 時會自動綁定 Admin 權限 (`addAdminPermission`)。
-- **Proxy 實作**: 轉發請求時慣例於 Controller 進行驗證，再透過 `HttpClient` 調用 `Internal` Service 生成的路徑。
+- **Proxy 實作**: 轉發請求時慣例於 Controller 進行驗證，再透過 `HttpClient` 呼叫 `Internal` Service 生成的路徑。
 - **Feature 管理**: 新增後台功能選單需修改 `database/seeders/Feature.php` 並執行 seeder。
 
 ### 5.1 API 實作與回傳規範
 
 > 基於 Tag/GameTag 功能實作的最新最佳實務。
 
-- **Service 封裝**: 對於 Proxy 類型的操作，建議將 `HttpClient` 呼叫封裝至獨立的 Service（如 `Tag` Service），Controller 僅負責驗證與調用。
+- **Service 封裝**: 對於 Proxy 類型的操作，建議將 `HttpClient` 呼叫封裝至獨立的 Service（如 `Tag` Service），Controller 僅負責驗證與呼叫。
 - **Controller 命名**: 使用簡潔動詞，如 `get`, `create`, `update`, `getList`。
 - **回傳格式 (Mutation)**:
   - 新增 (Create): 回傳 `{ 'after' => $newData }`。

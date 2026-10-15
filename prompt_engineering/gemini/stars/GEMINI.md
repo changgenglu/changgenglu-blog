@@ -1,12 +1,12 @@
-# 🌟 Stars 專案策略 (GEMINI.md)
+# 核心後端專案策略 (GEMINI.md)
 
-> 本文件定義 Stars 專案的開發策略、技術架構與領域知識，供 AI Agent 在互動過程中參考。
+> 本文件定義 核心後端專案的開發策略、技術架構與領域知識，供 AI Agent 在互動過程中參考。
 
 ---
 
 ## 1. 專案概覽 (Project Overview)
 
-Stars 是一個 **遊戲平台後端系統**（中間層），基於 **Laravel 9** 開發。主要負責整合多個遊戲供應商 (Platforms)，並提供給不同營運站台 (Providers) 使用。
+核心後端是一個 **遊戲平台後端系統**（中間層），基於 **Laravel 9** 開發。主要負責整合多個遊戲供應商 (Platforms)，並提供給不同營運站台 (Providers) 使用。
 
 ### 核心職責
 - **遊戲供應商整合**：取得遊戲連結、RTP、報表等。
@@ -22,19 +22,19 @@ Stars 是一個 **遊戲平台後端系統**（中間層），基於 **Laravel 9
 
 | 項目 | 值 |
 |------|-----|
-| 容器名稱 | `stars` |
-| 容器內路徑 | `/var/www/html/stars` |
+| 容器名稱 | `<容器名稱>` |
+| 容器內路徑 | `/var/www/html/<專案目錄>` |
 | 服務端口 | `8082` |
 
 ### 常用容器指令
 
 | 操作 | 指令 |
 |------|------|
-| 進入容器 | `podman exec -it stars sh` |
+| 進入容器 | `podman exec -it <容器名稱> sh` |
 | 查看狀態 | `podman ps` |
-| 查看日誌 | `podman logs -f stars` |
-| 重啟容器 | `podman restart stars` |
-| 停止容器 | `podman stop stars` |
+| 查看日誌 | `podman logs -f <容器名稱>` |
+| 重啟容器 | `podman restart <容器名稱>` |
+| 停止容器 | `podman stop <容器名稱>` |
 
 ---
 
@@ -46,7 +46,7 @@ Stars 是一個 **遊戲平台後端系統**（中間層），基於 **Laravel 9
 | 資料庫 | MySQL (多資料庫架構) |
 | 快取 | Redis (Predis 驅動) |
 | 佇列 | Laravel Horizon |
-| API 文檔 | HG ApiDoc (`hg/apidoc`) |
+| API 文檔 | API 文件產生套件 |
 | 第三方套件 | Telegram Bot, Microsoft Teams, GCS, GeoIP2 |
 
 ---
@@ -74,7 +74,7 @@ Stars 是一個 **遊戲平台後端系統**（中間層），基於 **Laravel 9
 | `record` | 操作紀錄 |
 | `report` | 統計報表 |
 | `entry` | 錢包交易流水 |
-| `platform_ab` / `platform_mg` | 特定供應商專用 |
+| `platform_b` / `platform_a` | 特定供應商專用 |
 
 ### 4.3 Redis 快取策略
 - **Key 格式**: `前綴_描述:變數` (例如 `game_code:1:2345`)
@@ -86,7 +86,7 @@ Stars 是一個 **遊戲平台後端系統**（中間層），基於 **Laravel 9
 
 ### 5.1 後台服務分類
 
-後台功能分為 **控端** 與 **管端**，透過 `Satellite` 系統與 `Stars` 通訊：
+後台功能分為 **控端** 與 **管端**，透過後台系統與核心後端通訊：
 
 | 類型 | 路徑 | 權限範圍 |
 |------|------|----------|
@@ -100,7 +100,7 @@ Stars 是一個 **遊戲平台後端系統**（中間層），基於 **Laravel 9
 | 客端 (Client FE) | 多個營運平台，請求遊戲列表與連結 |
 | 總部 (HQ) | 負責會員、錢包、登入驗證 |
 | Platform (廠商) | 提供遊戲與交易 API |
-| Puppy (橋接器) | 我方主動串接 MG/AB 協議的代理層 |
+| 代理層 (橋接器) | 我方主動串接 特定廠商 協議的代理層 |
 
 ---
 
@@ -111,11 +111,11 @@ Stars 是一個 **遊戲平台後端系統**（中間層），基於 **Laravel 9
 | 術語 | 定義 |
 |------|------|
 | Provider (站台) | 指營運平台、管端 |
-| Platform (供應商) | 指遊戲廠商（如 MG, AB, FTG） |
+| Platform (供應商) | 指遊戲廠商（如 廠商 A、廠商 B、廠商 D） |
 
 ### 6.2 金流邏輯
 
-> ⚠️ **專案不處理金流**：所有錢包交易、餘額查詢、下注派彩均由 **總部** 與 **供應商** 直接對接，Stars 內的相關舊邏輯已棄用。
+> ⚠️ **專案不處理金流**：所有錢包交易、餘額查詢、下注派彩均由 **總部** 與 **供應商** 直接對接，核心後端內的相關舊邏輯已棄用。
 
 ---
 
@@ -126,36 +126,37 @@ flowchart LR
     classDef internal fill:#f0f9ff,stroke:#0369a1,stroke-width:1px
     classDef external fill:#fff7ed,stroke:#9a3412,stroke-width:1px
 
-    class SatelliteFE,SatelliteBE,Stars,Cron internal
-    class ClientFE,HQ,Vendor,Puppy,VendorMGAB external
+    Core[核心後端]
+    class AdminFE,AdminBE,Core,Cron internal
+    class ClientFE,HQ,Vendor,Proxy,VendorB external
 
     %% 前端
     ClientFE[客端前端 Web] -->|玩家登入| HQ[總部]
-    HQ -->|回傳 xinkey| ClientFE
-    ClientFE <-->|遊戲連結（xinkey）| Stars
+    HQ -->|回傳 登入憑證| ClientFE
+    ClientFE <-->|遊戲連結（登入憑證）| Core
 
-    %% Satellite 後台
-    SatelliteFE[後台（控/館端）] --> SatelliteBE[Satellite]
-    SatelliteBE --> Stars
+    %% Admin 後台
+    AdminFE[後台（控/館端）] --> AdminBE[後台系統]
+    AdminBE --> Core
     
-    %% 排程機
-    Cron[Cron] -->|排程呼叫| Stars
+    %% Cron
+    Cron[排程機] -->|排程呼叫| Core
 
-    %% Stars 與廠商溝通
-    Stars <-->|遊戲連結（xinkey）| Vendor[其他廠商]
-    Stars <-->|遊戲連結（xinkey）| Puppy[Puppy 橋接器]
-    VendorMGAB[MG/AB 廠商] <--> Puppy
+    %% Core 與廠商溝通
+    Core <-->|遊戲連結（登入憑證）| Vendor[其他廠商]
+    Core <-->|遊戲連結（登入憑證）| Proxy[代理層橋接器]
+    VendorB[特定廠商] <--> Proxy
 
     %% 廠商與總部溝通
     Vendor -->|登入/交易請求| HQ
-    Puppy -->|登入/交易請求| HQ
+    Proxy -->|登入/交易請求| HQ
 
     %% RTP 排程
-    Stars -.->|每 10 秒取得 RTP| Vendor
-    Stars -.->|每 10 秒取得 RTP| Puppy
+    Core -.->|每 10 秒取得 RTP| Vendor
+    Core -.->|每 10 秒取得 RTP| Proxy
     
     %% 報表請求
-    Stars -->|報表請求| Vendor
+    Core -->|報表請求| Vendor
 ```
 
 ---
@@ -169,17 +170,17 @@ sequenceDiagram
   autonumber
   participant ClientFE as 客端
   participant HQ as 總部（會員/錢包）
-  participant Stars as Stars
+  participant Core as 核心後端
   participant Vendor as 遊戲供應商
 
   ClientFE->>HQ: 登入請求
-  HQ-->>ClientFE: 回傳 xinkey
-  ClientFE->>Stars: 攜帶 xinkey 請求遊戲連結
-  Stars->>Vendor: 要求遊戲連結
+  HQ-->>ClientFE: 回傳 登入憑證
+  ClientFE->>Core: 攜帶 登入憑證 請求遊戲連結
+  Core->>Vendor: 要求遊戲連結
   Vendor->>HQ: 登入
   HQ-->>Vendor: 玩家 info
-  Vendor-->>Stars: 遊戲連結
-  Stars-->>ClientFE: 遊戲連結
+  Vendor-->>Core: 遊戲連結
+  Core-->>ClientFE: 遊戲連結
   ClientFE->>Vendor: 開啟遊戲
   Note over Vendor,HQ: 下注/派彩/餘額查詢均由 遊戲供應商 ↔ 總部 溝通
   Vendor->>ClientFE: 結束遊戲
@@ -190,21 +191,21 @@ sequenceDiagram
 ```mermaid
 sequenceDiagram
   participant backstageFE as 後台（控/館端）
-  participant Satellite as Satellite
-  participant Stars as Stars
+  participant Admin as Admin
+  participant Core as 核心後端
 
-  backstageFE->>Satellite: 登入
-  Satellite->>Satellite: 使用者權限驗證
-  Satellite-->>backstageFE: 登入成功
+  backstageFE->>Admin: 登入
+  Admin->>Admin: 使用者權限驗證
+  Admin-->>backstageFE: 登入成功
   
-  backstageFE->>Satellite: 控端請求
-  backstageFE->>Satellite: 館端請求
-  Satellite->>Satellite: 控/館端驗證
+  backstageFE->>Admin: 控端請求
+  backstageFE->>Admin: 館端請求
+  Admin->>Admin: 控/館端驗證
   
-  Satellite->>Stars: 發送請求
-  Stars-->>Satellite: 響應結果
+  Admin->>Core: 發送請求
+  Core-->>Admin: 響應結果
   
-  Satellite-->>backstageFE: 響應結果
+  Admin-->>backstageFE: 響應結果
 ```
 
 ---
@@ -263,14 +264,14 @@ use App\Interfaces\IGame;                 // 4. Interface
 
 ```php
 // ✅ 正確：純字串使用單引號
-$name = 'Stars';
+$name = '核心後端';
 $key = 'game_code';
 
 // ✅ 正確：需要變數插值時使用雙引號
 $message = "Welcome, {$name}!";
 
 // ❌ 錯誤：純字串使用雙引號
-$name = "Stars";
+$name = "核心後端";
 ```
 
 ### 9.3 錯誤處理 (Error Handling)

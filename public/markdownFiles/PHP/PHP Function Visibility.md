@@ -952,6 +952,5 @@ class ExtendedService extends BaseService
 ## 版本資訊
 
 - **建立日期**: 2024-12-19
-- **適用專案**: Stars Laravel 專案
+- **適用專案**: Laravel 專案
 - **適用版本**: PHP 8.x, Laravel 9.x
-- **維護者**: Stars Team

@@ -121,9 +121,9 @@ wsl bash -c 'export PATH="$HOME/.nvm/versions/node/v20.19.5/bin:$PATH" && gemini
 **症狀：**
 ```
 ⚠ Skill conflict detected: "auto-skill" from 
-  "/home/dev/.agents/skills/auto-skill/SKILL.md" 
+  "~/.agents/skills/auto-skill/SKILL.md" 
   is overriding the same skill from 
-  "/home/dev/.gemini/skills/auto-skill/SKILL.md".
+  "~/.gemini/skills/auto-skill/SKILL.md".
 ```
 
 **原因：**

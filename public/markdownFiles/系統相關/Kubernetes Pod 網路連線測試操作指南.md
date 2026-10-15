@@ -62,7 +62,7 @@ kubectl get pods -n <namespace> -o wide --sort-by=.spec.nodeName
 kubectl exec -n <namespace> <source-pod> -- curl -v -w "\n=== Timing Analysis ===\nDNS Lookup: %{time_namelookup}s\nTCP Connect: %{time_connect}s\nSSL Handshake: %{time_appconnect}s\nTime to First Byte: %{time_starttransfer}s\nTotal Time: %{time_total}s\n" http://<target-service>:<port>/
 
 # 範例
-kubectl exec -n backend stars-cron-backend-78c97498b8-7v62k -- curl -v -w "\n=== Timing Analysis ===\nDNS Lookup: %{time_namelookup}s\nTCP Connect: %{time_connect}s\nSSL Handshake: %{time_appconnect}s\nTime to First Byte: %{time_starttransfer}s\nTotal Time: %{time_total}s\n" http://stars-backend:80/
+kubectl exec -n <namespace> <pod-name> -- curl -v -w "\n=== Timing Analysis ===\nDNS Lookup: %{time_namelookup}s\nTCP Connect: %{time_connect}s\nSSL Handshake: %{time_appconnect}s\nTime to First Byte: %{time_starttransfer}s\nTotal Time: %{time_total}s\n" http://<service-name>:80/
 ```
 
 #### 2.2 使用 Pod IP 直接測試

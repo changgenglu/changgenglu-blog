@@ -6,7 +6,7 @@
 - Normal variables: camelCase (e.g., $userEmail, $userId)
 - Single record: singular form (e.g., $user)
 - Multiple records: plural form (e.g., $users)
-- Constants: ALL_CAPS with underscores (e.g., COMPANY_IP)
+- Constants: ALL_CAPS with underscores (e.g., ALLOWED_IP)
 
 # Functions & Methods
 - Function braces must start on a new line.
@@ -39,7 +39,7 @@
 
 # Cache Key Naming
 - Format: prefix_description:variable
-- Example: operator_account:d4cbd3ba-5184-..., game_code:1:2345
+- Example: user_account:<uuid>, game_code:1:2345
 
 # File Naming
 - Config files: snake_case (e.g., payment_cache.php)

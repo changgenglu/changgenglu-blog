@@ -1,4 +1,6 @@
-# Stars 專案測試碼 mock 方法撰寫指南
+# Laravel 測試碼 mock 方法撰寫指南
+
+> 整理在 Laravel 測試中，依 Service 的註冊方式選擇 mock 做法的範例：建構子注入、已註冊別名、部分 mock。整理於 2026 年。
 
 ## 測試實作指南
 
@@ -62,53 +64,55 @@ public function test_partial_mock()
 }
 ```
 
-### 2. Star 服務測試範例
+### 2. 已註冊別名服務的測試範例
 
-#### 方法一：使用 app()->instance() 進行服務替換
+以容器別名 `Site` 為例（服務以 `singleton('Site', ...)` 註冊）。
+
+#### 方法一：使用 app()->instance() 替換服務
 
 ```php
 <?php
-// tests/Feature/QcControllerTest.php
-public function test_qc_platform_category_list()
+// tests/Feature/ReportControllerTest.php
+public function test_platform_category_list()
 {
     // 準備測試資料
     $expectedProvider = [
         'id' => 1,
         'name' => 'Test Provider',
-        'server_country' => 1
+        'region' => 1
     ];
 
-    // Mock Star 服務
-    $mockStar = Mockery::mock(\App\Services\Star::class);
-    $mockStar->shouldReceive('provider')->andReturn($expectedProvider);
+    // Mock Site 服務
+    $mockSite = Mockery::mock(\App\Services\Site::class);
+    $mockSite->shouldReceive('provider')->andReturn($expectedProvider);
 
     // 替換服務容器中的實例
-    app()->instance('Star', $mockStar);
+    app()->instance('Site', $mockSite);
 
     // Mock 其他依賴服務
-    $this->mock(\App\Services\Qc::class, function ($mock) use ($expectedProvider) {
-        $mock->shouldReceive('getPolicyName')->andReturn('taiwan');
-        $mock->shouldReceive('getCompanyIpRanges')->andReturn(['127.0.0.1']);
+    $this->mock(\App\Services\Policy::class, function ($mock) {
+        $mock->shouldReceive('getPolicyName')->andReturn('default');
+        $mock->shouldReceive('getAllowedIpRanges')->andReturn(['127.0.0.1']);
     });
 
     // 執行測試
-    $response = $this->getJson('/api/qc/platform/category/list');
+    $response = $this->getJson('/api/platform/category/list');
 
     $response->assertStatus(200);
 }
 ```
 
-#### 方法二：使用服務綁定進行測試
+#### 方法二：使用服務綁定
 
 ```php
-public function test_qc_game_sort_list()
+public function test_game_sort_list()
 {
     // 準備 mock 資料
     $mockProvider = ['id' => 1, 'name' => 'Test Provider'];
 
     // 綁定測試服務
-    $this->app->bind('Star', function () use ($mockProvider) {
-        $mock = Mockery::mock(\App\Services\Star::class);
+    $this->app->bind('Site', function () use ($mockProvider) {
+        $mock = Mockery::mock(\App\Services\Site::class);
         $mock->shouldReceive('provider')->andReturn($mockProvider);
         return $mock;
     });
@@ -122,7 +126,7 @@ public function test_qc_game_sort_list()
     });
 
     // 執行測試
-    $response = $this->getJson('/api/qc/game/sort_list?category_type=1&sort_type=1');
+    $response = $this->getJson('/api/game/sort_list?category_type=1&sort_type=1');
 
     $response->assertStatus(200);
 }
@@ -137,11 +141,9 @@ public function test_qc_game_sort_list()
 namespace Tests\Feature\Http\Controllers;
 
 use Tests\TestCase;
-use App\Http\Controllers\QcController;
-use Illuminate\Http\Request;
 use Mockery;
 
-class QcControllerTest extends TestCase
+class ReportControllerTest extends TestCase
 {
     protected function tearDown(): void
     {
@@ -155,28 +157,28 @@ class QcControllerTest extends TestCase
         $provider = [
             'id' => 1,
             'name' => 'Test Provider',
-            'server_country' => 1
+            'region' => 1
         ];
 
-        // Mock Star 服務
-        app()->instance('Star', Mockery::mock(\App\Services\Star::class, function ($mock) use ($provider) {
+        // Mock Site 服務
+        app()->instance('Site', Mockery::mock(\App\Services\Site::class, function ($mock) use ($provider) {
             $mock->shouldReceive('provider')->andReturn($provider);
         }));
 
-        // Mock Qc 服務
-        $mockQc = $this->mock(\App\Services\Qc::class, function ($mock) {
-            $mock->shouldReceive('getPolicyName')->andReturn('taiwan');
-            $mock->shouldReceive('getCompanyIpRanges')->andReturn(['192.168.1.100']);
+        // Mock Policy 服務
+        $this->mock(\App\Services\Policy::class, function ($mock) {
+            $mock->shouldReceive('getPolicyName')->andReturn('default');
+            $mock->shouldReceive('getAllowedIpRanges')->andReturn(['192.168.1.100']);
             $mock->shouldReceive('getPlatformByIp')->andReturn('platform_001');
         });
 
         // Mock Platform 服務
-        $mockPlatform = $this->mock(\App\Services\Platform::class, function ($mock) {
+        $this->mock(\App\Services\Platform::class, function ($mock) {
             $mock->shouldReceive('getByCode')->andReturn(['id' => 1, 'name' => 'Test Platform']);
         });
 
         // Mock ProviderPlatforms 服務
-        $mockProviderPlatforms = $this->mock(\App\Services\ProviderPlatforms::class, function ($mock) {
+        $this->mock(\App\Services\ProviderPlatforms::class, function ($mock) {
             $mock->shouldReceive('platformLists')->andReturn([
                 'count' => 1,
                 'list' => collect([
@@ -184,7 +186,6 @@ class QcControllerTest extends TestCase
                         'id' => 1,
                         'fullname' => 'Test Platform',
                         'brand' => 'TP',
-                        'ctl_has_rtp' => true,
                         'has_rtp' => true
                     ]
                 ])
@@ -192,7 +193,7 @@ class QcControllerTest extends TestCase
         });
 
         // 執行測試
-        $response = $this->getJson('/api/qc/platform/category/list', [
+        $response = $this->getJson('/api/platform/category/list', [
             'station_name' => 'test_station'
         ]);
 
@@ -207,4 +208,3 @@ class QcControllerTest extends TestCase
     }
 }
 ```
-

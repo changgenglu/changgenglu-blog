@@ -1,4 +1,6 @@
-## 整合測試撰寫規則
+# Laravel 整合測試撰寫規則
+
+> 整理 Laravel 專案以 PHPUnit 撰寫 API 整合測試的檔案結構、命名、mock 策略與資料庫選擇原則，可直接交給 AI 當撰寫規範。以獨立腳本做整合測試的做法見〈Laravel 腳本式 API 整合測試撰寫說明〉。整理於 2026 年。
 
 ### 概述
 
@@ -12,10 +14,10 @@
 
 1. **檔案結構**：每個 API 方法獨立檔案，命名 `{MethodName}Test.php`
 2. **檔案命名**：使用 `Test.php`（非 `IntegrationTest.php`）
-3. **方法命名**：snake_case（非 camelCase），且必須宣告 `: void` 返回類型
+3. **方法命名**：snake_case（非 camelCase），且必須宣告 `: void` 回傳型別
 4. **常數定義**：定義 `private const METHOD`、`private const URL`，使用 Laravel HTTP 狀態碼常數（如 `Response::HTTP_OK`）
 5. **錯誤處理**：使用 `resources/lang/en/error.php` 定義的錯誤碼
-6. **屬性類型**：使用 PHP 8 屬性類型聲明（如 `private Games $game;`）
+6. **屬性型別**：使用 PHP 8 屬性型別宣告（如 `private Games $game;`）
 7. **Mock 初始化**：在 `setUp()` 中初始化 Mock 服務實例
 8. **測試行為設定**：在測試方法中設定 Mock 行為和斷言
 9. **Redis 清理**：僅在測試實際使用 Redis 時操作
@@ -46,15 +48,15 @@ tests/Integration/ControllerName/
 
 **測試常數**：定義 `METHOD`、`URL` 常數，使用 Laravel HTTP 狀態碼常數
 
-**屬性類型**：使用 PHP 8 屬性類型聲明（如 `private Providers $provider`）
+**屬性型別**：使用 PHP 8 屬性型別宣告（如 `private Providers $provider`）
 
-**測試方法**：使用 `void` 返回類型，遵循 snake_case 命名規則
+**測試方法**：使用 `void` 回傳型別，遵循 snake_case 命名規則
 
 **測試常數與屬性宣告**
 
 ```php
 private const METHOD = 'post';
-private const URL = '/api/backend/qc/ips';
+private const URL = '/api/backend/ips';
 
 private Providers $provider;
 private Platforms $platform;
@@ -122,18 +124,18 @@ public function test_dependency_injection(): void {
 }
 ```
 
-**Star 服務測試**：
+**已註冊別名服務測試（以 `Site` 為例）**：
 ```php
 protected function setupMockServices(): void
 {
-    $this->mockServices['star'] = Mockery::mock(\App\Services\Star::class);
-    app()->instance('Star', $this->mockServices['star']);
+    $this->mockServices['site'] = Mockery::mock(\App\Services\Site::class);
+    app()->instance('Site', $this->mockServices['site']);
 }
 
-public function test_star_service_replacement(): void {
-    $this->mockServices['star']->shouldReceive('provider')->andReturn($providerData);
+public function test_site_service_replacement(): void {
+    $this->mockServices['site']->shouldReceive('provider')->andReturn($providerData);
 
-    $response = $this->getJson('/api/qc/platform/category/list');
+    $response = $this->getJson('/api/platform/category/list');
     $response->assertStatus(200);
 }
 ```
@@ -147,7 +149,7 @@ public function test_partial_mock(): void {
 }
 ```
 
-****測試類別結構**：
+**測試類別結構**：
 ```php
 class ExampleTest extends TestCase {
     private $mockServices = [];
@@ -160,20 +162,20 @@ class ExampleTest extends TestCase {
     protected function setupMockServices(): void
     {
         // 初始化常用 Mock 服務
-        $this->mockServices['star'] = Mockery::mock(\App\Services\Star::class);
-        $this->mockServices['qc'] = Mockery::mock(\App\Services\Qc::class);
+        $this->mockServices['site'] = Mockery::mock(\App\Services\Site::class);
+        $this->mockServices['policy'] = Mockery::mock(\App\Services\Policy::class);
         $this->mockServices['platform'] = Mockery::mock(\App\Services\Platform::class);
 
         // 綁定到服務容器
-        app()->instance('Star', $this->mockServices['star']);
-        app()->instance(\App\Services\Qc::class, $this->mockServices['qc']);
+        app()->instance('Site', $this->mockServices['site']);
+        app()->instance(\App\Services\Policy::class, $this->mockServices['policy']);
         app()->instance(\App\Services\Platform::class, $this->mockServices['platform']);
     }
 
     public function test_example(): void {
         // 在測試方法中設定 Mock 行為
-        $this->mockServices['star']->shouldReceive('provider')->andReturn($providerData);
-        $this->mockServices['qc']->shouldReceive('getPolicyName')->andReturn('taiwan');
+        $this->mockServices['site']->shouldReceive('provider')->andReturn($providerData);
+        $this->mockServices['policy']->shouldReceive('getPolicyName')->andReturn('default');
 
         $response = $this->getJson('/api/test');
         $response->assertStatus(200)->assertJsonStructure($structure);
@@ -184,15 +186,15 @@ class ExampleTest extends TestCase {
 #### 測試原則
 
 1. **環境設定**：在 `setUp()` 中初始化 Mock 服務實例，測試方法中設定行為
-2. **服務識別**：優先依賴注入，減少 `app()` 直接調用
+2. **服務識別**：優先依賴注入，減少 `app()` 直接呼叫
 3. **Mock 策略**：依賴注入用 `$this->app->instance()`，註冊服務用 `app()->instance()`
 4. **測試資料**：優先修改現有資料而非新建，測試後恢復原狀
-5. **錯誤處理**：使用專案定義錯誤碼驗證
+5. **錯誤處理**：使用專案定義的錯誤碼驗證
 6. **資源清理**：測試結束清理 Mock，避免記憶體洩漏
 
 ### Service Mock 注意事項
 
-由於專案歷史因素，Service 的實作與呼叫方式並非全面採用依賴注入 (Dependency Injection)。
+由於歷史因素，Service 的實作與呼叫方式並非全面採用依賴注入 (Dependency Injection)。
 
 - **ServiceFactory 模式**：
   多數 Controller 與 Service 使用 `app('Service')->init('ServiceName')` 取得實例。此方式底層是直接 `new ServiceName`，**不經過 Laravel Container**。
@@ -210,13 +212,13 @@ class ExampleTest extends TestCase {
 ### 常見陷阱與解決方案 (Common Pitfalls)
 
 **1. Middleware 驗證依賴**
-後台 API (`/api/backend/*`) 會驗證 `x-pid` 標頭。測試前**必須**在 `setUp()` 建立基礎資料，否則會拋出 500 錯誤：
+後台 API（`/api/backend/*`）會驗證站台識別標頭 `x-pid`。測試前**必須**在 `setUp()` 建立基礎資料，否則會拋出 500 錯誤：
 ```php
-Providers::factory()->create(['id' => PROVIDER_CTL_ID, 'enable' => 1]);
+Providers::factory()->create(['id' => ADMIN_PROVIDER_ID, 'enable' => 1]);
 ```
 
 **2. 錯誤狀態碼慣例**
-專案 API 在驗證失敗時回傳 **200 OK** 搭配 `error_code`。請斷言 200 而非 422：
+此類專案的 API 在驗證失敗時回傳 **200 OK** 搭配 `error_code`。請斷言 200 而非 422：
 ```php
 $response->assertStatus(Response::HTTP_OK)
          ->assertJson(['error_code' => 20001]);

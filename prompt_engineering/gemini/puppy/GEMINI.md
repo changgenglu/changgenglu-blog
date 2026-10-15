@@ -1,12 +1,12 @@
-# Puppy 專案策略
+# 代理層專案策略
 
-> 本文件定義 `puppy` 專案的架構、技術棧與開發規範。
+> 本文件定義 `代理層` 專案的架構、技術棧與開發規範。
 
 ---
 
 ## 1. 專案概覽 (Project Overview)
 
-`puppy` 是一個基於 **NestJS** 框架開發的後端服務，主要處理遊戲平台（如 MG, AB）的整合與錢包通訊。專案採用 TypeScript 開發，並整合了 WebSocket (WS) 與 TCP 通訊協議，用於處理即時遊戲邏輯與錢包餘額同步。
+本服務是一個基於 **NestJS** 框架開發的後端服務，主要處理遊戲平台（如 廠商 A、廠商 B）的整合與錢包通訊。專案採用 TypeScript 開發，並整合了 WebSocket (WS) 與 TCP 通訊協議，用於處理即時遊戲邏輯與錢包餘額同步。
 
 ### 核心技術棧
 - **Framework:** NestJS (Node.js)
@@ -17,7 +17,7 @@
     - HTTP (Express)
     - WebSocket (@nestjs/websockets)
     - TCP (自定義 TcpClientService 用於錢包通訊)
-- **Environment Management:** 使用 `.env.mars` (Staging) 與 `.env.venus` (Prod) 進行多環境配置。
+- **Environment Management:** 使用 `.env.staging` (Staging) 與 `.env.prod` (Prod) 進行多環境配置。
 
 ---
 
@@ -26,11 +26,11 @@
 專案結構遵循 NestJS 的模組化設計：
 
 - **`src/app.module.ts`**: 應用入口模組，動態載入環境配置。
-- **`src/platforms/`**: 存放不同遊戲平台的整合邏輯（如 `mg`, `ab`）。
+- **`src/platforms/`**: 存放不同遊戲平台的整合邏輯（如 `vendor_a`, `vendor_b`）。
     - 每個平台擁有自己的 Controller, Service, Entities, Migrations 等。
 - **`src/wallet/`**: 錢包通訊核心。
     - `tcpclient.service.ts`: 負責與錢包伺服器建立 TCP 連線。
-    - `stars_protocol/`: 實作錢包專屬通訊協議 (Stars Protocol)。
+    - `wallet_protocol/`: 實作錢包專屬通訊協議 (Wallet Protocol)。
 - **`src/ws.gateway.ts`**: WebSocket 閘道器，處理 `login`, `spin`, `get_balance` 等即時指令。
 - **`src/config/`**: 配置管理，包含 TypeORM 與環境變數載入邏輯。
 
@@ -47,8 +47,8 @@ pnpm install
 
 ### 啟動服務
 - **開發環境 (Dev):** `pnpm run start:dev` (預設載入 `.env.local`)
-- **測試環境 (Staging):** `pnpm run start:staging` (載入 `.env.mars`)
-- **正式環境 (Prod):** `pnpm run start:prod` (載入 `.env.venus`)
+- **測試環境 (Staging):** `pnpm run start:staging` (載入 `.env.staging`)
+- **正式環境 (Prod):** `pnpm run start:prod` (載入 `.env.prod`)
 
 ### 測試
 - **單元測試:** `pnpm run test`
@@ -64,8 +64,8 @@ pnpm install
 
 ### 環境變數規則
 - 修改 `src/config/env.config.ts` 必須確保 `NODE_ENV` 對應到正確的 `.env` 檔案。
-- **Staging:** `.env.mars`
-- **Prod:** `.env.venus`
+- **Staging:** `.env.staging`
+- **Prod:** `.env.prod`
 
 ### 通訊協議規範
 - 與錢包伺服器通訊時，優先使用 `StarProtocolService` 與 `TcpClientService`。
@@ -79,6 +79,6 @@ pnpm install
 ---
 
 ## 5. 待辦事項 (TODO)
-- [ ] 補完 `AbModule` 的整合 (目前在 `AppModule` 中被註解)。
+- [ ] 補完 `VendorBModule` 的整合 (目前在 `AppModule` 中被註解)。
 - [ ] 完善各平台的單元測試覆蓋率。
-- [ ] 確保 `stars_protocol` 的異常處理機制更加強健。
+- [ ] 確保 `wallet_protocol` 的異常處理機制更加強健。

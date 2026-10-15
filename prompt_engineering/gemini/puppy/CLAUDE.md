@@ -6,8 +6,8 @@
 
 -   `pnpm install` - 安裝依賴（使用 pnpm）
 -   `pnpm run start:dev` - 啟動開發伺服器（埠號由 `API_SERVER_PORT` 環境變數決定，預設 3001）
--   `pnpm run start:staging` - 啟動測試環境（載入 `.env.mars`）
--   `pnpm run start:prod` - 啟動正式環境（載入 `.env.venus`）
+-   `pnpm run start:staging` - 啟動測試環境（載入 `.env.staging`）
+-   `pnpm run start:prod` - 啟動正式環境（載入 `.env.prod`）
 
 ### 構建與檢查
 
@@ -34,7 +34,7 @@
 
 ### 高層概覽
 
-Puppy 是一個基於 NestJS 的後端服務，用於管理遊戲平台整合（MG、AB），並透過 TCP（Stars Protocol）進行錢包通訊。架構採用平台模組化設計，每個平台具有獨立的資料庫和業務邏輯。
+本服務是一個基於 NestJS 的後端服務，用於管理遊戲平台整合（廠商 A、廠商 B），並透過 TCP（Wallet Protocol）進行錢包通訊。架構採用平台模組化設計，每個平台具有獨立的資料庫和業務邏輯。
 
 ```
 src/
@@ -43,12 +43,12 @@ src/
 │   ├── database-config.factory.ts
 │   └── typeorm-cli.config.ts
 ├── platforms/              # 平台特定模組
-│   ├── mg/                # MG 平台
-│   │   ├── mg.module.ts   # 模組定義、中間件設置
-│   │   ├── mg.service.ts  # 業務邏輯
-│   │   ├── mg.controller.ts # 公開 API 端點
-│   │   ├── mg-internal.controller.ts # 內部端點（IP 限制）
-│   │   ├── mg.schedule.ts # 排程任務（命令模式）
+│   ├── vendor_a/                # 廠商 A 平台
+│   │   ├── vendor_a.module.ts   # 模組定義、中間件設置
+│   │   ├── vendor_a.service.ts  # 業務邏輯
+│   │   ├── vendor_a.controller.ts # 公開 API 端點
+│   │   ├── vendor_a-internal.controller.ts # 內部端點（IP 限制）
+│   │   ├── vendor_a.schedule.ts # 排程任務（命令模式）
 │   │   ├── entities/      # TypeORM 實體
 │   │   ├── migrations/    # 資料庫遷移
 │   │   ├── middleware/    # 請求/IP 驗證
@@ -56,16 +56,16 @@ src/
 │   │   ├── commands/      # 命令模式處理器
 │   │   ├── services/      # 領域服務（例如 game-codes.service.ts）
 │   │   └── enum/          # 列舉（遊戲、Redis 鍵）
-│   └── ab/                # AB 平台（相似結構）
+│   └── vendor_b/                # 廠商 B 平台（相似結構）
 ├── wallet/                # 錢包通訊層
 │   ├── wallet.module.ts
 │   ├── wallet.service.ts
-│   ├── tcpclient.service.ts # 低層 TCP 用戶端（Stars Protocol）
-│   └── stars_protocol/    # Stars Protocol 實作
+│   ├── tcpclient.service.ts # 低層 TCP 用戶端（Wallet Protocol）
+│   └── wallet_protocol/    # Wallet Protocol 實作
 │       ├── packet/        # 請求/回應封包
 │       ├── message/       # 訊息型別
 │       ├── buffer/        # 序列化/反序列化
-│       └── stars_protocol.service.ts # 協議處理器
+│       └── wallet_protocol.service.ts # 協議處理器
 ├── redis/                 # Redis 整合
 │   └── redis.module.ts
 ├── http-client/           # HTTP 用戶端包裝
@@ -82,9 +82,9 @@ src/
 
 #### 1. 平台模組化
 
-每個平台（MG、AB）都是一個**自包含的 NestJS 模組**，具備：
+每個平台（廠商 A、廠商 B）都是一個**自包含的 NestJS 模組**，具備：
 
--   獨立的資料庫連接（命名為：`'platform_mg'`、`'platform_ab'`）
+-   獨立的資料庫連接（命名為：`'platform_a'`、`'platform_b'`）
 -   獨立的業務邏輯和實體
 -   自己的中間件和路由
 -   可透過 `app.module.ts` 中的匯入來啟用/停用
@@ -94,8 +94,8 @@ src/
 imports: [
     loadEnvConfig(),
     ScheduleModule.forRoot(),
-    MgModule,
-    // AbModule, // 目前已停用
+    VendorAModule,
+    // VendorBModule, // 目前已停用
 ];
 ```
 
@@ -104,8 +104,8 @@ imports: [
 `NODE_ENV` 變數控制載入哪個 `.env` 檔案：
 
 -   **dev** → `.env.local`（開發環境）
--   **staging** → `.env.mars`（測試環境）
--   **prod** → `.env.venus`（正式環境）
+-   **staging** → `.env.staging`（測試環境）
+-   **prod** → `.env.prod`（正式環境）
 
 這在 `src/config/env.config.ts` 中強制執行。在啟動前設定 `NODE_ENV`：
 
@@ -115,7 +115,7 @@ NODE_ENV=staging pnpm run start:staging
 NODE_ENV=prod pnpm run start:prod
 ```
 
-#### 3. 錢包通訊（Stars Protocol）
+#### 3. 錢包通訊（Wallet Protocol）
 
 -   **TCP 閘道器**：`WsStartGateway` 監聽**埠 3000**（WebSocket）
 -   **協議**：用於錢包餘額/交易同步的二進制協議
@@ -130,19 +130,19 @@ NODE_ENV=prod pnpm run start:prod
 
 -   **TypeORM ORM** 搭配 MySQL
 -   **命名連接**：每個平台有隔離的資料庫
-    -   MG 平台使用連接名 `'platform_mg'`
-    -   AB 平台使用獨立的無名連接
+    -   廠商 A 平台使用連接名 `'platform_a'`
+    -   廠商 B 平台使用獨立的無名連接
 -   **遷移**：平台特定位置於 `src/platforms/{platform}/migrations/`
 
-#### 5. 命令模式（MG 平台）
+#### 5. 命令模式（廠商 A 平台）
 
 遊戲代碼刷新使用命令模式：
 
 ```
-MgSchedule（排程任務）
-  → MgCommandService.execute(refreshGameCodesCommand)
+VendorASchedule（排程任務）
+  → VendorACommandService.execute(refreshGameCodesCommand)
     → RefreshGameCodesHandler.handle()
-      → MgGameCodesService.refresh()
+      → VendorAGameCodesService.refresh()
 ```
 
 這允許非同步、可測試的命令處理。
@@ -220,16 +220,16 @@ MgSchedule（排程任務）
 
 ### 環境變數
 
--   **每個 NODE_ENV 都需要**：所有 env 檔案（`.env.local`、`.env.mars`、`.env.venus`）必須存在
+-   **每個 NODE_ENV 都需要**：所有 env 檔案（`.env.local`、`.env.staging`、`.env.prod`）必須存在
 -   **關鍵變數**：
     -   `API_SERVER_PORT`：HTTP 伺服器埠（例如 3001）
-    -   `STARS_TAIWAN_WALLET_SERVER_ENDPOINT`：錢包伺服器 URL:埠
+    -   `WALLET_SERVER_ENDPOINT`：錢包伺服器 URL:埠
     -   每個平台的資料庫憑證
     -   Redis 連接詳細資訊
 
 ### 資料庫遷移
 
--   MG 平台遷移位於 `src/platforms/mg/migrations/`
+-   廠商 A 平台遷移位於 `src/platforms/vendor_a/migrations/`
 -   透過 `pnpm run migration` 執行
 -   使用 `TypeOrmModule.forRootAsync()` 搭配 `DatabaseConfigService`
 
@@ -262,11 +262,11 @@ MgSchedule（排程任務）
 查詢實體時：
 
 ```typescript
-// MG 平台（命名連接 'platform_mg'）
-@InjectRepository(Users, 'platform_mg')
+// 廠商 A 平台（命名連接 'platform_a'）
+@InjectRepository(Users, 'platform_a')
 usersRepository: Repository<Users>
 
-// AB 平台（預設連接）
+// 廠商 B 平台（預設連接）
 @InjectRepository(User)
 usersRepository: Repository<User>
 ```
@@ -331,5 +331,5 @@ pnpm run build
 ### 新增排程任務
 
 1. 在模組匯入中注入 `@nestjs/schedule`（已配置）
-2. 在服務中使用 `@Cron()` 或 `@Interval()` 裝飾器
-3. 或實作命令模式，如 MG 的 `RefreshGameCodesHandler`
+2. 在服務中使用 `@排程機()` 或 `@Interval()` 裝飾器
+3. 或實作命令模式，如 廠商 A 的 `RefreshGameCodesHandler`

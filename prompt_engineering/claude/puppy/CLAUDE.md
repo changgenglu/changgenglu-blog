@@ -9,8 +9,8 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ### 開發
 - `pnpm install` — 安裝依賴
 - `pnpm run start:dev` — 啟動開發伺服器（`NODE_ENV=dev`，載入 `.env.local`）
-- `pnpm run start:staging` — 啟動測試環境（`NODE_ENV=staging`，載入 `.env.mars`）
-- `pnpm run start:prod` — 啟動正式環境（`NODE_ENV=prod`，載入 `.env.venus`）
+- `pnpm run start:staging` — 啟動測試環境（`NODE_ENV=staging`，載入 `.env.staging`）
+- `pnpm run start:prod` — 啟動正式環境（`NODE_ENV=prod`，載入 `.env.prod`）
 
 ### 構建與檢查
 - `pnpm run build` — 編譯 TypeScript 至 `dist/`
@@ -19,7 +19,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ### 測試
 - `pnpm run test` — 執行所有單元測試（`*.spec.ts`）
-- `pnpm run test -- --testPathPattern=platforms/mg` — 執行特定平台的測試
+- `pnpm run test -- --testPathPattern=platforms/vendor_a` — 執行特定平台的測試
 - `pnpm run test:watch` — 監視模式
 - `pnpm run test:cov` — 覆蓋率報告（輸出至 `/coverage`）
 - `pnpm run test:e2e` — E2E 測試（使用 `test/jest-e2e.json`）
@@ -34,28 +34,28 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ### 高層概覽
 
-Puppy 是基於 NestJS 的代理層（Proxy）後端服務，介於星城系統、總部錢包與遊戲供應商（MG、AB、PP）三方之間進行轉接。星城系統透過 HTTP（JWT 認證）將玩家請求（取得遊戲連結、報表查詢、強制離線等）發送到 Puppy，Puppy 將請求轉發給對應的遊戲供應商。遊戲供應商則透過 HTTP 反向呼叫 Puppy 進行身分驗證與交易（下注、派彩等）。Puppy 透過 TCP Stars Protocol 與總部錢包通訊，處理登入驗證、交易（扣款/加款）與餘額查詢。每個平台是自包含模組，具備獨立資料庫。
+本服務是基於 NestJS 的代理層（Proxy）後端服務，介於遊戲平台系統、總部錢包與遊戲供應商（廠商 A、廠商 B、廠商 C）三方之間進行轉接。遊戲平台系統透過 HTTP（JWT 認證）將玩家請求（取得遊戲連結、報表查詢、強制離線等）發送到代理層，代理層將請求轉發給對應的遊戲供應商。遊戲供應商則透過 HTTP 反向呼叫代理層進行身分驗證與交易（下注、派彩等）。代理層透過 TCP Wallet Protocol 與總部錢包通訊，處理登入驗證、交易（扣款/加款）與餘額查詢。每個平台是自包含模組，具備獨立資料庫。
 
 #### 名詞對照
 
 | 角色 | 別名 | 說明 | 通訊方式 |
 |------|------|------|----------|
-| 星城系統 | stars、星城 | 外部服務，接受前端玩家請求，轉發至 Puppy | HTTP（JWT 認證） |
-| Puppy | 我方 | 代理層，轉接三方系統 | HTTP / TCP |
-| 總部錢包 | 總部、錢包、game server | 錢包與會員系統，管理玩家餘額與登入狀態 | TCP 長連線（Stars Protocol） |
-| 遊戲供應商 | platform、供應商、廠商 | 遊戲內容提供者（MG、AB、PP 等） | HTTP |
+| 遊戲平台系統 | 核心後端、遊戲平台 | 外部服務，接受前端玩家請求，轉發至代理層 | HTTP（JWT 認證） |
+| 代理層 | 我方 | 代理層，轉接三方系統 | HTTP / TCP |
+| 總部錢包 | 總部、錢包、game server | 錢包與會員系統，管理玩家餘額與登入狀態 | TCP 長連線（Wallet Protocol） |
+| 遊戲供應商 | platform、供應商、廠商 | 遊戲內容提供者（廠商 A、廠商 B、廠商 C 等） | HTTP |
 
 ```
 src/
 ├── config/                 # 全域配置（env.config.ts、database-config.factory.ts）
 ├── platforms/              # 平台模組（核心業務）
-│   ├── mg/                # MG (Microgaming) — 目前唯一啟用
-│   ├── ab/                # AB (AllBet) — 已停用
-│   └── pp/                # PP (Pragmatic Play) — 開發中
-├── wallet/                # 錢包通訊層（Stars Protocol / TCP）
+│   ├── vendor_a/                # 廠商 A — 目前唯一啟用
+│   ├── vendor_b/                # 廠商 B — 已停用
+│   └── vendor_c/                # 廠商 C — 開發中
+├── wallet/                # 錢包通訊層（Wallet Protocol / TCP）
 │   ├── tcpclient.service.ts   # 低層 TCP 連接（3 秒心跳、自動重連）
 │   ├── wallet.service.ts      # 高階 API（Region 路由）
-│   └── stars_protocol/        # 二進制協議（封包工廠、解析器、接收器）
+│   └── wallet_protocol/        # 二進制協議（封包工廠、解析器、接收器）
 ├── redis/                 # Redis 模組（ioredis，keyPrefix: `${PROJECT_NAME}:`）
 ├── http-client/           # HTTP 包裝（node-fetch，通用 fetchData<T>）
 ├── controllers/           # 全域控制器（healthy、test）
@@ -72,13 +72,13 @@ src/
 imports: [
     loadEnvConfig(),
     ScheduleModule.forRoot(),
-    MgModule,        // 啟用
-    // AbModule,     // 停用
-    // PpModule,     // 開發中
+    VendorAModule,        // 啟用
+    // VendorBModule,     // 停用
+    // VendorCModule,     // 開發中
 ]
 ```
 
-### 平台模組內部結構（以 MG 為範本）
+### 平台模組內部結構（以 廠商 A 為範本）
 
 每個平台模組遵循相同的分層架構：
 
@@ -87,14 +87,14 @@ platforms/{platform}/
 ├── {platform}.module.ts          # 模組定義、中間件設置
 ├── {platform}.service.ts         # 核心業務邏輯
 ├── {platform}.controller.ts      # 公開 API 端點
-├── {platform}-internal.controller.ts  # 內部端點（IP 限制，MG 獨有）
-├── {platform}.schedule.ts        # 排程任務（MG 獨有）
+├── {platform}-internal.controller.ts  # 內部端點（IP 限制，廠商 A 獨有）
+├── {platform}.schedule.ts        # 排程任務（廠商 A 獨有）
 ├── {platform}.service.factory.ts # 服務工廠
 ├── entities/                     # TypeORM 實體
 ├── migrations/                   # 資料庫遷移
 ├── middleware/                   # 請求驗證、IP 白名單
 ├── services/                     # 領域服務
-├── commands/                     # 命令模式處理器（MG 獨有）
+├── commands/                     # 命令模式處理器（廠商 A 獨有）
 ├── enum/                         # Redis 鍵、遊戲類型等列舉
 ├── constants/                    # 地區配置（region-config.ts）
 ├── database/                     # 資料庫連接配置
@@ -107,11 +107,11 @@ platforms/{platform}/
 每個平台使用獨立的 MySQL 資料庫，透過 TypeORM 命名連接隔離：
 
 ```typescript
-// MG 平台
-@InjectRepository(Users, 'platform_mg')
-// PP 平台
-@InjectRepository(PpBetRecord, 'platform_pp')
-// AB 平台（預設連接，無命名）
+// 廠商 A 平台
+@InjectRepository(Users, 'platform_a')
+// 廠商 C 平台
+@InjectRepository(VendorCBetRecord, 'platform_c')
+// 廠商 B 平台（預設連接，無命名）
 @InjectRepository(User)
 ```
 
@@ -121,26 +121,26 @@ platforms/{platform}/
 | NODE_ENV | 檔案 |
 |----------|------|
 | `dev` | `.env.local` |
-| `staging` | `.env.mars` |
-| `prod` | `.env.venus` |
+| `staging` | `.env.staging` |
+| `prod` | `.env.prod` |
 
 未設定 `NODE_ENV` 會拋出錯誤。
 
-#### 命令模式（MG 平台）
+#### 命令模式（廠商 A 平台）
 排程任務使用命令模式解耦：
 
 ```
-MgSchedule（@Cron）
-  → MgCommandService.execute(command)
+VendorASchedule（@排程機）
+  → VendorACommandService.execute(command)
     → ICommandHandler.handle()  // e.g. RefreshGameCodesHandler
-      → MgGameCodesService.refresh()
+      → VendorAGameCodesService.refresh()
 ```
 
 - 命令介面：`commands/command.interface.ts`
 - 分發服務：`commands/command.service.ts`（Map<name, handler>）
 - 處理器：`commands/handlers/*.handler.ts`
 
-#### 錢包通訊（Stars Protocol）
+#### 錢包通訊（Wallet Protocol）
 二進制 TCP 協議，流程：
 1. `StarProtocolService.PacketFactory` 建立請求封包
 2. `TcpClientService` 透過 `net.Socket` 傳送（3 字節長度頭）
@@ -161,16 +161,16 @@ TCP 特性：3 秒心跳、1 秒重連延遲、二進制序列化/反序列化�
 
 | 中間件 | 用途 | 平台 |
 |--------|------|------|
-| `RequestMiddleware` | 請求簽名驗證 | MG |
-| `InternalIpMiddleware` | 內部端點 IP 白名單 | MG |
-| `HashValidationMiddleware` | Hash 簽名驗證 | PP |
-| `IpWhitelistMiddleware` | IP 白名單（`PLATFORM_PP_ALLOWED_IPS`） | PP |
+| `RequestMiddleware` | 請求簽名驗證 | 廠商 A |
+| `InternalIpMiddleware` | 內部端點 IP 白名單 | 廠商 A |
+| `HashValidationMiddleware` | Hash 簽名驗證 | 廠商 C |
+| `IpWhitelistMiddleware` | IP 白名單（`PLATFORM_C_ALLOWED_IPS`） | 廠商 C |
 
 #### Redis 使用慣例
 - 注入 token：`'REDIS'`
-- Key 前綴：`${PROJECT_NAME}:`（即 `puppy:`）
+- Key 前綴：`${PROJECT_NAME}:`（即專案名稱加冒號）
 - 各平台在 `enum/redis_key.enum.ts` 定義鍵名常數
-- MG 常用鍵：TOKEN、PLAYER、BETTING_PROFILES、TRANSACTION、BET_RECORD、GAME_CODES
+- 廠商 A 常用鍵：TOKEN、PLAYER、BETTING_PROFILES、TRANSACTION、BET_RECORD、GAME_CODES
 - 交易併發控制：Redis 鎖 + TTL 60 秒
 
 ---
@@ -190,9 +190,9 @@ TCP 特性：3 秒心跳、1 秒重連延遲、二進制序列化/反序列化�
 - `strictNullChecks: false`、`noImplicitAny: false`
 
 ### 命名慣例
-- 類別：PascalCase（`MgService`、`PpBetRecord`）
+- 類別：PascalCase（`VendorAService`、`VendorCBetRecord`）
 - 變數/函數：camelCase（`getUserBalance`）
-- 檔案：kebab-case（`mg.service.ts`），實體用 snake_case（`bet_record.entity.ts`）
+- 檔案：kebab-case（`vendor_a.service.ts`），實體用 snake_case（`bet_record.entity.ts`）
 - 列舉值：UPPER_SNAKE_CASE（`GAME_CODE`、`REDIS_KEY`）
 
 ---
@@ -200,7 +200,7 @@ TCP 特性：3 秒心跳、1 秒重連延遲、二進制序列化/反序列化�
 ## 4. 環境變數（鍵名，不含值）
 
 ### 全域
-`PROJECT_NAME`、`API_SERVER_PORT`、`SYNCHRONIZE`、`STARS_TAIWAN_WALLET_SERVER_ENDPOINT`、`IMAGE_DOMAIN_NAME`、`WALLET_CHECK_API_URL`
+`PROJECT_NAME`、`API_SERVER_PORT`、`SYNCHRONIZE`、`WALLET_SERVER_ENDPOINT`、`IMAGE_DOMAIN_NAME`、`WALLET_CHECK_API_URL`
 
 ### 資料庫（主）
 `DATABASE_HOST`、`DATABASE_PORT`、`DATABASE_USERNAME`、`DATABASE_PASSWORD`、`DATABASE_NAME`
@@ -208,19 +208,19 @@ TCP 特性：3 秒心跳、1 秒重連延遲、二進制序列化/反序列化�
 ### Redis
 `REDIS_HOST`、`REDIS_PORT`、`REDIS_PASSWORD`、`REDIS_DB`
 
-### MG 平台
-- API：`PLATFORM_MG_DOMAIN`、`PLATFORM_MG_STS_DOMAIN`
-- 地區（TW/MY/IN/ID/OVERSEAS）：`PLATFORM_MG_{地區}_GROUP_ID`、`_AGENT_CODE`、`_CLIENT_SECRET`、`_CURRENCY`
-- DB：`PLATFORM_MG_DATABASE_HOST`、`_PORT`、`_USERNAME`、`_PASSWORD`、`_NAME`
+### 廠商 A 平台
+- API：`PLATFORM_A_DOMAIN`、`PLATFORM_A_AUTH_DOMAIN`
+- 地區（TW/MY/IN/ID/OVERSEAS）：`PLATFORM_A_{地區}_GROUP_ID`、`_AGENT_CODE`、`_CLIENT_SECRET`、`_CURRENCY`
+- DB：`PLATFORM_A_DATABASE_HOST`、`_PORT`、`_USERNAME`、`_PASSWORD`、`_NAME`
 
-### PP 平台
-- API：`PLATFORM_PP_API_DOMAIN`、`PLATFORM_PP_SECURE_LOGIN`、`PLATFORM_PP_SECRET_KEY`、`PLATFORM_PP_PROVIDER_ID`、`PLATFORM_PP_ALLOWED_IPS`
-- 台灣：`PLATFORM_PP_TW_GROUP_ID`、`PLATFORM_PP_TW_CURRENCY`
-- DB：`PLATFORM_PP_DATABASE_HOST`、`_PORT`、`_USERNAME`、`_PASSWORD`、`_NAME`
+### 廠商 C 平台
+- API：`PLATFORM_C_API_DOMAIN`、`PLATFORM_C_SECURE_LOGIN`、`PLATFORM_C_SECRET_KEY`、`PLATFORM_C_PROVIDER_ID`、`PLATFORM_C_ALLOWED_IPS`
+- 台灣：`PLATFORM_C_TW_GROUP_ID`、`PLATFORM_C_TW_CURRENCY`
+- DB：`PLATFORM_C_DATABASE_HOST`、`_PORT`、`_USERNAME`、`_PASSWORD`、`_NAME`
 
-### AB 平台
-- API：`PLATFORM_AB_DOMAIN`、`PLATFORM_AB_AGENT`、`PLATFORM_AB_SUFFIX`、`PLATFORM_AB_OPERATOR_ID`、`PLATFORM_AB_ALLBET_KEY`、`PLATFORM_AB_PARTNER_KEY`
-- DB：`PLATFORM_AB_DATABASE_*`
+### 廠商 B 平台
+- API：`PLATFORM_B_DOMAIN`、`PLATFORM_B_AGENT`、`PLATFORM_B_SUFFIX`、`PLATFORM_B_OPERATOR_ID`、`PLATFORM_B_VENDOR_KEY`、`PLATFORM_B_PARTNER_KEY`
+- DB：`PLATFORM_B_DATABASE_*`
 
 ---
 
@@ -237,7 +237,7 @@ TCP 特性：3 秒心跳、1 秒重連延遲、二進制序列化/反序列化�
 
 ## 6. 新增平台的步驟
 
-1. 建立 `src/platforms/{platform}/` 目錄，參考 MG 的完整結構
+1. 建立 `src/platforms/{platform}/` 目錄，參考 廠商 A 的完整結構
 2. 建立模組、控制器、服務、實體、DTO、中間件、列舉
 3. 在 `database/config.ts` 建立資料庫配置，使用命名連接 `'platform_{platform}'`
 4. 在 `migrations/` 建立初始遷移

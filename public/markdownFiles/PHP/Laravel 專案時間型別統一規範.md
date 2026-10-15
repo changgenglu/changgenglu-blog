@@ -1,12 +1,16 @@
-# eagle - 時間類型統一規範使用指南
+# Laravel 專案時間型別統一規範
+
+> 說明在 Laravel 專案裡統一時間欄位型別、時區與 API 輸出格式的做法，涵蓋 Migration、Model、Query Builder 與 Resource。整理於 2026 年。
 
 ## 核心原則
 
 **統一規範**：
 
-- 資料庫欄位類型：`DATETIME`
+- 資料庫欄位型別：`DATETIME`
 - 應用層時區：`Asia/Taipei (+08:00)`
 - API 回傳格式：`ISO 8601` 含時區（如 `2025-12-17T10:30:00+08:00`）
+
+> 下文的 `AbstractModel`、`CustomEloquentBuilder` 是專案自訂的基底 Model 與查詢建構器，用來在寫入時統一轉換時間格式；套用到自己的專案時，需要先實作等價的類別。
 
 ---
 
@@ -202,7 +206,7 @@ $order->paid_at->setTimezone('UTC');   // 轉換時區
 
 ### 自動轉換情境
 
-當 Model **直接序列化為 JSON** 時，會自動調用 `serializeDate()` 方法：
+當 Model **直接序列化為 JSON** 時，會自動呼叫 `serializeDate()` 方法：
 
 ```php
 // ✅ 自動轉換 - 直接回傳 Model
@@ -225,7 +229,7 @@ return Order::find(1);
 
 ### 手動轉換情境
 
-在 **Resource** 中需要手動調用格式化方法：
+在 **Resource** 中需要手動呼叫格式化方法：
 
 ```php
 class OrderResource extends JsonResource
@@ -251,8 +255,8 @@ class OrderResource extends JsonResource
 | `return $model` | ✅ 自動 | Controller 直接回傳 |
 | `$model->toArray()` | ✅ 自動 | 轉陣列 |
 | `$model->toJson()` | ✅ 自動 | 轉 JSON 字串 |
-| **Resource** 中的時間欄位 | ❌ 手動 | 需調用 `toIso8601String()` |
-| 自訂陣列組裝 | ❌ 手動 | 需調用 `toIso8601String()` |
+| **Resource** 中的時間欄位 | ❌ 手動 | 需呼叫 `toIso8601String()` |
+| 自訂陣列組裝 | ❌ 手動 | 需呼叫 `toIso8601String()` |
 
 ### 輸出格式對照
 
