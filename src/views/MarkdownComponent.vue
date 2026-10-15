@@ -26,18 +26,24 @@
     </div>
   </div>
   <scroll-to-top-button v-show="isMobile" />
+  <DiagramViewer :open="viewerOpen" :svg="viewerSvg" @close="closeViewer" />
 </template>
 
 <script>
 import ScrollToTopButton from '@/components/ScrollToTopButton.vue';
 import ArticleToc from '@/components/ArticleToc.vue';
+import DiagramViewer from '@/components/DiagramViewer.vue';
 import Markdown from 'vue3-markdown-it';
 import { parseMarkdown } from '@/utils/markdownParser';
 import { extractHeadings, shouldShowToc } from '@/utils/toc';
+import { createMermaidLoader, renderMermaidBlocks, mermaidThemeFor } from '@/utils/mermaid';
 import fileList from '@/assets/fileNames.json';
 
+// 只有文章含 mermaid 區塊時才會呼叫 load，mermaid 因此獨立成非同步 chunk
+const loadMermaid = createMermaidLoader(() => import(/* webpackChunkName: "mermaid" */ 'mermaid'));
+
 export default {
-  components: { Markdown, ScrollToTopButton, ArticleToc },
+  components: { Markdown, ScrollToTopButton, ArticleToc, DiagramViewer },
   name: 'MarkdownComponent',
   data() {
     return {
@@ -48,6 +54,10 @@ export default {
       isMobile: false,
       isLoading: false,
       error: null,
+      viewerOpen: false,
+      viewerSvg: '',
+      viewerTrigger: null,
+      themeObserver: null,
     }
   },
   computed: {
@@ -60,6 +70,7 @@ export default {
       this.$nextTick(() => {
         this.addCopyButtons();
         this.buildTocFromDom();
+        this.renderDiagrams();
       });
     },
     // 路由只換 :title 時元件實例會被復用，不會重新 mounted
@@ -73,6 +84,27 @@ export default {
     buildTocFromDom() {
       const root = this.$refs.container?.querySelector('.markdown-content');
       this.tocItems = root ? extractHeadings(root) : [];
+    },
+    renderDiagrams() {
+      const root = this.$refs.container?.querySelector('.markdown-content');
+      if (!root) return Promise.resolve();
+      return renderMermaidBlocks(root, {
+        load: loadMermaid,
+        theme: mermaidThemeFor(document.documentElement.dataset.theme),
+        onOpen: ({ svg, trigger }) => {
+          this.viewerSvg = svg;
+          this.viewerTrigger = trigger;
+          this.viewerOpen = true;
+        },
+      });
+    },
+    closeViewer() {
+      this.viewerOpen = false;
+      const trigger = this.viewerTrigger;
+      this.viewerTrigger = null;
+      this.$nextTick(() => {
+        if (trigger?.isConnected) trigger.focus();
+      });
     },
     async loadMarkdown() {
       // 換文章時先清空目錄；較晚送出的載入會讓先前尚未回來的結果作廢
@@ -169,9 +201,13 @@ export default {
     this.loadMarkdown();
     this.checkDevice();
     window.addEventListener('resize', this.checkDevice);
+    this.themeObserver = new MutationObserver(() => this.renderDiagrams());
+    this.themeObserver.observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
   },
   unmounted() {
     window.removeEventListener('resize', this.checkDevice);
+    this.themeObserver?.disconnect();
+    this.themeObserver = null;
   }
 }
 </script>
@@ -445,6 +481,51 @@ export default {
 
 .btn-copy-code .copy-ok {
   color: var(--code-success);
+}
+
+/* 流程圖：寬圖在容器內水平捲動，不撐破頁面 */
+.markdown-content .mermaid-diagram {
+  position: relative;
+  margin: 2rem 0;
+  padding: 16px;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-md);
+}
+
+.markdown-content .mermaid-diagram__canvas {
+  overflow-x: auto;
+  text-align: center;
+  cursor: zoom-in;
+}
+
+.markdown-content .mermaid-diagram__canvas svg {
+  max-width: none;
+  height: auto;
+}
+
+.markdown-content .mermaid-diagram__zoom {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  padding: 2px 10px;
+  font-size: 0.8rem;
+  color: var(--ink);
+  background: var(--surface-muted);
+  border: 1px solid var(--line-strong);
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.markdown-content .mermaid-diagram__zoom:hover {
+  color: var(--primary);
+  border-color: var(--primary);
+}
+
+.markdown-content .mermaid-error {
+  margin: -1.5rem 0 2rem;
+  color: var(--danger);
+  font-size: 0.9rem;
 }
 
 /* 表格寬度超出容器時在表格內水平捲動，不撐破頁面 */
