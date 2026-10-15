@@ -11,3 +11,53 @@
   height: 12px;
   background: repeating-linear-gradient(135deg, var(--line) 0 1px, transparent 1px 8px);
 }
+
+/* 進場動畫：僅在 JS 啟動後才先隱藏，JS 或 IntersectionObserver 失敗時內容仍可見 */
+html.js-ready [data-reveal] {
+  opacity: 0;
+  transform: translateY(12px);
+  transition: opacity 0.5s ease, transform 0.5s ease;
+}
+
+html.js-ready [data-reveal].is-revealed {
+  opacity: 1;
+  transform: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation: none !important;
+    transition: none !important;
+  }
+
+  [data-reveal] {
+    opacity: 1 !important;
+    transform: none !important;
+  }
+}
+
+/* hero 方格紙底紋：用 mask 淡出，避免壓到標題文字的可讀性 */
+.hero-grid-bg {
+  position: relative;
+  overflow: hidden;
+}
+
+.hero-grid-bg::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image:
+    linear-gradient(var(--line) 1px, transparent 1px),
+    linear-gradient(90deg, var(--line) 1px, transparent 1px);
+  background-size: 32px 32px;
+  opacity: 0.5;
+  -webkit-mask-image: linear-gradient(90deg, transparent 20%, #000 100%);
+  mask-image: linear-gradient(90deg, transparent 20%, #000 100%);
+  pointer-events: none;
+}
+
+.hero-grid-bg > * {
+  position: relative;
+}

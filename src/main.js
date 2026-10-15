@@ -8,6 +8,9 @@ import "./assets/styles/theme.css";
 import "./assets/styles/patterns.css";
 import "./assets/styles/layout.css";
 
+// 通知樣式可以先隱藏 [data-reveal]；此 class 沒加上時內容維持可見
+document.documentElement.classList.add("js-ready");
+
 createApp(App).use(store).use(router).use(Markdown).mount("#app");
 
 // 首次繪製後才開啟色彩過渡，避免載入時整頁色彩動畫

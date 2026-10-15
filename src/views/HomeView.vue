@@ -1,18 +1,27 @@
 <template>
   <div class="home">
-    <section class="hero grid-paper">
-      <p class="hero-eyebrow">[ NOTES ]</p>
-      <h1 class="hero-title">開發筆記</h1>
-      <p class="hero-desc">PHP、開發工具、AI 工作流與系統相關的實作紀錄與踩坑整理。</p>
+    <section class="hero grid-paper hero-grid-bg">
+      <div class="hero-inner">
+        <div class="hero-text" data-reveal>
+          <p class="hero-eyebrow">[ NOTES ]</p>
+          <h1 class="hero-title">開發筆記</h1>
+          <p class="hero-desc">PHP、開發工具、AI 工作流與系統相關的實作紀錄與踩坑整理。</p>
+          <p class="hero-stats">
+            <span><b>{{ shownNoteCount }}</b> 篇筆記</span>
+            <span><b>{{ shownCategoryCount }}</b> 個分類</span>
+          </p>
+        </div>
+        <HeroDiagram class="hero-art" data-reveal />
+      </div>
     </section>
     <div class="stripe" aria-hidden="true"></div>
 
     <div class="grid-paper home-body">
-      <div class="search-section">
+      <div class="search-section" data-reveal>
         <SearchInput v-model:modelValue="searchText" @search="handleSearch"></SearchInput>
       </div>
 
-      <CategoryChips v-model="activeCategory" :categories="categories" :counts="categoryCounts" />
+      <CategoryChips data-reveal v-model="activeCategory" :categories="categories" :counts="categoryCounts" />
 
       <div class="card-grid">
         <div v-for="(item, index) in markdownCards" :key="index">
@@ -47,11 +56,18 @@ import ArticleCard from '@/components/ArticleCard.vue';
 import SearchInput from '@/components/SearchInput.vue'; // New import
 import CategoryChips from '@/components/CategoryChips.vue';
 import { search } from '@/utils/searchEngine'; // New import
+import HeroDiagram from '@/components/HeroDiagram.vue';
+import { useReveal } from '@/composables/useReveal';
+import { countUp } from '@/utils/countUp';
 import { ALL, filterByCategory, listCategories } from '@/utils/articleFilter';
 
 export default {
   name: 'HomeView',
-  components: { ArticleCard, SearchInput, CategoryChips }, // Updated components
+  components: { ArticleCard, SearchInput, CategoryChips, HeroDiagram }, // Updated components
+  setup() {
+    useReveal();
+    return {};
+  },
   data() {
     return {
       allArticlesMeta: AllMyArticle, // Store for categories
@@ -62,6 +78,9 @@ export default {
       searchResults: [], // Will store MiniSearch results
       latestSearchId: 0,
       isMobile: false,
+      shownNoteCount: 0,
+      shownCategoryCount: 0,
+      cancelCounts: [],
       paginationLength: 5
     }
   },
@@ -182,6 +201,10 @@ export default {
   },
   mounted() {
     this.checkDevice();
+    this.cancelCounts = [
+      countUp(this.allArticlesMeta.length, (v) => { this.shownNoteCount = v; }),
+      countUp(this.categories.length, (v) => { this.shownCategoryCount = v; })
+    ];
     window.addEventListener('resize', this.checkDevice);
     // 頁面初次載入時，如果 URL 中沒有 q 參數，則手動觸發一次 handleSearch，顯示所有文章
     if (!this.$route.query.q) {
@@ -194,6 +217,7 @@ export default {
     }
   },
   beforeUnmount() {
+    this.cancelCounts.forEach((cancel) => cancel());
     window.removeEventListener('resize', this.checkDevice);
   }
 }
@@ -202,6 +226,37 @@ export default {
 <style scoped>
 .hero {
   padding: 56px 24px 40px;
+}
+
+.hero-inner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+}
+
+.hero-text {
+  min-width: 0;
+}
+
+.hero-art {
+  flex: 0 0 min(320px, 32%);
+}
+
+.hero-stats {
+  display: flex;
+  gap: 24px;
+  margin: 20px 0 0;
+  font-family: var(--font-mono);
+  font-size: 0.85rem;
+  color: var(--text-faint);
+}
+
+.hero-stats b {
+  font-size: 1.25rem;
+  font-weight: 500;
+  color: var(--ink);
+  font-variant-numeric: tabular-nums;
 }
 
 .hero-eyebrow {
@@ -290,6 +345,10 @@ export default {
 }
 
 @media (max-width: 767.98px) {
+  .hero-art {
+    display: none;
+  }
+
   .hero {
     padding: 36px 16px 28px;
   }
