@@ -43,8 +43,8 @@ export default {
   right: 30px;
   width: 50px;
   height: 50px;
-  border: 2px solid #198754;
-  /* background-color: #198754; */
+  border: 2px solid var(--primary);
+  background-color: var(--bg);
   border-radius: 50%;
   display: flex;
   justify-content: center;
@@ -56,7 +56,7 @@ export default {
 }
 
 .scroll-to-top-button i {
-  color: #198754;
+  color: var(--primary);
   /* You can customize the arrow icon color here */
 }
 </style>

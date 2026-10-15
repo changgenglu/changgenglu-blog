@@ -1,12 +1,23 @@
 <!DOCTYPE html>
-<html lang="">
+<html lang="zh-Hant">
 
 <head>
   <meta charset="utf-8">
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
   <meta name="viewport" content="width=device-width,initial-scale=1.0">
   <link rel="icon" href="<%= BASE_URL %>favicon.ico">
-  <link href="https://api.fontshare.com/v2/css?f[]=gambarino@400&f[]=supreme@501,400,401,300,301,500,701,700&display=swap" rel="stylesheet"></link>
+  <!-- 首次繪製前設定主題以免閃爍；規則須與 src/utils/theme.js 的 resolveTheme 一致，兩處同步修改 -->
+  <script>
+    (function () {
+      var t = null, d = false;
+      try { t = window.localStorage.getItem('theme'); } catch (e) {}
+      if (window.matchMedia) d = window.matchMedia('(prefers-color-scheme: dark)').matches;
+      document.documentElement.dataset.theme = t === 'light' || t === 'dark' ? t : d ? 'dark' : 'light';
+    })();
+  </script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@400;500;600&family=Geist+Mono:wght@400;500&display=swap" rel="stylesheet">
   <script src="https://kit.fontawesome.com/7e759ff67a.js" crossorigin="anonymous"></script>
   <title>
     <%= htmlWebpackPlugin.options.title %>

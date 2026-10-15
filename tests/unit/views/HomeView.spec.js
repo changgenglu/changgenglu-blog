@@ -105,7 +105,65 @@ describe('HomeView.vue', () => {
     // Check if the correct number of category cards are rendered
     // The component's `categories` computed property uses `this.allArticlesMeta`
     expect(wrapper.vm.allArticlesMeta.length).toBe(mockFileNamesJsonData.length); // Verify allArticlesMeta is populated
-    expect(wrapper.findAll('.category-card').length).toBe(wrapper.vm.categories.length);
+    // 分類以 chips 呈現：「全部」加上每個分類各一顆按鈕
+    const chips = wrapper.findAll('.category-chips button');
+    expect(chips.length).toBe(wrapper.vm.categories.length + 1);
+    expect(chips[0].text()).toContain('全部');
+  });
+
+  describe('分類 chips 篩選', () => {
+    const chipButtons = () => wrapper.findAll('.category-chips button');
+    const cardPaths = () => wrapper.vm.markdownCards.map((c) => c.path);
+
+    it('點擊分類 chip 後只顯示該分類的文章，點「全部」還原', async () => {
+      await flushPromises();
+      expect(cardPaths()).toEqual(['CategoryA/article1.md', 'CategoryB/article2.md']);
+
+      await chipButtons()[2].trigger('click'); // CategoryB
+      expect(cardPaths()).toEqual(['CategoryB/article2.md']);
+
+      await chipButtons()[0].trigger('click');
+      expect(cardPaths()).toEqual(['CategoryA/article1.md', 'CategoryB/article2.md']);
+    });
+
+    it('搜尋與分類篩選同時生效', async () => {
+      mockSearch.mockReturnValue([
+        { id: 'CategoryA/article1.md', title: 'article1', path: 'CategoryA/article1.md', category: 'CategoryA', score: 1 },
+        { id: 'CategoryB/article2.md', title: 'article2', path: 'CategoryB/article2.md', category: 'CategoryB', score: 1 },
+      ]);
+      await chipButtons()[1].trigger('click'); // CategoryA
+      wrapper.vm.handleSearch('article');
+      await flushPromises();
+      expect(wrapper.vm.searchResults.length).toBe(2);
+      expect(cardPaths()).toEqual(['CategoryA/article1.md']);
+    });
+
+    it('切換 chip 時頁碼重置為 1', async () => {
+      wrapper.vm.CardNum = 1;
+      wrapper.vm.currentPage = 2;
+      await chipButtons()[0].trigger('click'); // 值未變（仍是「全部」），頁碼不應動
+      expect(wrapper.vm.currentPage).toBe(2);
+      await chipButtons()[1].trigger('click');
+      expect(wrapper.vm.currentPage).toBe(1);
+    });
+
+    it('篩選後沒有相符文章時顯示「查無相符的筆記」且不顯示分頁', async () => {
+      mockSearch.mockReturnValue([
+        { id: 'CategoryB/article2.md', title: 'article2', path: 'CategoryB/article2.md', category: 'CategoryB', score: 1 },
+      ]);
+      await chipButtons()[1].trigger('click'); // CategoryA
+      wrapper.vm.handleSearch('article');
+      await flushPromises();
+      expect(cardPaths()).toEqual([]);
+      expect(wrapper.find('.empty-state').isVisible()).toBe(true);
+      expect(wrapper.find('.empty-state').text()).toBe('查無相符的筆記');
+      expect(wrapper.find('.pagination-nav').isVisible()).toBe(false);
+
+      // 清空搜尋後恢復該分類的文章
+      wrapper.vm.handleSearch('');
+      await flushPromises();
+      expect(cardPaths()).toEqual(['CategoryA/article1.md']);
+    });
   });
 
   it('初始載入時，如果 URL 沒有查詢參數，應顯示所有文章', async () => {
@@ -115,7 +173,8 @@ describe('HomeView.vue', () => {
     expect(wrapper.findComponent(SearchInput).props('modelValue')).toBe('');
     
     expect(wrapper.find('.search-section').exists()).toBe(true);
-    expect(wrapper.find('.section-header h4').text()).toBe('文章分類'); // Check header for categories view
+    expect(wrapper.find('.hero').exists()).toBe(true); // hero 標題區取代原本的分類牆標題
+    expect(wrapper.find('.hero-title').text()).not.toBe('');
 
     expect(mockSearch).not.toHaveBeenCalled();
     expect(wrapper.vm.searchResults.length).toBe(mockFileNamesJsonData.length); // Should be all articles for initial state when no query

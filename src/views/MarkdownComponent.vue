@@ -5,9 +5,9 @@
       <p class="mt-3 text-cyan font-mono">LOADING ARTICLE...</p>
     </div>
     <div v-else-if="error" class="card card-glass border-danger text-center my-5 p-5" role="alert">
-      <h3 class="text-danger mb-4">{{ error }}</h3>
+      <h3 class="error-title mb-4">{{ error }}</h3>
       <div>
-        <router-link to="/" class="btn btn-outline-cyan">回首頁</router-link>
+        <router-link to="/" class="btn btn-ghost">回首頁</router-link>
       </div>
     </div>
     <template v-else>
@@ -31,8 +31,8 @@
         <div class="col" :class="{ 'col-md-9': markdownMenu && !isMobile, 'col-12': !markdownMenu || isMobile }">
           <div class="card card-glass markdown-wrapper p-4 p-md-5">
             <div class="d-flex justify-content-between align-items-center mb-4">
-              <h2 class="text-light m-0">{{ fileName.replace('.md', '') }}</h2>
-              <button class="btn btn-outline-cyan btn-sm" @click="copyArticle" title="複製文章 Markdown">
+              <h2 class="title-ink m-0">{{ fileName.replace('.md', '') }}</h2>
+              <button class="btn btn-ghost btn-sm" @click="copyArticle" title="複製文章 Markdown">
                 <i class="fa-regular fa-copy me-1"></i> 複製文章
               </button>
             </div>
@@ -188,18 +188,20 @@ export default {
   min-height: 60vh;
 }
 
-.text-cyan { color: var(--accent-cyan); }
+.text-cyan { color: var(--primary); }
 .font-mono { font-family: var(--font-mono); }
+
+.title-ink { color: var(--ink); }
+.error-title { color: var(--danger); }
 
 .cyber-spinner {
   width: 50px;
   height: 50px;
-  border: 3px solid rgba(0, 242, 255, 0.1);
-  border-top-color: var(--accent-cyan);
+  border: 3px solid var(--line);
+  border-top-color: var(--primary);
   border-radius: 50%;
   margin: 0 auto;
   animation: spin 1s linear infinite;
-  box-shadow: 0 0 15px rgba(0, 242, 255, 0.2);
 }
 
 @keyframes spin {
@@ -207,51 +209,63 @@ export default {
 }
 
 .btn-glass-cyan {
-  background: rgba(0, 242, 255, 0.1);
-  border: 1px solid var(--accent-cyan);
-  color: var(--accent-cyan);
-  backdrop-filter: var(--glass-blur);
-  border-radius: 12px;
+  background: var(--primary-soft);
+  border: 1px solid var(--primary);
+  color: var(--primary);
+  border-radius: var(--radius-md);
+}
+
+.btn-ghost {
+  background: transparent;
+  border: 1px solid var(--line-strong);
+  color: var(--ink);
+  border-radius: var(--radius-sm);
+}
+
+.btn-ghost:hover {
+  background: var(--primary-soft);
+  border-color: var(--primary);
+  color: var(--primary);
 }
 
 .card-glass {
-  background: var(--bg-surface);
-  backdrop-filter: var(--glass-blur);
-  border: 1px solid var(--glass-border);
-  border-radius: 20px !important;
+  background: var(--surface);
+  color: var(--text);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-md) !important;
 }
 </style>
 
 <style>
 /* Global Markdown Styles */
 .markdown-content {
-  color: #ccc;
-  line-height: 1.8;
+  color: var(--text);
+  line-height: 1.75;
   font-size: 1.05rem;
 }
 
 .markdown-content h1, .markdown-content h2, .markdown-content h3 {
-  color: #fff;
+  color: var(--ink);
   margin-top: 2rem;
   margin-bottom: 1rem;
-  font-weight: 700;
+  font-weight: 600;
 }
 
 /* Override title added by copy button area if needed */
 .markdown-wrapper > div > h2 {
-  border-left: 4px solid var(--accent-cyan);
+  border-left: 4px solid var(--primary);
   padding-left: 1rem;
 }
 
 .markdown-content h2 {
-  border-left: 4px solid var(--accent-cyan);
+  border-left: 4px solid var(--primary);
   padding-left: 1rem;
 }
 
 .markdown-content a {
-  color: var(--accent-cyan);
+  color: var(--primary);
   text-decoration: none;
-  border-bottom: 1px dashed var(--accent-cyan);
+  border-bottom: 1px dashed var(--primary);
   transition: opacity 0.3s;
 }
 
@@ -259,31 +273,56 @@ export default {
   opacity: 0.7;
 }
 
+.markdown-content :not(pre) > code {
+  color: var(--ink);
+  background: var(--surface-muted);
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  padding: 0.1em 0.35em;
+  font-family: var(--font-mono);
+  font-size: 0.9em;
+}
+
+.markdown-content blockquote {
+  margin: 1.5rem 0;
+  padding: 0.25rem 1rem;
+  border-left: 3px solid var(--line-strong);
+  color: var(--text);
+}
+
 .markdown-content pre {
   margin: 2rem 0;
-  border-radius: 12px;
+  border-radius: var(--radius-md);
   overflow: hidden;
-  border: 1px solid var(--glass-border);
-  background: #0d0d0d !important;
+  border: 1px solid var(--line);
+  background: var(--code-bg) !important;
   position: relative;
 }
 
 .markdown-content pre code {
   padding: 1.5rem !important;
   display: block;
+  overflow-x: auto;
+  color: var(--code-ink);
   font-family: var(--font-mono) !important;
   font-size: 0.9rem;
   background: transparent !important;
   box-shadow: none !important;
 }
 
+/* monokai 的註解色在更暗的程式碼底上對比不足 4.5，改用較亮的同色系 */
+.markdown-content .hljs-comment,
+.markdown-content .hljs-quote {
+  color: var(--code-comment);
+}
+
 .btn-copy-code {
   position: absolute;
   top: 10px;
   right: 10px;
-  background: rgba(255, 255, 255, 0.1);
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  color: #ccc;
+  background: var(--code-line-soft);
+  border: 1px solid var(--code-line);
+  color: var(--code-ink);
   border-radius: 6px;
   padding: 4px 8px;
   font-size: 0.8rem;
@@ -293,9 +332,9 @@ export default {
 }
 
 .btn-copy-code:hover {
-  background: rgba(0, 242, 255, 0.2);
-  border-color: var(--accent-cyan);
-  color: var(--accent-cyan);
+  background: var(--primary-soft);
+  border-color: var(--primary);
+  color: var(--primary);
 }
 
 /* Customizing TOC */
@@ -305,7 +344,7 @@ export default {
 }
 
 #menu a {
-  color: #888;
+  color: var(--text);
   font-size: 0.9rem;
   display: block;
   padding: 4px 0;
@@ -313,7 +352,7 @@ export default {
 }
 
 #menu a:hover {
-  color: var(--accent-cyan);
+  color: var(--primary);
 }
 
 .markdown-content table {
@@ -323,12 +362,12 @@ export default {
 }
 
 .markdown-content th, .markdown-content td {
-  border: 1px solid var(--glass-border);
+  border: 1px solid var(--line);
   padding: 12px;
 }
 
 .markdown-content th {
-  background: rgba(255, 255, 255, 0.05);
-  color: var(--accent-cyan);
+  background: var(--surface-muted);
+  color: var(--ink);
 }
 </style>

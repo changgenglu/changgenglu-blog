@@ -1,36 +1,127 @@
 :root {
-  /* Colors - Cyber Dark */
-  --bg-main: #050505;
-  --bg-surface: rgba(255, 255, 255, 0.03);
-  --accent-cyan: #00f2ff;
-  --accent-purple: #7000ff;
-  --border-glow: rgba(0, 242, 255, 0.2);
-  
-  /* Glassmorphism */
-  --glass-blur: blur(12px);
-  --glass-border: rgba(255, 255, 255, 0.1);
-  
-  /* Typography */
-  --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
-  --font-mono: 'JetBrains Mono', 'Fira Code', 'Courier New', monospace;
+  --bg: #ffffff;
+  --surface: #ffffff;
+  --surface-muted: #f6f6f6;
+  --ink: #202541;
+  --text: #696969;
+  --text-faint: #70707c;
+  --line: #e2e3ea;
+  --line-strong: #80869b;
+  --primary: #255ad7;
+  --on-primary: #ffffff;
+  --primary-soft: #edf4ff;
+  --accent: #ff7924;
+  --code-bg: #0b1020;
+  --code-comment: #9a9684;
+  --code-ink: #d6d9e5;
+  --code-line: rgba(255, 255, 255, 0.2);
+  --code-line-soft: rgba(255, 255, 255, 0.1);
+  --highlight-bg: #fff1a8;
+  --highlight-ink: #202541;
+  --danger: #b42318;
+  --shadow-card: 0 1px 2px rgba(0, 0, 0, 0.04);
+  --font-sans: 'Inter Tight', 'PingFang TC', 'Noto Sans TC', 'Microsoft JhengHei', system-ui, sans-serif;
+  --font-mono: 'Geist Mono', ui-monospace, 'SF Mono', Menlo, monospace;
+  --radius-sm: 8px;
+  --radius-md: 14px;
+  --container: 86rem;
+  color-scheme: light;
+
+  /* 舊變數名稱的暫時別名：尚未改版的頁面仍引用，待移除 Bootstrap CSS 時一併刪除 */
+  --bg-main: var(--bg);
+  --bg-surface: var(--surface);
+  --accent-cyan: var(--primary);
+  --glass-border: var(--line);
+  --glass-blur: none;
 }
 
-/* Global Transitions */
-* {
-  transition: background-color 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
+:root[data-theme="dark"] {
+  --bg: #0b1020;
+  --surface: #0f1730;
+  --surface-muted: #121a33;
+  --ink: #e8eaf2;
+  --text: #a3a8bc;
+  --text-faint: #8a90aa;
+  --line: #232b47;
+  --line-strong: #5a6690;
+  --primary: #5b8cff;
+  --on-primary: #0b1020;
+  --primary-soft: rgba(91, 140, 255, 0.12);
+  --accent: #ff8f4a;
+  --code-bg: #070b17;
+  --highlight-bg: #5b4a00;
+  --highlight-ink: #fff4c2;
+  --danger: #ff8a80;
+  --shadow-card: none;
+  color-scheme: dark;
 }
 
-/* Custom Scrollbar */
+/* 最小 reset：Bootstrap Reboot 在移除前仍載入，這裡匯入在其後，讓版面不依賴 Reboot */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  background-color: var(--bg);
+  color: var(--text);
+  font-family: var(--font-sans);
+  line-height: 1.75;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  margin: 0 0 0.5em;
+  color: var(--ink);
+  line-height: 1.3;
+}
+
+p {
+  margin: 0 0 1em;
+}
+
+a {
+  color: inherit;
+}
+
+img {
+  max-width: 100%;
+}
+
+table {
+  border-collapse: collapse;
+}
+
+button,
+input {
+  font: inherit;
+}
+
+:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+}
+
+/* 只在首次繪製後才開色彩過渡 */
+html[data-theme-ready] body,
+html[data-theme-ready] .surface {
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
 ::-webkit-scrollbar {
   width: 8px;
+  height: 8px;
 }
 ::-webkit-scrollbar-track {
-  background: var(--bg-main);
+  background: var(--bg);
 }
 ::-webkit-scrollbar-thumb {
-  background: #333;
+  background: var(--line-strong);
   border-radius: 4px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: var(--accent-cyan);
+  background: var(--primary);
 }

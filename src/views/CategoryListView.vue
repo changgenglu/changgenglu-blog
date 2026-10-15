@@ -3,13 +3,13 @@
     <div class="search-section mb-5">
       <SearchInput v-model:modelValue="searchText" @search="handleSearch" placeholder="在此分類中搜尋..." ></SearchInput>
     </div>
-    <h2 class="text-center my-4 text-light">{{ categoryName }}</h2>
+    <h2 class="text-center my-4 title-ink">{{ categoryName }}</h2>
     <div class="row">
       <div v-for="(item, index) in markdownCards" :key="index" :class="{ 'col-6': !isMobile }">
         <ArticleCard :item="item" :isMobile="isMobile" />
       </div>
       <div v-show="files.length === 0">
-        <div class="h2 text-center m-5 text-light">
+        <div class="h2 text-center m-5 title-ink">
           查無資料
         </div>
       </div>
@@ -33,7 +33,7 @@
     </ul>
     
     <div class="text-center mt-4 mb-5">
-        <router-link to="/" class="btn btn-outline-light">回分類首頁</router-link>
+        <router-link to="/" class="btn btn-ghost">回分類首頁</router-link>
     </div>
   </div>
 </template>
@@ -134,19 +134,45 @@ export default {
 </script>
 
 <style scoped>
+.title-ink {
+  color: var(--ink);
+}
+
+.btn-ghost {
+  background: transparent;
+  border: 1px solid var(--line-strong);
+  color: var(--ink);
+  border-radius: var(--radius-sm);
+}
+
+.btn-ghost:hover {
+  background: var(--primary-soft);
+  border-color: var(--primary);
+  color: var(--primary);
+}
+
 .pagination {
   padding: 0;
   justify-content: center;
-  --bs-pagination-color: rgb(116, 116, 116);
-  --bs-pagination-hover-color: white;
-  --bs-pagination-focus-color: white;
-  --bs-pagination-bg: none;
-  --bs-pagination-border-color: none;
-  --bs-pagination-hover-bg: none;
-  --bs-pagination-active-color: #fff;
-  --bs-pagination-focus-color: none;
-  --bs-pagination-focus-bg: none;
-  --bs-pagination-focus-box-shadow: none;
-  --bs-pagination-active-bg: none;
+}
+
+.pagination .page-link {
+  background: var(--surface);
+  border: 1px solid var(--line-strong);
+  color: var(--text);
+  margin: 0 4px;
+  border-radius: var(--radius-sm);
+}
+
+.pagination .page-link:hover {
+  background: var(--primary-soft);
+  border-color: var(--primary);
+  color: var(--primary);
+}
+
+.pagination .page-item.active .page-link {
+  background: var(--primary);
+  border-color: var(--primary);
+  color: var(--on-primary);
 }
 </style>

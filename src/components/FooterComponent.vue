@@ -1,12 +1,8 @@
 <template>
-  <footer class="py-4 pb-1 footer w-100">
-    <div class="container-fluid">
-      <div class="d-flex align-items-center justify-content-center small">
-        <div class="text-muted">
-          <span>powered by: </span>
-          <a href="https://github.com/changgenglu" class="fst-italic"> changgenglu</a>
-        </div>
-      </div>
+  <footer class="site-footer">
+    <div class="grid-paper site-footer-inner">
+      <span>powered by: </span>
+      <a href="https://github.com/changgenglu">changgenglu</a>
     </div>
   </footer>
 </template>
@@ -18,14 +14,19 @@ export default {
 </script>
 
 <style>
-@import url('https://fonts.googleapis.com/css2?family=Borel&display=swap');
-
-.text-muted>span {
-  color: #dddddd;
+.site-footer {
+  border-top: 1px solid var(--line);
+  color: var(--text);
+  font-family: var(--font-mono);
+  font-size: 0.85rem;
 }
 
-.text-muted>a {
-  font-family: 'Borel', cursive;
-  font-size: 1.5rem;
+.site-footer-inner {
+  padding: 20px 24px;
+  text-align: center;
+}
+
+.site-footer a {
+  color: var(--primary);
 }
 </style>

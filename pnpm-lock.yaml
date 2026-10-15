@@ -5,9 +5,6 @@ settings:
   excludeLinksFromLockfile: false
 
 dependencies:
-  '@popperjs/core':
-    specifier: ^2.11.8
-    version: 2.11.8
   babel-runtime:
     specifier: ^6.26.0
     version: 6.26.0

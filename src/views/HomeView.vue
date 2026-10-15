@@ -1,70 +1,43 @@
 <template>
-  <div class="container-lg py-5">
-    <div class="search-section mb-5">
-      <SearchInput v-model:modelValue="searchText" @search="handleSearch"></SearchInput>
-    </div>
+  <div class="home">
+    <section class="hero grid-paper">
+      <p class="hero-eyebrow">[ NOTES ]</p>
+      <h1 class="hero-title">開發筆記</h1>
+      <p class="hero-desc">PHP、開發工具、AI 工作流與系統相關的實作紀錄與踩坑整理。</p>
+    </section>
+    <div class="stripe" aria-hidden="true"></div>
 
-    <!-- Categories View -->
-    <div v-show="!searchText">
-      <div class="section-header d-flex align-items-center mb-4">
-        <div class="header-line"></div>
-        <h4 class="text-light mx-3 mb-0">文章分類</h4>
-        <div class="header-line flex-grow-1"></div>
-      </div>
-      
-      <div class="row">
-        <div v-for="(category, index) in categories" :key="index" :class="{ 'col-md-4': !isMobile, 'col-12': isMobile }">
-          <router-link :to="`/category/${category}`" class="text-decoration-none">
-            <div class="card mb-4 category-card card-glass">
-              <div class="card-body d-flex flex-column justify-content-center align-items-center py-5">
-                <div class="category-icon mb-3">
-                  <span class="icon-orb"></span>
-                </div>
-                <h3 class="card-title text-light mb-2">{{ category }}</h3>
-                <span class="category-count">{{ getCategoryCount(category) }} ARTICLES</span>
-              </div>
-            </div>
-          </router-link>
-        </div>
-      </div>
-    </div>
-
-    <!-- Search Results View -->
-    <div v-show="searchText">
-      <div class="section-header d-flex align-items-center mb-4">
-        <div class="header-line header-line-warning"></div>
-        <h4 class="text-light mx-3 mb-0">搜尋結果</h4>
-        <div class="header-line header-line-warning flex-grow-1"></div>
+    <div class="grid-paper home-body">
+      <div class="search-section">
+        <SearchInput v-model:modelValue="searchText" @search="handleSearch"></SearchInput>
       </div>
 
-      <div class="row">
-        <div v-for="(item, index) in markdownCards" :key="index" :class="{ 'col-md-6': !isMobile }">
+      <CategoryChips v-model="activeCategory" :categories="categories" :counts="categoryCounts" />
+
+      <div class="card-grid">
+        <div v-for="(item, index) in markdownCards" :key="index">
           <ArticleCard :item="item" :isMobile="isMobile" :showCategory="true" />
         </div>
-        <div v-show="searchResults.length === 0">
-          <div class="h2 text-center m-5 text-light opacity-50">
-            查無相符的筆記
-          </div>
-        </div>
+      </div>
+      <div v-show="filteredResults.length === 0" class="empty-state">
+        查無相符的筆記
       </div>
 
       <!-- pagination -->
-      <nav v-show="searchResults.length !== 0 && paginationPageNum.length > 1">
-        <ul class="pagination custom-pagination mt-4">
-          <li class="page-item" :class="{ disabled: currentPage === 1 }">
-            <a class="page-link" href="#" @click.prevent="setPage(currentPage - 1)">&laquo;</a>
+      <nav class="pagination-nav" aria-label="分頁" v-show="filteredResults.length !== 0 && paginationPageNum.length > 1">
+        <ul class="pager">
+          <li :class="{ disabled: currentPage === 1 }">
+            <a class="pager-link" href="#" aria-label="上一頁" @click.prevent="setPage(currentPage - 1)">&laquo;</a>
           </li>
-          <li class="page-item" :class="{ 'active': (currentPage === n) }" v-for="(n, index) in paginationPageNum"
-            :key="index" @click.prevent="setPage(n)">
-            <a class="page-link" href="#">{{ n }}</a>
+          <li :class="{ active: currentPage === n }" v-for="(n, index) in paginationPageNum" :key="index">
+            <a class="pager-link" href="#" :aria-current="currentPage === n ? 'page' : null" @click.prevent="setPage(n)">{{ n }}</a>
           </li>
-          <li class="page-item" :class="{ disabled: currentPage === totalPage }">
-            <a class="page-link" href="#" @click.prevent="setPage(currentPage + 1)">&raquo;</a>
+          <li :class="{ disabled: currentPage === totalPage }">
+            <a class="pager-link" href="#" aria-label="下一頁" @click.prevent="setPage(currentPage + 1)">&raquo;</a>
           </li>
         </ul>
       </nav>
     </div>
-
   </div>
 </template>
 
@@ -72,16 +45,19 @@
 import AllMyArticle from '../assets/fileNames.json';
 import ArticleCard from '@/components/ArticleCard.vue';
 import SearchInput from '@/components/SearchInput.vue'; // New import
+import CategoryChips from '@/components/CategoryChips.vue';
 import { search } from '@/utils/searchEngine'; // New import
+import { ALL, filterByCategory, listCategories } from '@/utils/articleFilter';
 
 export default {
   name: 'HomeView',
-  components: { ArticleCard, SearchInput }, // Updated components
+  components: { ArticleCard, SearchInput, CategoryChips }, // Updated components
   data() {
     return {
       allArticlesMeta: AllMyArticle, // Store for categories
       CardNum: 6,
       currentPage: 1,
+      activeCategory: ALL,
       searchText: '',
       searchResults: [], // Will store MiniSearch results
       latestSearchId: 0,
@@ -90,6 +66,9 @@ export default {
     }
   },
   watch: {
+    activeCategory() {
+      this.currentPage = 1;
+    },
     // 監聽路由參數變化，以實現 URL 驅動搜尋
     '$route.query.q': {
       handler(newQuery) {
@@ -103,8 +82,16 @@ export default {
   },
   computed: {
     categories() {
-        const cats = new Set(this.allArticlesMeta.map(f => f.category));
-        return Array.from(cats).sort();
+      return listCategories(this.allArticlesMeta);
+    },
+    categoryCounts() {
+      const counts = {};
+      this.allArticlesMeta.forEach(f => { counts[f.category] = (counts[f.category] || 0) + 1; });
+      return counts;
+    },
+    // 資料流：搜尋結果 → 分類篩選 → 分頁
+    filteredResults() {
+      return filterByCategory(this.searchResults, this.activeCategory);
     },
     paginationPageNum() {
       let pageCount = [];
@@ -122,7 +109,7 @@ export default {
       return pageCount;
     },
     totalPage() {
-      return Math.ceil(this.searchResults.length / this.CardNum)
+      return Math.ceil(this.filteredResults.length / this.CardNum)
     },
     pageStart() {
       return (this.currentPage - 1) * this.CardNum
@@ -131,7 +118,7 @@ export default {
       return this.currentPage * this.CardNum
     },
     markdownCards() {
-      const currentCards = this.searchResults.slice(this.pageStart, this.pageEnd);
+      const currentCards = this.filteredResults.slice(this.pageStart, this.pageEnd);
       // 將 MiniSearch 的結果映射回原始的 AllMyArticle 格式
       return currentCards.map(result => {
         const originalArticle = this.allArticlesMeta.find(item => item.path === result.id);
@@ -188,9 +175,6 @@ export default {
         this.$router.replace({ query: query ? { q: query } : {} }).catch(()=>{}); // catch navigation error
       }
     },
-    getCategoryCount(category) {
-        return this.allArticlesMeta.filter(f => f.category === category).length;
-    },
     setPage(page) {
       if (page <= 0 || page > this.totalPage) { return }
       this.currentPage = page
@@ -216,79 +200,106 @@ export default {
 </script>
 
 <style scoped>
-/* Search related styles moved to SearchInput.vue */
-
-.section-header .header-line {
-  height: 1px;
-  background: linear-gradient(90deg, transparent, var(--accent-cyan));
-  width: 50px;
+.hero {
+  padding: 56px 24px 40px;
 }
 
-.section-header .header-line-warning {
-  background: linear-gradient(90deg, transparent, #ffc107);
-}
-
-.category-card {
-  text-align: center;
-  transition: all 0.3s;
-  border-radius: 20px !important;
-}
-
-.category-card:hover {
-  transform: scale(1.03);
-  border-color: var(--accent-cyan);
-}
-
-.icon-orb {
-  display: block;
-  width: 12px;
-  height: 12px;
-  background: var(--accent-cyan);
-  border-radius: 50%;
-  box-shadow: 0 0 15px var(--accent-cyan);
-  margin: 0 auto;
-}
-
-.category-count {
+.hero-eyebrow {
+  margin: 0 0 12px;
   font-family: var(--font-mono);
-  font-size: 0.75rem;
-  color: #888;
-  letter-spacing: 0.1em;
+  font-size: 0.85rem;
+  color: var(--primary);
+  letter-spacing: 0.08em;
 }
 
-.card-glass {
-  background: var(--bg-surface);
-  backdrop-filter: var(--glass-blur);
-  border: 1px solid var(--glass-border);
+.hero-title {
+  margin: 0 0 12px;
+  font-size: clamp(2rem, 6vw, 3.25rem);
+  font-weight: 600;
+  line-height: 1.2;
+  color: var(--ink);
 }
 
-.custom-pagination {
+.hero-desc {
+  margin: 0;
+  max-width: 40rem;
+  font-size: 1.05rem;
+  color: var(--text);
+}
+
+.home-body {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  padding: 32px 24px 48px;
+}
+
+.card-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 20px;
+}
+
+.card-grid > div {
+  min-width: 0;
+}
+
+.empty-state {
+  padding: 48px 0;
+  text-align: center;
+  font-size: 1.25rem;
+  color: var(--text);
+}
+
+.pager {
+  display: flex;
   justify-content: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
 }
 
-.custom-pagination .page-link {
-  background: transparent;
-  border: 1px solid var(--glass-border);
-  color: #888;
-  margin: 0 5px;
-  border-radius: 8px;
-  transition: all 0.3s;
+.pager-link {
+  display: inline-block;
+  min-width: 40px;
+  padding: 6px 12px;
+  text-align: center;
+  text-decoration: none;
+  color: var(--text);
+  background: var(--surface);
+  border: 1px solid var(--line-strong);
+  border-radius: var(--radius-sm);
 }
 
-.custom-pagination .page-link:hover {
-  color: var(--accent-cyan);
-  border-color: var(--accent-cyan);
-  background: rgba(0, 242, 255, 0.05);
+.pager-link:hover {
+  border-color: var(--primary);
+  color: var(--primary);
 }
 
-.custom-pagination .active .page-link {
-  background: var(--accent-cyan);
-  border-color: var(--accent-cyan);
-  color: black;
+.pager .active .pager-link {
+  background: var(--primary);
+  border-color: var(--primary);
+  color: var(--on-primary);
 }
 
-.custom-pagination .disabled .page-link {
-  opacity: 0.3;
+.pager .disabled .pager-link {
+  opacity: 0.4;
   cursor: not-allowed;
+}
+
+@media (max-width: 767.98px) {
+  .hero {
+    padding: 36px 16px 28px;
+  }
+
+  .home-body {
+    padding: 24px 16px 40px;
+  }
+
+  .card-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
 }
 </style>

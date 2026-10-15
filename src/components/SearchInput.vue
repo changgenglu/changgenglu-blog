@@ -13,7 +13,6 @@
       :placeholder="placeholder"
       class="search-input"
     >
-    <div class="search-glow"></div>
   </div>
 </template>
 
@@ -74,26 +73,24 @@ export default {
 .search-container {
   position: relative;
   max-width: 600px;
-  margin: 0 auto;
 }
 
 .search-input {
   width: 100%;
-  padding: 16px 20px 16px 50px;
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 30px;
-  color: white;
-  font-size: 1.1rem;
-  outline: none;
-  backdrop-filter: blur(10px);
-  transition: all 0.3s;
+  padding: 14px 20px 14px 50px;
+  background: var(--surface);
+  border: 1px solid var(--line-strong);
+  border-radius: var(--radius-sm);
+  color: var(--ink);
+  font-size: 1.05rem;
+}
+
+.search-input::placeholder {
+  color: var(--text-faint);
 }
 
 .search-input:focus {
-  border-color: var(--accent-cyan);
-  background: rgba(255, 255, 255, 0.08);
-  box-shadow: 0 0 15px rgba(0, 242, 255, 0.2);
+  border-color: var(--primary);
 }
 
 .search-icon {
@@ -101,23 +98,6 @@ export default {
   left: 18px;
   top: 50%;
   transform: translateY(-50%);
-  color: #888;
-}
-
-.search-input:focus + .search-glow {
-  opacity: 1;
-}
-
-.search-glow {
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  border-radius: 30px;
-  box-shadow: 0 0 20px rgba(0, 242, 255, 0.1);
-  pointer-events: none;
-  opacity: 0;
-  transition: opacity 0.3s;
+  color: var(--text);
 }
 </style>

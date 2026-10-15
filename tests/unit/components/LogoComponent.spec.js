@@ -45,7 +45,7 @@ describe('LogoComponent.vue', () => {
 
   it('應正確渲染 Logo 和標題', () => {
     expect(wrapper.find('img.myLogo').exists()).toBe(true);
-    expect(wrapper.find('.fs-1').text()).toBe('Changgenglu');
+    expect(wrapper.find('.site-title').text()).toBe('Changgenglu');
   });
 
   it('mounted 時應呼叫 checkDevice 並監聽 resize 事件', () => {

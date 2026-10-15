@@ -1,18 +1,20 @@
 <template>
-  <div class="logoBag">
-    <div :class="{ 'w-25 m-auto': isMobile }">
-      <router-link to="/">
+  <header class="site-header">
+    <div class="grid-paper site-header-inner" :class="{ 'is-mobile': isMobile }">
+      <router-link to="/" class="brand">
         <img alt="my logo" src="../assets/profile.jpg" class="myLogo">
-        <div class="fs-1">
-          Changgenglu
-        </div>
+        <span class="site-title">Changgenglu</span>
       </router-link>
+      <ThemeToggle />
     </div>
-  </div>
+  </header>
 </template>
 
 <script>
+import ThemeToggle from '@/components/ThemeToggle.vue';
+
 export default {
+  components: { ThemeToggle },
   data() {
     return {
       isMobile: false,
@@ -34,22 +36,41 @@ export default {
 </script>
 
 <style>
+.site-header {
+  border-bottom: 1px solid var(--line);
+  background-color: var(--bg);
+}
+
+.site-header-inner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 24px;
+}
+
+.site-header-inner.is-mobile {
+  padding: 10px 16px;
+}
+
+.site-header .brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  color: var(--ink);
+  text-decoration: none;
+}
+
 .myLogo {
   border-radius: 9999px;
-  height: 180px;
-  width: 180px;
+  height: 36px;
+  width: 36px;
+  object-fit: cover;
 }
 
-.logoBag {
-  text-align: center;
-  padding-top: 5vh;
-  padding-bottom: 2vh;
-  background-color: rgb(14, 20, 20);
-}
-
-.logoBag a {
-  color: #dddddd;
-  font-family: Gambarino, serif;
-  font-weight: bold;
+.site-title {
+  font-family: var(--font-mono);
+  font-weight: 500;
+  font-size: 0.95rem;
+  letter-spacing: 0.02em;
 }
 </style>
