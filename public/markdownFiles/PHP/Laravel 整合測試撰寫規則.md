@@ -2,15 +2,15 @@
 
 > 整理 Laravel 專案以 PHPUnit 撰寫 API 整合測試的檔案結構、命名、mock 策略與資料庫選擇原則，可直接交給 AI 當撰寫規範。以獨立腳本做整合測試的做法見〈Laravel 腳本式 API 整合測試撰寫說明〉。整理於 2026 年。
 
-### 概述
+## 概述
 
 - 需遵守整合測試的精神。
 - 若撰寫的 api 中有嚴重違反 SOLID 原則時，可以簡單提出，讓我評估後續的優化方向。
 - 需遵守 coding style 的規範
 
-### 撰寫風格內容總結
+## 撰寫風格內容總結
 
-#### 撰寫標準
+### 撰寫標準
 
 1. **檔案結構**：每個 API 方法獨立檔案，命名 `{MethodName}Test.php`
 2. **檔案命名**：使用 `Test.php`（非 `IntegrationTest.php`）
@@ -27,7 +27,7 @@
 13. **資料修改**：優先修改現有資料而非新建
 14. **結構分隔**：使用 `// ============================================================================` 分隔不同類型的測試區塊（如測試生命週期、參數驗證、業務邏輯等）
 
-#### 測試覆蓋範圍
+### 測試覆蓋範圍
 
 每個測試檔案須包含：
 - **基本驗證**：缺少 header、無效 header
@@ -35,7 +35,7 @@
 - **業務邏輯**：存在性驗證、狀態驗證
 - **成功案例**：正常操作流程
 
-#### 檔案結構範例
+### 檔案結構範例
 
 ```
 tests/Integration/ControllerName/
@@ -44,7 +44,7 @@ tests/Integration/ControllerName/
 
 **結構原則**：每個檔案專注單一 API 方法，提高可維護性
 
-#### 測試結構模板
+### 測試結構模板
 
 **測試常數**：定義 `METHOD`、`URL` 常數，使用 Laravel HTTP 狀態碼常數
 
@@ -104,7 +104,7 @@ $response->assertStatus(Response::HTTP_OK)
     ->assertJson($expectedResult);
 ```
 
-#### 服務測試模板
+### 服務測試模板
 
 **依賴注入測試**：
 ```php
@@ -183,7 +183,7 @@ class ExampleTest extends TestCase {
 }
 ```
 
-#### 測試原則
+### 測試原則
 
 1. **環境設定**：在 `setUp()` 中初始化 Mock 服務實例，測試方法中設定行為
 2. **服務識別**：優先依賴注入，減少 `app()` 直接呼叫
@@ -192,7 +192,7 @@ class ExampleTest extends TestCase {
 5. **錯誤處理**：使用專案定義的錯誤碼驗證
 6. **資源清理**：測試結束清理 Mock，避免記憶體洩漏
 
-### Service Mock 注意事項
+## Service Mock 注意事項
 
 由於歷史因素，Service 的實作與呼叫方式並非全面採用依賴注入 (Dependency Injection)。
 
@@ -209,7 +209,7 @@ class ExampleTest extends TestCase {
   3. **整合測試優先**：
      針對無法 Mock 的 Service，建議採用**真實資料庫/Redis** 的整合測試策略，而非單元測試。確保 `setUp` 時資料庫與快取是乾淨的，並建立必要的測試資料。
 
-### 常見陷阱與解決方案 (Common Pitfalls)
+## 常見陷阱與解決方案 (Common Pitfalls)
 
 **1. Middleware 驗證依賴**
 後台 API（`/api/backend/*`）會驗證站台識別標頭 `x-pid`。測試前**必須**在 `setUp()` 建立基礎資料，否則會拋出 500 錯誤：
@@ -230,11 +230,11 @@ $response->assertStatus(Response::HTTP_OK)
 \Log::channel('single')->info('Debug message');
 ```
 
-### 資料庫選擇策略
+## 資料庫選擇策略
 
 為了平衡測試速度與真實環境一致性，整合測試應根據以下原則選擇資料庫：
 
-#### 1. 預設使用 SQLite
+### 1. 預設使用 SQLite
 大多數標準的 Eloquent 操作、關聯查詢與業務邏輯驗證，應預設使用 SQLite（In-Memory）以獲得最快的回饋速度。
 
 - **適用場景**：
@@ -242,7 +242,7 @@ $response->assertStatus(Response::HTTP_OK)
   - Eloquent 關聯 (`with`, `load`)
   - 一般業務邏輯驗證
 
-#### 2. 必須使用 MySQL 的情境
+### 2. 必須使用 MySQL 的情境
 若測試涉及以下特性，SQLite 可能無法模擬或行為不一致，**必須**使用 MySQL 並標記 `skipIfNotMySQL`：
 
 - **特定錯誤代碼 (Error Codes)**：
@@ -256,7 +256,7 @@ $response->assertStatus(Response::HTTP_OK)
   - 測試 Unique Constraint 或 Foreign Key 違規的具體錯誤訊息。
   - 測試 Enum 欄位的嚴格型別檢查。
 
-#### 3. 實作方式
+### 3. 實作方式
 
 若測試案例依賴 MySQL，請在測試類別中使用 `DatabaseSpecificTestTrait` 並在測試方法開頭呼叫：
 
@@ -276,7 +276,7 @@ class GameListTest extends TestCase
 }
 ```
 
-#### 4. 決策檢查表 (Checklist)
+### 4. 決策檢查表 (Checklist)
 
 在撰寫測試前，請依序確認：
 1. **是否使用 Raw SQL？** (是 -> MySQL)

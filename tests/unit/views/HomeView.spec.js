@@ -166,6 +166,22 @@ describe('HomeView.vue', () => {
     expect(mockRouter.replace).toHaveBeenCalledWith({ query: { q: 'JavaScript' } });
   });
 
+  it('快速連續搜尋時，只套用最新一次查詢的結果', async () => {
+    let resolveSlow;
+    const slow = new Promise((resolve) => { resolveSlow = resolve; });
+    const fast = Promise.resolve([{ id: 'JS/article2.md', title: 'JavaScript 進階', path: 'JS/article2.md', category: 'JavaScript', score: 1 }]);
+    mockSearch.mockReturnValueOnce(slow).mockReturnValueOnce(fast);
+
+    wrapper.vm.handleSearch('Vue');
+    wrapper.vm.handleSearch('JavaScript');
+    await flushPromises();
+    expect(wrapper.vm.searchResults.map((r) => r.id)).toEqual(['JS/article2.md']);
+
+    resolveSlow([{ id: 'Vue/article1.md', title: 'Vue.js 基礎', path: 'Vue/article1.md', category: 'Vue', score: 1 }]);
+    await flushPromises();
+    expect(wrapper.vm.searchResults.map((r) => r.id)).toEqual(['JS/article2.md']);
+  });
+
   it('當 searchText 為空時，應顯示所有文章且 URL 查詢參數為空', async () => {
     // Simulate searching for something first
     mockRoute.query.q = 'test'; // Manually set query for initial state

@@ -84,6 +84,7 @@ export default {
       currentPage: 1,
       searchText: '',
       searchResults: [], // Will store MiniSearch results
+      latestSearchId: 0,
       isMobile: false,
       paginationLength: 5
     }
@@ -160,15 +161,28 @@ export default {
       this.isMobile = window.innerWidth < 768;
     },
     // 處理搜尋邏輯
-    handleSearch(query) {
+    async handleSearch(query) {
       this.currentPage = 1; // 重置分頁
-      this.searchResults = query ? search(query) : this.allArticlesMeta.map(item => ({
-        id: item.path, 
-        title: item.name, 
-        category: item.category,
-        path: item.path
-      })); // 使用 MiniSearch
-      
+      // 搜尋為非同步，快速連續輸入時只套用最新一次查詢的結果
+      const requestId = ++this.latestSearchId;
+      if (!query) {
+        this.searchResults = this.allArticlesMeta.map(item => ({
+          id: item.path,
+          title: item.name,
+          category: item.category,
+          path: item.path
+        }));
+      } else {
+        try {
+          const results = await search(query);
+          if (requestId !== this.latestSearchId) { return; }
+          this.searchResults = results;
+        } catch (error) {
+          if (requestId !== this.latestSearchId) { return; }
+          this.searchResults = []; // 索引下載失敗時顯示無結果
+        }
+      }
+
       // 同步 URL query 參數，避免重複導航
       if ((query || '') !== (this.$route.query.q || '')) {
         this.$router.replace({ query: query ? { q: query } : {} }).catch(()=>{}); // catch navigation error

@@ -1,7 +1,7 @@
 import MiniSearch from 'minisearch';
-import searchIndexData from '../assets/searchIndex.json'; // 載入預先生成的索引資料
 
 let miniSearch = null;
+let initPromise = null;
 
 const CJK = '\\p{Script=Han}\\p{Script=Hiragana}\\p{Script=Katakana}\\p{Script=Hangul}';
 // 一段連續中日韓文字，或一段連續的其他字母／數字
@@ -34,44 +34,50 @@ function fuzzyFor(term) {
   return CJK_PATTERN.test(term) ? 0 : 0.2;
 }
 
-// 初始化 MiniSearch（同步建立；app 內沒有任何地方會預先呼叫，由 search() 首次使用時觸發）
+// 索引約 900 KiB，靜態 import 會被打進主 bundle 拖慢首頁；
+// 改成首次搜尋才動態載入，webpack 會把它切成獨立 chunk。
+// 並行的首次呼叫共用同一個 promise，載入失敗時清掉，下次搜尋可重試。
 function ensureInitialized() {
-  if (miniSearch) {
-    return; // 已經初始化過了
+  if (!initPromise) {
+    initPromise = import('../assets/searchIndex.json')
+      .then((module) => {
+        const instance = new MiniSearch({
+          fields: ['title', 'content', 'category'], // 搜尋欄位
+          storeFields: ['title', 'path', 'category'], // 回傳欄位
+          tokenize,
+          searchOptions: {
+            boost: { title: 2, category: 1, content: 1 }, // 標題和分類權重較高
+            tokenize,
+            fuzzy: fuzzyFor, // 容錯率（中文不啟用）
+            prefix: true, // 支援前綴搜尋
+            combineWith: 'AND', // 預設為 AND 邏輯
+          }
+        });
+        try {
+          instance.addAll(module.default);
+        } catch (error) {
+          // 索引建立失敗時保留空索引，搜尋回傳空結果
+        }
+        miniSearch = instance;
+      })
+      .catch((error) => {
+        initPromise = null;
+        throw error;
+      });
   }
-
-  miniSearch = new MiniSearch({
-    fields: ['title', 'content', 'category'], // 搜尋欄位
-    storeFields: ['title', 'path', 'category'], // 回傳欄位
-    tokenize,
-    searchOptions: {
-      boost: { title: 2, category: 1, content: 1 }, // 標題和分類權重較高
-      tokenize,
-      fuzzy: fuzzyFor, // 容錯率（中文不啟用）
-      prefix: true, // 支援前綴搜尋
-      combineWith: 'AND', // 預設為 AND 邏輯
-    }
-  });
-
-  // 載入資料並建立索引
-  try {
-    miniSearch.addAll(searchIndexData);
-    // console.log('MiniSearch 索引已建立完成。');
-  } catch (error) {
-    // console.error('MiniSearch 索引建立失敗:', error);
-  }
+  return initPromise;
 }
 
 async function initSearch() {
-  ensureInitialized();
+  await ensureInitialized();
 }
 
-// 執行搜尋
-function search(query) {
+// 執行搜尋（首次呼叫會先下載索引）
+async function search(query) {
   if (!query) {
     return [];
   }
-  ensureInitialized();
+  await ensureInitialized();
   return miniSearch.search(query);
 }
 

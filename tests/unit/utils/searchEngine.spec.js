@@ -72,7 +72,7 @@ describe('searchEngine', () => {
     const mockSearchResults = [{ id: 'article1', score: 0.5 }];
     mockMiniSearchInstance.search.mockReturnValue(mockSearchResults);
 
-    const results = searchModule.search(testQuery);
+    const results = await searchModule.search(testQuery);
 
     expect(mockMiniSearchInstance.search).toHaveBeenCalledTimes(1);
     expect(mockMiniSearchInstance.search).toHaveBeenCalledWith(testQuery);
@@ -87,17 +87,37 @@ describe('searchEngine', () => {
     mockMiniSearchInstance.search.mockReturnValue(mockSearchResults);
     const freshModule = await import('@/utils/searchEngine');
 
-    const results = freshModule.search('Vue');
+    const results = await freshModule.search('Vue');
 
     expect(MockMiniSearchConstructorSpy).toHaveBeenCalledTimes(1);
     expect(mockMiniSearchInstance.addAll).toHaveBeenCalledWith(mockSearchIndexData);
     expect(results).toEqual(mockSearchResults);
   });
 
+  it('並行的首次 search 共用同一次索引初始化', async () => {
+    vi.resetModules();
+    MockMiniSearchConstructorSpy.mockClear();
+    mockMiniSearchInstance.addAll.mockClear();
+    mockMiniSearchInstance.search.mockReturnValue([{ id: 'article1', score: 1 }]);
+    const freshModule = await import('@/utils/searchEngine');
+
+    const [r1, r2] = await Promise.all([freshModule.search('Vue'), freshModule.search('Router')]);
+
+    expect(MockMiniSearchConstructorSpy).toHaveBeenCalledTimes(1);
+    expect(mockMiniSearchInstance.addAll).toHaveBeenCalledTimes(1);
+    expect(r1).toEqual([{ id: 'article1', score: 1 }]);
+    expect(r2).toEqual(r1);
+  });
+
   it('search 應該在查詢為空時返回空陣列', async () => {
-    const results = searchModule.search('');
+    const results = await searchModule.search('');
     expect(results).toEqual([]);
     expect(mockMiniSearchInstance.search).not.toHaveBeenCalled(); // MiniSearch.search should not be called with empty query
+  });
+
+  it('search 回傳 Promise', async () => {
+    mockMiniSearchInstance.search.mockReturnValue([]);
+    expect(searchModule.search('Vue')).toBeInstanceOf(Promise);
   });
 
   it('initSearch 應該處理索引建立失敗', async () => {
