@@ -20,20 +20,26 @@ const { stripMarkdown } = require('./src/utils/textFormatter'); // NEW IMPORT
 function getFileGitDate(filePath, deps = { exec: execSync, stat: fs.statSync }) {
   const { exec, stat } = deps;
   try {
-    // %cI: committer date, strict ISO 8601 format
+    // %cI: committer date, strict ISO 8601 format；%x00 作為每筆提交的分隔
     // --follow：檔案被搬移或改名後仍沿用改名前的提交歷史
-    const stdout = exec(`git log -1 --follow --format=%cI -- "${filePath}"`, {
+    // --name-status：用來辨識「純搬移／複製（R100／C100，內容完全相同）」的提交
+    const stdout = exec(`git log --follow --format=%x00%cI --name-status -- "${filePath}"`, {
       encoding: "utf8",
       stdio: ["pipe", "pipe", "ignore"],
     });
 
     if (stdout) {
-      const dateStr = stdout.trim();
-      if (dateStr) {
-        const date = new Date(dateStr);
-        if (!isNaN(date.getTime())) {
-          return date;
-        }
+      // 由新到舊；每筆為「日期列 + 狀態列」
+      const commits = stdout
+        .split("\0")
+        .map((chunk) => chunk.split("\n").map((l) => l.trim()).filter(Boolean))
+        .filter((lines) => lines.length > 0)
+        .map(([dateStr, status = ""]) => ({ date: new Date(dateStr), status }));
+
+      const isPureMove = (c) => /^[RC]100(\s|$)/.test(c.status);
+      const picked = commits.find((c) => !isPureMove(c)) || commits[0];
+      if (picked && !isNaN(picked.date.getTime())) {
+        return picked.date;
       }
     }
   } catch (e) {

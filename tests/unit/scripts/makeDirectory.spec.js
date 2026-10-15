@@ -8,38 +8,109 @@ describe('makeDirectory.js', () => {
   });
   
   describe('getFileGitDate', () => {
+    const mockStat = () => vi.fn().mockReturnValue({ mtime: new Date('2023-01-02T00:00:00Z') });
+    // 模擬 `git log --format=%x00%cI --name-status` 的輸出：每筆提交以 NUL 開頭，日期後空一行再接狀態列
+    const logOutput = (...commits) =>
+      commits.map(([date, status]) => `\0${date}\n\n${status}\n`).join('');
+
     it('should return date from git log', () => {
-      const mockExec = vi.fn().mockReturnValue('2023-01-01T00:00:00+08:00');
-      const mockStat = vi.fn();
-      
-      const date = getFileGitDate('test.md', { exec: mockExec, stat: mockStat });
+      const mockExec = vi.fn().mockReturnValue(logOutput(['2023-01-01T00:00:00+08:00', 'M\ttest.md']));
+
+      const date = getFileGitDate('test.md', { exec: mockExec, stat: mockStat() });
       expect(date.toISOString()).toBe('2022-12-31T16:00:00.000Z');
     });
 
-    it('should run git log with --follow so renamed files keep their history', () => {
-      const mockExec = vi.fn().mockReturnValue('2023-01-01T00:00:00+08:00');
-      const mockStat = vi.fn();
+    it('should run git log with --follow and --name-status so renames can be detected', () => {
+      const mockExec = vi.fn().mockReturnValue(logOutput(['2023-01-01T00:00:00+08:00', 'M\ttest.md']));
 
-      getFileGitDate('notes/test.md', { exec: mockExec, stat: mockStat });
+      getFileGitDate('notes/test.md', { exec: mockExec, stat: mockStat() });
 
       expect(mockExec).toHaveBeenCalledTimes(1);
-      expect(mockExec.mock.calls[0][0]).toBe('git log -1 --follow --format=%cI -- "notes/test.md"');
+      expect(mockExec.mock.calls[0][0]).toBe(
+        'git log --follow --format=%x00%cI --name-status -- "notes/test.md"'
+      );
+    });
+
+    it('should skip pure rename (R100) commits and use the last content change', () => {
+      const mockExec = vi.fn().mockReturnValue(
+        logOutput(
+          ['2026-10-15T10:00:00+08:00', 'R100\told/test.md\tnew/test.md'],
+          ['2026-01-26T13:34:32+08:00', 'A\told/test.md']
+        )
+      );
+
+      const date = getFileGitDate('new/test.md', { exec: mockExec, stat: mockStat() });
+      expect(date.toISOString()).toBe(new Date('2026-01-26T13:34:32+08:00').toISOString());
+    });
+
+    it('should skip pure copy (C100) commits too', () => {
+      const mockExec = vi.fn().mockReturnValue(
+        logOutput(
+          ['2026-10-15T10:00:00+08:00', 'R100\tb/test.md\tc/test.md'],
+          ['2026-03-01T09:00:00+08:00', 'C100\ta/test.md\tb/test.md'],
+          ['2026-01-26T13:34:32+08:00', 'A\ta/test.md']
+        )
+      );
+
+      const date = getFileGitDate('c/test.md', { exec: mockExec, stat: mockStat() });
+      expect(date.toISOString()).toBe(new Date('2026-01-26T13:34:32+08:00').toISOString());
+    });
+
+    it('should keep a rename that also edited content (R094)', () => {
+      const mockExec = vi.fn().mockReturnValue(
+        logOutput(
+          ['2026-10-15T10:00:00+08:00', 'R094\told/test.md\tnew/test.md'],
+          ['2026-01-26T13:34:32+08:00', 'A\told/test.md']
+        )
+      );
+
+      const date = getFileGitDate('new/test.md', { exec: mockExec, stat: mockStat() });
+      expect(date.toISOString()).toBe(new Date('2026-10-15T10:00:00+08:00').toISOString());
+    });
+
+    it('should keep a plain modification (M) as the newest content change', () => {
+      const mockExec = vi.fn().mockReturnValue(
+        logOutput(
+          ['2026-05-01T00:00:00+08:00', 'M\ttest.md'],
+          ['2026-01-26T13:34:32+08:00', 'A\ttest.md']
+        )
+      );
+
+      const date = getFileGitDate('test.md', { exec: mockExec, stat: mockStat() });
+      expect(date.toISOString()).toBe(new Date('2026-05-01T00:00:00+08:00').toISOString());
+    });
+
+    it('should fall back to the newest commit when every commit is a pure rename', () => {
+      const mockExec = vi.fn().mockReturnValue(
+        logOutput(
+          ['2026-10-15T10:00:00+08:00', 'R100\tb/test.md\tc/test.md'],
+          ['2026-03-01T09:00:00+08:00', 'R100\ta/test.md\tb/test.md']
+        )
+      );
+
+      const date = getFileGitDate('c/test.md', { exec: mockExec, stat: mockStat() });
+      expect(date.toISOString()).toBe(new Date('2026-10-15T10:00:00+08:00').toISOString());
+    });
+
+    it('should fallback to fs.stat when git output is empty', () => {
+      const mockExec = vi.fn().mockReturnValue('');
+
+      const date = getFileGitDate('test.md', { exec: mockExec, stat: mockStat() });
+      expect(date.toISOString()).toBe('2023-01-02T00:00:00.000Z');
     });
 
     it('should fallback to fs.stat if git fails', () => {
       const mockExec = vi.fn().mockImplementation(() => { throw new Error('git error'); });
-      const mockStat = vi.fn().mockReturnValue({ mtime: new Date('2023-01-02T00:00:00Z') });
-      
-      const date = getFileGitDate('test.md', { exec: mockExec, stat: mockStat });
+
+      const date = getFileGitDate('test.md', { exec: mockExec, stat: mockStat() });
       expect(date.toISOString()).toBe('2023-01-02T00:00:00.000Z');
     });
 
     it('should handle invalid date string from git log gracefully', () => {
-      const mockExec = vi.fn().mockReturnValue('invalid date string'); // Invalid date
-      const mockStat = vi.fn().mockReturnValue({ mtime: new Date('2023-01-02T00:00:00Z') }); // Fallback date
-      
-      const date = getFileGitDate('test.md', { exec: mockExec, stat: mockStat });
-      expect(date.toISOString()).toBe('2023-01-02T00:00:00.000Z'); // Should use fallback
+      const mockExec = vi.fn().mockReturnValue(logOutput(['invalid date string', 'M\ttest.md']));
+
+      const date = getFileGitDate('test.md', { exec: mockExec, stat: mockStat() });
+      expect(date.toISOString()).toBe('2023-01-02T00:00:00.000Z');
     });
   });
 
