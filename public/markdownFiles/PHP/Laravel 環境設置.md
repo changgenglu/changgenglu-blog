@@ -167,7 +167,7 @@
    顯示路徑問題的解決辦法
 
    ```terminal
-   echo 'eval "$(/opt/homebrew/bin/brew shellenv)"' >> /Users/changgenglu/.zprofile
+   echo 'eval "$(/opt/homebrew/bin/brew shellenv)"' >> /home/dev/.zprofile
 
    eval "$(/opt/homebrew/bin/brew shellenv)"
    ```

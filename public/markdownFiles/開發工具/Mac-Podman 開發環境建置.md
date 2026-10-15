@@ -403,7 +403,7 @@ podman rm <container_name>
 
 ## 檔案掛載
 
-- **當前目錄**：`/Users/changgenglu/Documents` 已掛載到所有 PHP 容器的 `/var/www/html`
+- **當前目錄**：`/home/dev/Documents` 已掛載到所有 PHP 容器的 `/var/www/html`
 - **MySQL 數據**：`./mysql/data` 目錄用於持久化 MySQL 數據
 
 ## 常見問題

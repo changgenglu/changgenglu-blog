@@ -1378,7 +1378,7 @@ ssh-keygen
 產生
 
 ```bash
-$ Enter file in which to save the key (/Users/changgenglu/.ssh/id_rsa):
+$ Enter file in which to save the key (/home/dev/.ssh/id_rsa):
 # 這行只是確定存在哪
 $ Overwrite (y/n)?
 # 如果原本就有金鑰會跳出此問題，覆蓋嗎？ (是)
