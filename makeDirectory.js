@@ -11,10 +11,6 @@ const searchIndexPath = "./src/assets/searchIndex.json"; // 新增
 
 const { stripMarkdown } = require('./src/utils/textFormatter'); // NEW IMPORT
 
-// 外部來源設定
-const promptEngineeringSrc = "./prompt_engineering";
-const promptEngineeringDest = "./public/markdownFiles/提示詞工程";
-
 /**
  * 獲取檔案的 Git 最後提交時間
  * @param {string} filePath 
@@ -25,7 +21,8 @@ function getFileGitDate(filePath, deps = { exec: execSync, stat: fs.statSync }) 
   const { exec, stat } = deps;
   try {
     // %cI: committer date, strict ISO 8601 format
-    const stdout = exec(`git log -1 --format=%cI "${filePath}"`, {
+    // --follow：檔案被搬移或改名後仍沿用改名前的提交歷史
+    const stdout = exec(`git log -1 --follow --format=%cI -- "${filePath}"`, {
       encoding: "utf8",
       stdio: ["pipe", "pipe", "ignore"],
     });
@@ -46,36 +43,6 @@ function getFileGitDate(filePath, deps = { exec: execSync, stat: fs.statSync }) 
   // Fallback: 使用檔案系統修改時間
   return stat(filePath).mtime;
 }
-
-/**
- * 同步外部檔案 (如 prompt_engineering) 到 public 目錄
- * @param {object} deps 依賴
- */
-function syncExternalFiles(deps = { fs } ) {
-  const fileSystem = deps.fs || fs;
-  try {
-    if (!fileSystem.existsSync(promptEngineeringDest)) {
-      fileSystem.mkdirSync(promptEngineeringDest, { recursive: true });
-    }
-
-    if (fileSystem.existsSync(promptEngineeringSrc)) {
-      const files = fileSystem.readdirSync(promptEngineeringSrc);
-      files.forEach(file => {
-        if (path.extname(file) === '.md') {
-          const srcPath = path.join(promptEngineeringSrc, file);
-          const destPath = path.join(promptEngineeringDest, file);
-          fileSystem.copyFileSync(srcPath, destPath);
-          console.log(`Copied: ${file}`);
-        }
-      });
-    } else {
-      console.warn(`Source directory not found: ${promptEngineeringSrc}`);
-    }
-  } catch (err) {
-    console.error("Error syncing external files:", err);
-  }
-}
-
 
 /**
  * 遞迴掃描目錄
@@ -145,11 +112,8 @@ function scanDirectory(dir, rootDir, deps) { // 修改簽名
  * @param {object} deps 依賴項 (用於測試)
  */
 function generateFileList(targetDir, fileListOutput, searchIndexOutput, deps = { exec: execSync, stat: fs.statSync, fs: fs }) { // 修改簽名
-  // 1. 同步外部檔案
-  syncExternalFiles({ fs: deps.fs });
-
   try {
-    // 2. 遞迴掃描並生成資料
+    // 遞迴掃描並生成資料
     const { fileData, searchIndexData } = scanDirectory(targetDir, targetDir, deps); // 修改接收值
 
     // 依檔案修改時間倒序
@@ -175,4 +139,4 @@ if (require.main === module) {
   generateFileList(directoryPath, outputPath, searchIndexPath); // 修改呼叫
 }
 
-module.exports = { getFileGitDate, generateFileList, syncExternalFiles, scanDirectory }; // 修改導出
+module.exports = { getFileGitDate, generateFileList, scanDirectory }; // 修改導出

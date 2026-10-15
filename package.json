@@ -3,9 +3,12 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
+    "preserve": "node makeDirectory.js",
     "serve": "vue-cli-service serve",
+    "prebuild": "node makeDirectory.js",
     "build": "vue-cli-service build",
     "lint": "vue-cli-service lint",
+    "pretest": "node makeDirectory.js",
     "test": "vitest run",
     "deploy": "sh deploy.sh"
   },

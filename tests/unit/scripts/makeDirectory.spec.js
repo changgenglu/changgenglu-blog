@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { getFileGitDate, scanDirectory, syncExternalFiles, generateFileList } from '../../../makeDirectory.js';
+import { getFileGitDate, scanDirectory, generateFileList } from '../../../makeDirectory.js';
 
 describe('makeDirectory.js', () => {
 
@@ -14,6 +14,16 @@ describe('makeDirectory.js', () => {
       
       const date = getFileGitDate('test.md', { exec: mockExec, stat: mockStat });
       expect(date.toISOString()).toBe('2022-12-31T16:00:00.000Z');
+    });
+
+    it('should run git log with --follow so renamed files keep their history', () => {
+      const mockExec = vi.fn().mockReturnValue('2023-01-01T00:00:00+08:00');
+      const mockStat = vi.fn();
+
+      getFileGitDate('notes/test.md', { exec: mockExec, stat: mockStat });
+
+      expect(mockExec).toHaveBeenCalledTimes(1);
+      expect(mockExec.mock.calls[0][0]).toBe('git log -1 --follow --format=%cI -- "notes/test.md"');
     });
 
     it('should fallback to fs.stat if git fails', () => {
@@ -92,63 +102,9 @@ describe('makeDirectory.js', () => {
     });
   });
 
-  describe('syncExternalFiles', () => {
-    it('should copy md files from src to dest', () => {
-      const mockFs = {
-        existsSync: vi.fn(),
-        mkdirSync: vi.fn(),
-        readdirSync: vi.fn(),
-        copyFileSync: vi.fn()
-      };
-
-      mockFs.existsSync.mockReturnValue(true); 
-      mockFs.readdirSync.mockReturnValue(['note.md', 'script.js']);
-
-      syncExternalFiles({ fs: mockFs });
-
-      expect(mockFs.copyFileSync).toHaveBeenCalledTimes(1);
-    });
-  });
-
-  describe('syncExternalFiles error paths', () => {
-    it('should log a warning if source directory not found', () => {
-      const mockFs = {
-        existsSync: vi.fn(p => p !== './prompt_engineering'), // Mock src to not exist
-        mkdirSync: vi.fn(),
-        readdirSync: vi.fn(),
-        copyFileSync: vi.fn()
-      };
-      const consoleWarnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
-
-      syncExternalFiles({ fs: mockFs });
-
-      expect(mockFs.existsSync).toHaveBeenCalledWith('./prompt_engineering');
-      expect(consoleWarnSpy).toHaveBeenCalledWith('Source directory not found: ./prompt_engineering');
-      expect(mockFs.copyFileSync).not.toHaveBeenCalled();
-      consoleWarnSpy.mockRestore();
-    });
-
-    it('should log an error if file syncing fails', () => {
-      const mockFs = {
-        existsSync: vi.fn().mockReturnValue(true),
-        mkdirSync: vi.fn(),
-        readdirSync: vi.fn().mockReturnValue(['note.md']),
-        copyFileSync: vi.fn().mockImplementation(() => { throw new Error('copy error'); })
-      };
-      const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
-
-      syncExternalFiles({ fs: mockFs });
-
-      expect(mockFs.copyFileSync).toHaveBeenCalled();
-      expect(consoleErrorSpy).toHaveBeenCalledWith('Error syncing external files:', expect.any(Error));
-      consoleErrorSpy.mockRestore();
-    });
-  });
-
   describe('generateFileList error handling', () => {
     it('should log an error if writing fileNames.json fails', () => {
       const mockFs = {
-        existsSync: vi.fn().mockReturnValue(true), // Added for syncExternalFiles
         readdirSync: vi.fn().mockReturnValue([]), // Simulate empty dir
         statSync: vi.fn().mockReturnValue({ isDirectory: () => false }),
         readFileSync: vi.fn(),
@@ -168,7 +124,6 @@ describe('makeDirectory.js', () => {
 
     it('should log an error if writing searchIndex.json fails', () => {
       const mockFs = {
-        existsSync: vi.fn().mockReturnValue(true), // Added for syncExternalFiles
         readdirSync: vi.fn().mockReturnValue([]),
         statSync: vi.fn().mockReturnValue({ isDirectory: () => false }),
         readFileSync: vi.fn(),

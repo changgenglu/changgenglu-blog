@@ -167,7 +167,7 @@
    顯示路徑問題的解決辦法
 
    ```terminal
-   echo 'eval "$(/opt/homebrew/bin/brew shellenv)"' >> /home/dev/.zprofile
+   echo 'eval "$(/opt/homebrew/bin/brew shellenv)"' >> ~/.zprofile
 
    eval "$(/opt/homebrew/bin/brew shellenv)"
    ```
@@ -974,7 +974,7 @@ composer require laravel/telescope --dev
 
   **中:** 格式：`前綴_描述:變數`。
 
-- **Example:** `operator_account:d4cbd3ba-...`
+- **Example:** `user:d4cbd3ba-...`
 
 #### 🔹 File Naming（檔案命名）
 
@@ -994,17 +994,17 @@ composer require laravel/telescope --dev
 
 #### 🔹 Project Notes（專案說明）
 
-- **EN:** Container name: `php8` (not `stars`).
+- **EN:** Container name: `php8` (not the project name).
 
-  **中:** 容器名稱是 `php8`，不是 `stars`。
+  **中:** 容器名稱是 `php8`，不是專案名稱。
 
 - **EN:** `jq` is not installed in the container.
 
   **中:** 容器內沒有安裝 `jq`。
 
-- **EN:** Project path: `/var/www/html/stars`.
+- **EN:** Project path: `/var/www/html/<project>`.
 
-  **中:** 專案目錄是 `/var/www/html/stars`。
+  **中:** 專案目錄是 `/var/www/html/<project>`。
 
 ### 🧪 Testing Principles（測試原則）
 
@@ -1118,7 +1118,7 @@ Core Objectives:
 # Cache Key Naming
 
 - Format: `prefix_description:variable`
-- Example: `operator_account:d4cbd3ba-5184-...`, `game_code:1:2345`
+- Example: `user:d4cbd3ba-5184-...`, `item:1:2345`
 
 # File Naming
 
@@ -1133,7 +1133,7 @@ Core Objectives:
 
 # Project Notes
 
-- Container name: php8 (not stars)
+- Container name: php8 (not the project name)
 - jq is not installed in the container
-- Project path: /var/www/html/stars
+- Project path: /var/www/html/<project>
 ```

@@ -79,13 +79,19 @@ describe('searchEngine', () => {
     expect(results).toEqual(mockSearchResults);
   });
 
-  it('search 應該在未初始化時返回空陣列', async () => {
-    vi.resetModules(); // Reset again to ensure uninitialized state
-    const uninitializedSearchModule = await import('@/utils/searchEngine');
-    
-    const results = uninitializedSearchModule.search('test');
-    expect(results).toEqual([]);
-    expect(mockMiniSearchInstance.search).not.toHaveBeenCalled(); // No search should be attempted
+  it('search 在未呼叫 initSearch 時會自動建立索引並回傳結果', async () => {
+    vi.resetModules();
+    MockMiniSearchConstructorSpy.mockClear();
+    mockMiniSearchInstance.addAll.mockClear();
+    const mockSearchResults = [{ id: 'article1', score: 0.5 }];
+    mockMiniSearchInstance.search.mockReturnValue(mockSearchResults);
+    const freshModule = await import('@/utils/searchEngine');
+
+    const results = freshModule.search('Vue');
+
+    expect(MockMiniSearchConstructorSpy).toHaveBeenCalledTimes(1);
+    expect(mockMiniSearchInstance.addAll).toHaveBeenCalledWith(mockSearchIndexData);
+    expect(results).toEqual(mockSearchResults);
   });
 
   it('search 應該在查詢為空時返回空陣列', async () => {
@@ -107,5 +113,86 @@ describe('searchEngine', () => {
     // Because console.error is commented out in source code to avoid lint warnings
     expect(consoleErrorSpy).not.toHaveBeenCalled();
     consoleErrorSpy.mockRestore();
+  });
+
+  describe('tokenize', () => {
+    it('英文與數字連續字元視為小寫單字', () => {
+      expect(searchModule.tokenize('Redis Cluster 7')).toEqual(['redis', 'cluster', '7']);
+      expect(searchModule.tokenize('Vue.js')).toEqual(['vue', 'js']);
+    });
+
+    it('中文連續字元切成重疊雙字詞', () => {
+      expect(searchModule.tokenize('交易')).toEqual(['交易']);
+      expect(searchModule.tokenize('中介層')).toEqual(['中介', '介層']);
+      expect(searchModule.tokenize('環境變數')).toEqual(['環境', '境變', '變數']);
+    });
+
+    it('單一中文字保留為單字詞', () => {
+      expect(searchModule.tokenize('快')).toEqual(['快']);
+      expect(searchModule.tokenize('Redis 快 取')).toEqual(['redis', '快', '取']);
+    });
+
+    it('中英混排時各自切分，標點視為分隔', () => {
+      expect(searchModule.tokenize('Laravel 測試')).toEqual(['laravel', '測試']);
+      expect(searchModule.tokenize('Redis快取，很快')).toEqual(['redis', '快取', '很快']);
+    });
+
+    it('空字串回傳空陣列', () => {
+      expect(searchModule.tokenize('')).toEqual([]);
+    });
+  });
+
+  describe('以實際 MiniSearch 驗證中文搜尋', () => {
+    const docs = [
+      { id: 'd1', title: '錢包串接', content: '每一筆交易都需要冪等處理', path: 'a.md', category: 'API' },
+      { id: 'd2', title: '資料庫', content: '替欄位建立索引可以加速查詢', path: 'b.md', category: 'DB' },
+      { id: 'd3', title: '設定', content: '請先設定環境變數再啟動服務', path: 'c.md', category: 'Env' },
+      { id: 'd4', title: 'Redis 筆記', content: 'Redis 可以當作快取使用', path: 'd.md', category: 'Redis' },
+      { id: 'd5', title: 'Laravel 入門', content: 'Laravel 的測試可以用 PHPUnit', path: 'e.md', category: 'PHP' },
+      { id: 'd6', title: 'Laravel 部署', content: 'Laravel 部署流程說明', path: 'f.md', category: 'PHP' },
+      { id: 'd7', title: '中介層', content: 'Laravel 的中介層可以過濾請求', path: 'g.md', category: 'PHP' },
+      { id: 'd8', title: '中間商', content: '介紹中間商的角色', path: 'h.md', category: 'Misc' },
+    ];
+    let real;
+    const ids = (q) => real.search(q).map((r) => r.id);
+
+    beforeEach(async () => {
+      const { default: RealMiniSearch } = await vi.importActual('minisearch');
+      const options = MockMiniSearchConstructorSpy.mock.calls[0][0];
+      real = new RealMiniSearch(options);
+      real.addAll(docs);
+    });
+
+    it('查「交易」能命中內文中的詞', () => {
+      expect(ids('交易')).toEqual(['d1']);
+    });
+
+    it('查「索引」能命中句中的詞', () => {
+      expect(ids('索引')).toEqual(['d2']);
+    });
+
+    it('查「環境變數」能命中句中的四字詞', () => {
+      expect(ids('環境變數')).toEqual(['d3']);
+    });
+
+    it('英文單字仍可搜尋且不分大小寫', () => {
+      expect(ids('redis')).toEqual(['d4']);
+      expect(ids('REDIS')).toEqual(['d4']);
+    });
+
+    it('混合查詢「Laravel 測試」要求兩個詞都出現', () => {
+      expect(ids('Laravel 測試')).toEqual(['d5']);
+    });
+
+    it('查「中介層」不會因容錯命中「中間商」', () => {
+      expect(ids('中介層')).toEqual(['d7']);
+    });
+
+    it('中文詞不啟用模糊比對，英文維持容錯', () => {
+      const { fuzzy } = MockMiniSearchConstructorSpy.mock.calls[0][0].searchOptions;
+      expect(fuzzy('交易')).toBe(0);
+      expect(fuzzy('快')).toBe(0);
+      expect(fuzzy('laravel')).toBe(0.2);
+    });
   });
 });

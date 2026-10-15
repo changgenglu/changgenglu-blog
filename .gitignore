@@ -21,3 +21,7 @@ pnpm-debug.log*
 *.njsproj
 *.sln
 *.sw?
+
+# 由 makeDirectory.js 在 build/serve/test 前產生
+src/assets/fileNames.json
+src/assets/searchIndex.json
