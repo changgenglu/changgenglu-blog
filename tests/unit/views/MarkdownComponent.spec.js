@@ -218,6 +218,22 @@ describe('MarkdownComponent.vue', () => {
     });
   });
 
+  describe('文章路徑檢查', () => {
+    it('不在文章清單且含 .. 的路徑不發出請求並顯示錯誤', async () => {
+      global.fetch = vi.fn();
+      const wrapper = mount(MarkdownComponent, {
+        global: {
+          mocks: { $route: { params: { title: '../index.html' } } },
+          stubs: { Markdown: { template: '<div></div>', props: ['source'] }, 'scroll-to-top-button': true, 'router-link': true },
+        },
+      });
+      await flushPromises();
+      expect(global.fetch).not.toHaveBeenCalled();
+      expect(wrapper.find('[role="alert"]').exists()).toBe(true);
+      wrapper.unmount();
+    });
+  });
+
   describe('error handling', () => {
     let wrapper;
 

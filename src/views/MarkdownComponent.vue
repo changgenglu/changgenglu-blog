@@ -126,6 +126,11 @@ export default {
         
         if (targetFile && targetFile.path) {
           filePath = targetFile.path;
+        } else if (filePath.split('/').includes('..')) {
+          // 清單查無時路由參數會直接組成 fetch 路徑，.. 可跳出 markdownFiles/ 目錄
+          this.error = '無法找到此文章 (Invalid Path)';
+          this.isLoading = false;
+          return;
         }
 
         const version = new Date().getTime(); 
@@ -194,7 +199,7 @@ export default {
       });
     },
     checkDevice() {
-      this.isMobile = window.innerWidth <= 768;
+      this.isMobile = window.innerWidth < 768;
     },
   },
   mounted() {
@@ -313,7 +318,7 @@ export default {
 }
 
 /* 手機：目錄移到文章上方（預設收合），版面改單欄 */
-@media (max-width: 768px) {
+@media (max-width: 767.98px) {
   .article-layout,
   .article-layout.has-toc {
     grid-template-columns: minmax(0, 1fr);

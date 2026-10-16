@@ -191,4 +191,14 @@ describe('ArticleCard.vue', () => {
       wrapperYears2.unmount();
     });
   });
+
+  it('沒有搜尋詞時，標題中的 HTML 字元顯示為文字而不是元素', () => {
+    const card = mount(ArticleCard, {
+      props: { item: { ...mockItem, name: '<b>x</b>.md', query: undefined } },
+      global: { plugins: [router] },
+    });
+    expect(card.find('.card-title b').exists()).toBe(false);
+    expect(card.find('.card-title').text()).toBe('<b>x</b>');
+    card.unmount();
+  });
 });

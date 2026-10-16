@@ -60,6 +60,15 @@ export default {
       searchText: '' // New data property
     }
   },
+  watch: {
+    '$route.params.categoryName'(name) {
+      // 離開本頁時參數會變成 undefined，此時保持原畫面直到元件卸載
+      if (!name) { return; }
+      this.categoryName = name;
+      this.currentPage = 1;
+      this.getFilesInCategory();
+    }
+  },
   computed: {
     paginationPageNum() {
       let pageCount = [];

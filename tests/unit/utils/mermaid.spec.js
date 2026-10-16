@@ -196,4 +196,57 @@ describe('renderMermaidBlocks', () => {
     await renderMermaidBlocks(root, { load, theme: 'dark' });
     expect(root.querySelectorAll('figure.mermaid-diagram button')).toHaveLength(1);
   });
+
+  it('should rename the svg id and its scoped style selectors so the page has no duplicate id', async () => {
+    mermaid.render.mockImplementation(async id => ({
+      svg: `<svg id="${id}"><style>#${id} .x{fill:red}</style></svg>`,
+    }));
+    const onOpen = vi.fn();
+    const root = articleWith(mermaidBlock('graph TD;A-->B'));
+    await renderMermaidBlocks(root, { load, theme: 'default', onOpen });
+    const id = mermaid.render.mock.calls[0][0];
+    const svg = root.querySelector('figure.mermaid-diagram svg');
+    expect(svg.id).toBe(`${id}-inline`);
+    expect(svg.querySelector('style').textContent).toContain(`#${id}-inline .x`);
+    root.querySelector('figure.mermaid-diagram button').click();
+    expect(onOpen.mock.calls[0][0].svg).toContain(`<svg id="${id}">`);
+  });
+
+  it('should keep the result of the latest call when an earlier call finishes rendering first', async () => {
+    let currentTheme;
+    const finishers = [];
+    mermaid.initialize.mockImplementation(cfg => { currentTheme = cfg.theme; });
+    mermaid.render.mockImplementation(() => {
+      const theme = currentTheme;
+      return new Promise(resolve => finishers.push(() => resolve({ svg: `<svg data-theme="${theme}"></svg>` })));
+    });
+    const root = articleWith(mermaidBlock('graph TD;A-->B'));
+
+    const first = renderMermaidBlocks(root, { load, theme: 'default' });
+    await vi.waitFor(() => expect(finishers).toHaveLength(1));
+    const second = renderMermaidBlocks(root, { load, theme: 'dark' });
+    await vi.waitFor(() => expect(finishers).toHaveLength(2));
+    finishers[0]();
+    await first;
+    finishers[1]();
+    await second;
+
+    const figures = root.querySelectorAll('figure.mermaid-diagram');
+    expect(figures).toHaveLength(1);
+    expect(figures[0].querySelector('svg').dataset.theme).toBe('dark');
+  });
+
+  it('should suppress mermaid error rendering and remove its leftover node when a render fails', async () => {
+    mermaid.render.mockImplementation(async id => {
+      document.body.insertAdjacentHTML('beforeend', `<div id="d${id}">bomb</div>`);
+      throw new Error('Parse error');
+    });
+    const root = articleWith(mermaidBlock('not a diagram'));
+    await renderMermaidBlocks(root, { load, theme: 'default' });
+    const id = mermaid.render.mock.calls[0][0];
+    expect(mermaid.initialize).toHaveBeenCalledWith(expect.objectContaining({ suppressErrorRendering: true }));
+    expect(document.getElementById(`d${id}`)).toBeNull();
+    expect(root.querySelector('pre code').textContent).toBe('not a diagram');
+    expect(root.querySelector('.mermaid-error')).not.toBeNull();
+  });
 });

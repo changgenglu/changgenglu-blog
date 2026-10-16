@@ -72,7 +72,7 @@ export default {
     },
     displayTitle() {
       const title = this.item.name ? this.item.name.replace('.md', '') : '';
-      return this.item.query ? highlightMatch(title, this.item.query) : title;
+      return highlightMatch(title, this.item.query || '');
     },
     displaySnippet() {
         if (!this.item.query) return '';

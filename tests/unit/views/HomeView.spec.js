@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import { describe, it, expect, vi, beforeAll, afterAll, beforeEach, afterEach } from 'vitest';
 import { mount, flushPromises } from '@vue/test-utils';
 import { reactive } from 'vue'; // Import reactive for mockRoute.query
 import HomeView from '@/views/HomeView.vue';
@@ -163,6 +163,150 @@ describe('HomeView.vue', () => {
       wrapper.vm.handleSearch('');
       await flushPromises();
       expect(cardPaths()).toEqual(['CategoryA/article1.md']);
+    });
+  });
+
+  describe('分類與頁碼寫入網址（上一頁還原）', () => {
+    const extraArticles = [
+      { date: '2023-01-03T00:00:00Z', name: 'article3.md', matchingLines: [], category: 'CategoryA', path: 'CategoryA/article3.md' },
+      { date: '2023-01-04T00:00:00Z', name: 'article4.md', matchingLines: [], category: 'CategoryA', path: 'CategoryA/article4.md' },
+    ];
+    const cardPaths = () => wrapper.vm.markdownCards.map((c) => c.path);
+    const lastReplaceArg = () => mockRouter.replace.mock.calls.at(-1)?.[0];
+
+    // 每頁 1 筆，CategoryA 共 3 筆、全部共 4 筆，才有多頁可翻
+    function mountAt(query = {}, name = 'home') {
+      wrapper.unmount();
+      mockRouter.replace.mockClear();
+      mockSearch.mockClear();
+      Object.keys(mockRoute.query).forEach((k) => delete mockRoute.query[k]);
+      Object.assign(mockRoute.query, query);
+      mockRoute.name = name;
+      wrapper = mount(HomeView, {
+        data: () => ({ CardNum: 1 }),
+        global: {
+          stubs: { RouterLink: { template: '<div><slot /></div>' }, SearchInput: SearchInput },
+          mocks: { $router: mockRouter, $route: mockRoute },
+        },
+      });
+    }
+
+    beforeAll(() => { mockFileNamesJsonData.push(...extraArticles); });
+    afterAll(() => { mockFileNamesJsonData.length -= extraArticles.length; });
+    afterEach(() => { delete mockRoute.name; });
+
+    it('選分類後以 replace 把 cat 寫入網址', async () => {
+      mountAt();
+      await flushPromises();
+      await wrapper.findAll('.category-chips button')[1].trigger('click'); // CategoryA
+      await flushPromises();
+      expect(lastReplaceArg()).toEqual({ query: { cat: 'CategoryA' } });
+    });
+
+    it('翻頁後以 replace 把 page 寫入網址', async () => {
+      mountAt();
+      await flushPromises();
+      wrapper.vm.setPage(2);
+      await flushPromises();
+      expect(lastReplaceArg()).toEqual({ query: { page: '2' } });
+    });
+
+    it('預設值（全部、第 1 頁）不寫入網址', async () => {
+      mountAt();
+      await flushPromises();
+      expect(mockRouter.replace).not.toHaveBeenCalled();
+
+      await wrapper.findAll('.category-chips button')[1].trigger('click');
+      await flushPromises();
+      await wrapper.findAll('.category-chips button')[0].trigger('click'); // 全部
+      await flushPromises();
+      expect(lastReplaceArg()).toEqual({ query: {} });
+    });
+
+    it('掛載時從網址還原 cat 與 page，頁碼不被歸 1', async () => {
+      mountAt({ cat: 'CategoryA', page: '2' });
+      await flushPromises();
+      expect(wrapper.vm.activeCategory).toBe('CategoryA');
+      expect(wrapper.vm.currentPage).toBe(2);
+      expect(cardPaths()).toEqual(['CategoryA/article3.md']);
+    });
+
+    it('網址帶 q 時，搜尋結果回來後仍停在還原的分類與頁碼，且不改寫網址', async () => {
+      mockSearch.mockResolvedValue([
+        { id: 'CategoryA/article1.md', title: 'article1', path: 'CategoryA/article1.md', category: 'CategoryA', score: 1 },
+        { id: 'CategoryA/article3.md', title: 'article3', path: 'CategoryA/article3.md', category: 'CategoryA', score: 1 },
+        { id: 'CategoryA/article4.md', title: 'article4', path: 'CategoryA/article4.md', category: 'CategoryA', score: 1 },
+      ]);
+      mountAt({ q: 'article', cat: 'CategoryA', page: '3' });
+      await flushPromises();
+      expect(wrapper.vm.activeCategory).toBe('CategoryA');
+      expect(wrapper.vm.currentPage).toBe(3);
+      expect(cardPaths()).toEqual(['CategoryA/article4.md']);
+      expect(mockRouter.replace).not.toHaveBeenCalled();
+    });
+
+    it.each([
+      [{ cat: 'NoSuchCategory' }, '', 1],
+      [{ page: 'abc' }, '', 1],
+      [{ page: '0' }, '', 1],
+      [{ page: '-2' }, '', 1],
+      [{ page: '1.5' }, '', 1],
+      [{ page: '99' }, '', 1],
+      [{ cat: 'CategoryB', page: '2' }, 'CategoryB', 1],
+    ])('網址 %j 的非法值回退到預設', async (query, expectedCategory, expectedPage) => {
+      mountAt(query);
+      await flushPromises();
+      expect(wrapper.vm.activeCategory).toBe(expectedCategory);
+      expect(wrapper.vm.currentPage).toBe(expectedPage);
+    });
+
+    it('使用者搜尋後網址保留 cat、頁碼歸 1', async () => {
+      mockSearch.mockResolvedValue([
+        { id: 'CategoryA/article1.md', title: 'article1', path: 'CategoryA/article1.md', category: 'CategoryA', score: 1 },
+      ]);
+      mountAt({ cat: 'CategoryA', page: '2' });
+      await flushPromises();
+      wrapper.vm.handleSearch('article');
+      await flushPromises();
+      expect(lastReplaceArg()).toEqual({ query: { cat: 'CategoryA', q: 'article' } });
+      expect(wrapper.vm.currentPage).toBe(1);
+    });
+
+    it('離開首頁後才完成的搜尋不再改寫網址', async () => {
+      let resolveSearch;
+      mockSearch.mockReturnValue(new Promise((resolve) => { resolveSearch = resolve; }));
+      mountAt();
+      await flushPromises();
+      wrapper.vm.handleSearch('article');
+      mockRoute.name = 'Markdown';
+      resolveSearch([]);
+      await flushPromises();
+      expect(mockRouter.replace).not.toHaveBeenCalled();
+    });
+
+    it('搜尋寫入網址後 q 的 watcher 不重複搜尋', async () => {
+      mockSearch.mockResolvedValue([]);
+      mountAt();
+      await flushPromises();
+      const searchInput = wrapper.findComponent(SearchInput);
+      searchInput.vm.$emit('update:modelValue', 'article');
+      searchInput.vm.$emit('search', 'article');
+      await flushPromises();
+      expect(mockSearch).toHaveBeenCalledTimes(1);
+    });
+
+    it('網址的 cat／page 被上一頁改變時，分類與頁碼跟著還原', async () => {
+      mountAt({ cat: 'CategoryA', page: '2' });
+      await flushPromises();
+      mockRoute.query.cat = 'CategoryB';
+      delete mockRoute.query.page;
+      await flushPromises();
+      expect(wrapper.vm.activeCategory).toBe('CategoryB');
+      expect(wrapper.vm.currentPage).toBe(1);
+
+      delete mockRoute.query.cat;
+      await flushPromises();
+      expect(wrapper.vm.activeCategory).toBe('');
     });
   });
 

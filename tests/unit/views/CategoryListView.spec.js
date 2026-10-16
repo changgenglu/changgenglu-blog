@@ -1,5 +1,6 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { mount } from '@vue/test-utils';
+import { mount, flushPromises } from '@vue/test-utils';
+import { reactive } from 'vue';
 import CategoryListView from '@/views/CategoryListView.vue';
 // import AllMyArticle from '@/assets/fileNames.json'; // Original import removed
 
@@ -12,6 +13,15 @@ for (let i = 0; i < 20; i++) {
     matchingLines: [`## Intro ${i + 1}`],
     category: 'Vue',
     path: `Vue/Test Article ${i + 1}.md`,
+  });
+}
+for (let i = 0; i < 2; i++) {
+  mockAllMyArticleData.push({
+    date: `2023-02-${i + 1}T00:00:00Z`,
+    name: `Other Article ${i + 1}.md`,
+    matchingLines: [],
+    category: 'Other',
+    path: `Other/Other Article ${i + 1}.md`,
   });
 }
 vi.mock('@/assets/fileNames.json', () => ({
@@ -197,5 +207,26 @@ describe('CategoryListView.vue', () => {
     window.dispatchEvent(new Event('resize'));
     await wrapper.vm.$nextTick();
     expect(wrapper.vm.isMobile).toBe(true);
+  });
+
+  it('路由參數換成另一個分類時，標題與清單改為新分類並回到第 1 頁', async () => {
+    wrapper.unmount();
+    const liveRoute = reactive({ params: { categoryName: 'Vue' } });
+    wrapper = mount(CategoryListView, {
+      global: {
+        stubs: { RouterLink: true, ArticleCard: true },
+        mocks: { $router: mockRouter, $route: liveRoute },
+      },
+    });
+    await flushPromises();
+    wrapper.vm.setPage(2);
+    expect(wrapper.vm.currentPage).toBe(2);
+
+    liveRoute.params.categoryName = 'Other';
+    await flushPromises();
+
+    expect(wrapper.find('h2').text()).toBe('Other');
+    expect(wrapper.vm.files.map((f) => f.category)).toEqual(['Other', 'Other']);
+    expect(wrapper.vm.currentPage).toBe(1);
   });
 });

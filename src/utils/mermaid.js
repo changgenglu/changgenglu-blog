@@ -1,6 +1,8 @@
 const BLOCK_SELECTOR = 'pre > code.language-mermaid';
 
 let renderSeq = 0;
+// 切主題會連發多次渲染；只有最後一次呼叫可以寫入，較早的結果回來時已過期
+let renderGeneration = 0;
 
 export function findMermaidBlocks(root) {
   return Array.from(root.querySelectorAll(BLOCK_SELECTOR)).map(code => code.parentElement);
@@ -75,6 +77,8 @@ function collectTargets(root) {
 }
 
 export async function renderMermaidBlocks(root, { load, theme, onOpen } = {}) {
+  const generation = ++renderGeneration;
+  const isStale = () => generation !== renderGeneration;
   const targets = collectTargets(root);
   if (targets.length === 0) return { rendered: 0, failed: 0 };
 
@@ -87,19 +91,25 @@ export async function renderMermaidBlocks(root, { load, theme, onOpen } = {}) {
     });
     return { rendered: 0, failed: targets.length };
   }
+  if (isStale()) return { rendered: 0, failed: 0 };
 
   // strict 會過濾圖內的 HTML 與腳本；文章內容可能含外部貼上的圖
-  mermaid.initialize({ startOnLoad: false, securityLevel: 'strict', theme });
+  // suppressErrorRendering：語法錯誤時 mermaid 預設會在 body 末端留下錯誤圖，改由本函式顯示原始碼與提示
+  mermaid.initialize({ startOnLoad: false, securityLevel: 'strict', theme, suppressErrorRendering: true });
 
   let rendered = 0;
   let failed = 0;
   for (const { el, source } of targets) {
+    const id = `mermaid-diagram-${++renderSeq}`;
     try {
-      const id = `mermaid-diagram-${++renderSeq}`;
       const { svg } = await mermaid.render(id, source);
+      if (isStale()) break;
       el.replaceWith(buildFigure(source, svg, onOpen));
       rendered += 1;
     } catch (err) {
+      // mermaid 渲染失敗時暫存節點 d{id} 可能仍留在 body
+      document.getElementById(`d${id}`)?.remove();
+      if (isStale()) break;
       failed += 1;
       if (el.tagName === 'PRE') markError(el, '流程圖語法錯誤，已顯示原始碼。');
     }

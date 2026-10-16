@@ -34,6 +34,12 @@ const routes = [
 const router = createRouter({
   history: createWebHashHistory(process.env.BASE_URL),
   routes,
+  // 上一頁回到離開時的捲動位置；首頁打字搜尋、翻頁、選分類只換 query，不該跳回頁首
+  scrollBehavior(to, from, savedPosition) {
+    if (savedPosition) return savedPosition;
+    if (typeof to.path === 'string' && to.path === from.path) return false;
+    return { top: 0 };
+  },
 });
 
 export default router;

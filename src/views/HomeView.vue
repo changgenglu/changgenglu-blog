@@ -21,7 +21,7 @@
         <SearchInput v-model:modelValue="searchText" @search="handleSearch"></SearchInput>
       </div>
 
-      <CategoryChips data-reveal v-model="activeCategory" :categories="categories" :counts="categoryCounts" />
+      <CategoryChips data-reveal :model-value="activeCategory" @update:model-value="selectCategory" :categories="categories" :counts="categoryCounts" />
 
       <div class="card-grid">
         <div v-for="(item, index) in markdownCards" :key="index">
@@ -61,6 +61,19 @@ import { useReveal } from '@/composables/useReveal';
 import { countUp } from '@/utils/countUp';
 import { ALL, filterByCategory, listCategories } from '@/utils/articleFilter';
 
+// 網址 query 是分類與頁碼的唯一來源，非法值回退到預設，避免手改網址或舊連結壞掉版面
+function parseListState(query, categories) {
+  const page = Number(query.page);
+  return {
+    category: categories.includes(query.cat) ? query.cat : ALL,
+    page: Number.isInteger(page) && page > 0 ? page : 1
+  };
+}
+
+function sameListQuery(a, b) {
+  return ['cat', 'page', 'q'].every((key) => String(a[key] ?? '') === String(b[key] ?? ''));
+}
+
 export default {
   name: 'HomeView',
   components: { ArticleCard, SearchInput, CategoryChips, HeroDiagram }, // Updated components
@@ -69,11 +82,16 @@ export default {
     return {};
   },
   data() {
+    const restored = parseListState(this.$route.query, listCategories(AllMyArticle));
     return {
       allArticlesMeta: AllMyArticle, // Store for categories
       CardNum: 6,
-      currentPage: 1,
-      activeCategory: ALL,
+      currentPage: restored.page,
+      activeCategory: restored.category,
+      // 離開首頁後 $route 已是別頁的資料，靠它辨認「這個畫面還在原本的路由上」
+      routeName: this.$route.name,
+      // 自己剛寫進網址的搜尋詞；對應的 watcher 回呼不可再把它當外部變更處理
+      ownQuery: null,
       searchText: '',
       searchResults: [], // Will store MiniSearch results
       latestSearchId: 0,
@@ -85,16 +103,24 @@ export default {
     }
   },
   watch: {
-    activeCategory() {
-      this.currentPage = 1;
-    },
+    activeCategory() { this.syncQuery(); },
+    currentPage() { this.syncQuery(); },
+    '$route.query.cat'() { this.restoreFromRoute(); },
+    '$route.query.page'() { this.restoreFromRoute(); },
     // 監聽路由參數變化，以實現 URL 驅動搜尋
     '$route.query.q': {
       handler(newQuery) {
-        // 更新 searchText 以便 v-model 同步
-        this.searchText = newQuery || '';
-        // 觸發搜尋
-        this.handleSearch(this.searchText);
+        if (!this.isOnOwnRoute()) { return; }
+        const query = newQuery || '';
+        if (query === this.ownQuery) {
+          this.ownQuery = null;
+          return;
+        }
+        this.ownQuery = null;
+        // 與輸入框內容相同代表是自己剛搜尋的結果，不回寫輸入框也不重搜，以免蓋掉使用者接著打的字
+        if (query === this.searchText) { return; }
+        this.searchText = query;
+        this.runSearch(query);
       },
       immediate: true // 頁面載入時立即執行一次
     }
@@ -166,9 +192,50 @@ export default {
     checkDevice() {
       this.isMobile = window.innerWidth < 768;
     },
-    // 處理搜尋邏輯
+    isOnOwnRoute() {
+      return this.$route.name === this.routeName;
+    },
+    // 以目前的分類與頁碼為準重組 query，其餘參數（含 q）原樣保留；預設值不寫入網址
+    buildQuery(q) {
+      const query = { ...this.$route.query };
+      delete query.cat;
+      delete query.page;
+      delete query.q;
+      if (this.activeCategory !== ALL) { query.cat = this.activeCategory; }
+      if (this.currentPage > 1) { query.page = String(this.currentPage); }
+      if (q) { query.q = q; }
+      return query;
+    },
+    replaceQuery(query) {
+      this.$router.replace({ query }).catch(() => {}); // catch navigation error
+    },
+    syncQuery() {
+      if (!this.isOnOwnRoute()) { return; }
+      const query = this.buildQuery(this.$route.query.q);
+      if (!sameListQuery(query, this.$route.query)) { this.replaceQuery(query); }
+    },
+    restoreFromRoute() {
+      if (!this.isOnOwnRoute()) { return; }
+      const { category, page } = parseListState(this.$route.query, this.categories);
+      this.activeCategory = category;
+      this.currentPage = page;
+      this.clampPage();
+    },
+    // 頁碼只能等結果數量確定後才判斷是否超出；結果為空時不動，避免載入中被歸 1
+    clampPage() {
+      if (this.totalPage >= 1 && this.currentPage > this.totalPage) { this.currentPage = 1; }
+    },
+    selectCategory(category) {
+      if (category === this.activeCategory) { return; }
+      this.activeCategory = category;
+      this.currentPage = 1;
+    },
+    // 使用者主動搜尋才重置頁碼；由網址還原的搜尋走 runSearch，保留還原的頁碼
     async handleSearch(query) {
-      this.currentPage = 1; // 重置分頁
+      this.currentPage = 1;
+      await this.runSearch(query);
+    },
+    async runSearch(query) {
       // 搜尋為非同步，快速連續輸入時只套用最新一次查詢的結果
       const requestId = ++this.latestSearchId;
       if (!query) {
@@ -189,9 +256,13 @@ export default {
         }
       }
 
+      this.clampPage();
+      // 搜尋回來時使用者可能已離開首頁，此時不可把 q 寫到別頁的網址
+      if (!this.isOnOwnRoute()) { return; }
       // 同步 URL query 參數，避免重複導航
       if ((query || '') !== (this.$route.query.q || '')) {
-        this.$router.replace({ query: query ? { q: query } : {} }).catch(()=>{}); // catch navigation error
+        this.ownQuery = query || '';
+        this.replaceQuery(this.buildQuery(query));
       }
     },
     setPage(page) {
@@ -215,6 +286,8 @@ export default {
         path: item.path
       }));
     }
+    this.clampPage();
+    this.syncQuery();
   },
   beforeUnmount() {
     this.cancelCounts.forEach((cancel) => cancel());
@@ -304,44 +377,6 @@ export default {
   text-align: center;
   font-size: 1.25rem;
   color: var(--text);
-}
-
-.pager {
-  display: flex;
-  justify-content: center;
-  flex-wrap: wrap;
-  gap: 8px;
-  margin: 0;
-  padding: 0;
-  list-style: none;
-}
-
-.pager-link {
-  display: inline-block;
-  min-width: 40px;
-  padding: 6px 12px;
-  text-align: center;
-  text-decoration: none;
-  color: var(--text);
-  background: var(--surface);
-  border: 1px solid var(--line-strong);
-  border-radius: var(--radius-sm);
-}
-
-.pager-link:hover {
-  border-color: var(--primary);
-  color: var(--primary);
-}
-
-.pager .active .pager-link {
-  background: var(--primary);
-  border-color: var(--primary);
-  color: var(--on-primary);
-}
-
-.pager .disabled .pager-link {
-  opacity: 0.4;
-  cursor: not-allowed;
 }
 
 @media (max-width: 767.98px) {
