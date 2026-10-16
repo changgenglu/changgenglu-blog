@@ -1,0 +1,1 @@
+"use strict";(self["webpackChunkchanggenglu_blog"]=self["webpackChunkchanggenglu_blog"]||[]).push([[8236],{8236:function(e,n,c){c.d(n,{createPacketServices:function(){return g.g}});var g=c(1004);c(4425)}}]);
